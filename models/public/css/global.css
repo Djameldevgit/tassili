@@ -1,0 +1,20 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+body {
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #594fb6;
+    /* Fondo suave */
+    color: #333;
+
+}
+@import url('navbar.css');
+@import url('sidebar.css');
+@import url('main.css');
+@import url('footer.css');

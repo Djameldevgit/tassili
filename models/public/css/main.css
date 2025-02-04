@@ -1,0 +1,65 @@
+/* General reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f7f7f7;
+    margin: 0;
+    height: 100vh;
+  }
+  
+  /* Main container with grid */
+  .main {
+    background: linear-gradient(to right, #18016b, #ca6c00);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    padding: 20px;
+    justify-items: center;
+  }
+  
+  /* Card styling */
+  .image-card {
+    background-color: #fff;
+    padding: 20px;
+    text-align: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    max-width: 350px;
+  }
+  
+  .image-card img {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+  }
+  
+  .image-card h5 {
+    margin-top: 15px;
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .image-card p {
+    font-size: 14px;
+    color: #777;
+    margin-top: 10px;
+  }
+  
+  /* Hover effect for image-card */
+  .image-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+  
+  .image-card:hover img {
+    transform: scale(1.05);
+  }
+  
