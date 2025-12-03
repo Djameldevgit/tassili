@@ -1,0 +1,121 @@
+/* 🎯 ESTILOS BASE - VISTA GRID (2 columnas por defecto en móvil) */
+.post_thumb{
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    justify-content: center;
+    gap: 8px;
+    overflow: hidden;
+    margin: 15px 0;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+}
+
+.post_thumb_display{
+    min-width: 0;
+    height: 180px;
+    width: 100%;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    border-radius: 6px;
+}
+
+.post_thumb_display img,
+.post_thumb_display video{
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.post_thumb_display .post_thumb_menu{
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #0008;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.post_thumb_display:hover .post_thumb_menu{
+    opacity: 1;
+}
+
+.post_thumb_display .post_thumb_menu i{
+    font-size: 1.3rem;
+    color: white;
+    margin: 0 12px;
+}
+
+/* 🎯 MODO LISTA (1 columna) - SOLO EN MÓVIL */
+@media (max-width: 767px) {
+    body[data-post-view="list"] .post_thumb {
+        grid-template-columns: 1fr !important;
+        gap: 12px;
+    }
+    
+    body[data-post-view="list"] .post_thumb_display {
+        height: 220px;
+        border-radius: 8px;
+    }
+}
+
+/* 🎯 MODO GRID (2 columnas) - SOLO EN MÓVIL */
+@media (max-width: 767px) {
+    body[data-post-view="grid"] .post_thumb {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    body[data-post-view="grid"] .post_thumb_display {
+        height: 180px;
+    }
+}
+
+/* 🎯 TABLET - 3 posts por fila (siempre grid) */
+@media (min-width: 768px) {
+    .post_thumb{
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+    
+    .post_thumb_display{
+        height: 200px;
+    }
+}
+
+/* 🎯 DESKTOP - 4 posts por fila (siempre grid) */
+@media (min-width: 1024px) {
+    .post_thumb{
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        max-width: 1200px;
+        margin: 20px auto;
+    }
+    
+    .post_thumb_display{
+        height: 220px;
+    }
+    
+    .post_thumb_display .post_thumb_menu i{
+        font-size: 1.5rem;
+        margin: 0 15px;
+    }
+}
+
+/* 🎯 PANTALLAS MUY GRANDES */
+@media (min-width: 1400px) {
+    .post_thumb{
+        max-width: 1300px;
+    }
+    
+    .post_thumb_display{
+        height: 240px;
+    }
+}

@@ -1,0 +1,32 @@
+{
+  "short_name": "Vetements",
+  "name": "Vetements - Boutique de Mode en Ligne | Vêtements Tendance",
+  "icons": [
+    {
+      "src": "https://djamelvetements.onrender.com/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://djamelvetements.onrender.com/logo512.png", 
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "https://djamelvetements.onrender.com/",
+  "scope": "https://djamelvetements.onrender.com/",
+  "display": "standalone",
+  "theme_color": "#d63384",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "categories": ["shopping", "fashion", "clothing"],
+  "description": "Boutique en ligne de vêtements tendance. Découvrez notre collection de vêtements et accessoires de mode.",
+  "lang": "fr",
+  "screenshots": [
+    {
+      "src": "https://djamelvetements.onrender.com/screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png"
+    }
+  ]
+}
