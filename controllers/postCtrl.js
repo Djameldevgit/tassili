@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 const Posts = require('../models/postModel')
 const Comments = require('../models/commentModel')
 const Users = require('../models/userModel')
-const Vetement = require('../models/CategoriesModel/vetementModel')
-const Telephone = require('../models/CategoriesModel/TelephoneModel')
+ const Vetement = require('../models/CategoriesModel/vetementModel')
+const Telephone = require('../models/CategoriesModel/telephoneModel')
 const cloudinary = require('cloudinary').v2
 
 // Configurar Cloudinary
