@@ -1,83 +1,82 @@
-// sw.js - Service Worker optimizado y corregido
-// Cambiar el nombre del cache para Vetements
-const CACHE_NAME = 'vetements-boutique-v2.1';
+// sw.js - Service Worker optimizado para Tassili Shopping
+const CACHE_NAME = 'tassili-shopping-v2.1';
 
-// El resto del service worker permanece igual, solo cambia el nombre
-// ... (todo el código del service worker se mantiene igual)
+// URLs para cachear
 const urlsToCache = [
   '/',
   '/static/js/bundle.js',
   '/static/css/main.css',
   '/manifest.json',
-  '/icon-web-01.png'
+  '/logo192.png',
+  '/logo512.png'
 ];
 
 // Instalación
 self.addEventListener('install', (event) => {
-  console.log('🚀 Service Worker instalando...');
+  console.log('🚀 Service Worker Tassili Shopping en cours d\'installation...');
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
-        console.log('📦 Cache abierto');
-        // Usamos addAll pero con manejo de errores para cada recurso
+        console.log('📦 Cache ouvert pour Tassili Shopping');
+        // Cachear recursos con gestion d'erreurs
         return Promise.all(
           urlsToCache.map((url) => {
             return cache.add(url).catch((error) => {
-              console.log(`❌ Error cacheando ${url}:`, error);
+              console.log(`❌ Erreur de cache pour ${url}:`, error);
             });
           })
         );
       })
       .then(() => {
-        console.log('✅ Todos los recursos cacheados');
+        console.log('✅ Toutes les ressources de Tassili Shopping sont en cache');
         return self.skipWaiting();
       })
   );
 });
 
-// Activación
+// Activation
 self.addEventListener('activate', (event) => {
-  console.log('🎯 Service Worker activado');
+  console.log('🎯 Service Worker Tassili Shopping activé');
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
           if (cacheName !== CACHE_NAME) {
-            console.log('🗑️ Eliminando cache antigua:', cacheName);
+            console.log('🗑️ Suppression de l\'ancien cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
     }).then(() => {
-      // Reclamar clientes inmediatamente
+      // Réclamer les clients immédiatement
       return self.clients.claim();
     })
   );
 });
 
-// Fetch - Estrategia mejorada
+// Fetch - Stratégie améliorée
 self.addEventListener('fetch', (event) => {
-  // Skip para requests que no son GET
+  // Ignorer les requêtes qui ne sont pas GET
   if (event.request.method !== 'GET') return;
 
-  // Para rutas de la API, usar Network First y no cachear
+  // Pour les routes API, utiliser Network First et ne pas cacher
   if (event.request.url.includes('/api/')) {
     event.respondWith(
       fetch(event.request)
         .catch(() => {
-          // Solo devolver cache para API si hay un error de red
+          // Retourner le cache pour API seulement en cas d'erreur réseau
           return caches.match(event.request);
         })
     );
     return;
   }
 
-  // Para navegación (HTML), usar Network First
+  // Pour la navigation (HTML), utiliser Network First
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          // Verificar si la respuesta es válida
+          // Vérifier si la réponse est valide
           if (response && response.status === 200) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME)
@@ -88,16 +87,44 @@ self.addEventListener('fetch', (event) => {
           return response;
         })
         .catch(() => {
-          // Si falla la red, devolver la página de inicio del cache
+          // Si le réseau échoue, retourner la page d'accueil du cache
           return caches.match('/')
             .then((cachedResponse) => {
               if (cachedResponse) {
                 return cachedResponse;
               }
-              // Si no hay nada en cache, devolver una página offline básica
-              return new Response('Offline', {
+              // Si rien dans le cache, retourner une page hors ligne basique
+              return new Response(`
+                <!DOCTYPE html>
+                <html lang="fr">
+                <head>
+                  <meta charset="UTF-8">
+                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                  <title>Tassili Shopping - Hors ligne</title>
+                  <style>
+                    body { 
+                      font-family: Arial, sans-serif; 
+                      text-align: center; 
+                      padding: 50px; 
+                      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                      color: white;
+                    }
+                    h1 { font-size: 2.5rem; margin-bottom: 20px; }
+                    p { font-size: 1.2rem; margin-bottom: 30px; }
+                    .logo { font-size: 3rem; margin-bottom: 20px; }
+                  </style>
+                </head>
+                <body>
+                  <div class="logo">🛍️</div>
+                  <h1>Tassili Shopping</h1>
+                  <p>Vous êtes actuellement hors ligne.</p>
+                  <p>Veuillez vérifier votre connexion Internet.</p>
+                  <p>Vos produits seront disponibles dès que la connexion sera rétablie.</p>
+                </body>
+                </html>
+              `, {
                 status: 503,
-                statusText: 'Service Unavailable',
+                statusText: 'Hors ligne',
                 headers: new Headers({ 'Content-Type': 'text/html' })
               });
             });
@@ -106,24 +133,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Para recursos estáticos (JS, CSS, imágenes), usar Cache First
+  // Pour les ressources statiques (JS, CSS, images), utiliser Cache First
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
-        // Si existe en cache, devolverlo
+        // Si existe dans le cache, le retourner
         if (cachedResponse) {
           return cachedResponse;
         }
 
-        // Si no está en cache, buscar en la red
+        // Si pas dans le cache, chercher sur le réseau
         return fetch(event.request)
           .then((response) => {
-            // Verificar que la respuesta sea válida
+            // Vérifier que la réponse est valide
             if (!response || response.status !== 200 || response.type !== 'basic') {
               return response;
             }
 
-            // Clonar la respuesta para guardarla en cache
+            // Cloner la réponse pour la sauvegarder dans le cache
             const responseToCache = response.clone();
             caches.open(CACHE_NAME)
               .then((cache) => {
@@ -133,17 +160,17 @@ self.addEventListener('fetch', (event) => {
             return response;
           })
           .catch(() => {
-            // Fallback para diferentes tipos de recursos
+            // Fallback pour différents types de ressources
             if (event.request.destination === 'image') {
-              // Puedes devolver una imagen placeholder aquí
+              // Retourner une image placeholder pour Tassili Shopping
               return new Response('', {
                 status: 404,
-                statusText: 'Image Not Found'
+                statusText: 'Image non trouvée'
               });
             }
-            return new Response('Offline', {
+            return new Response('Hors ligne - Tassili Shopping', {
               status: 503,
-              statusText: 'Service Unavailable'
+              statusText: 'Service indisponible'
             });
           });
       })

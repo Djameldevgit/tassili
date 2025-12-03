@@ -1,5 +1,5 @@
 import React from 'react';
-import { Form, Card } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
 // Datos de las wilayas de Argelia con traducciones
@@ -64,86 +64,135 @@ const algeriaWilayas = [
   { code: '58', name: { fr: 'In Guezzam', ar: 'عين قزام' } }
 ];
 
-const WilayaCommune = ({ 
-    postData, 
-    handleChangeInput 
+const WilayaCommune = ({
+  postData = {},
+  handleChangeInput,
+  wilayaName = 'wilaya',
+  communeName = 'commune',
+  label = '📍 Ubicación',
+  wilayaLabel = 'Wilaya',
+  communeLabel = 'Comuna',
+  required = false,
+  className = 'mb-3',
+  disabled = false,
+  error = null,
+  theme = 'light'
 }) => {
-    const { t, i18n } = useTranslation(["categories"]);
-    const isRTL = i18n.language === 'ar';
-    const currentLanguage = i18n.language;
+  const { t, i18n } = useTranslation("categories");
+  const isRTL = i18n.language === 'ar';
+  const currentLanguage = i18n.language;
 
-    // Generar opciones de wilayas basadas en el idioma actual
-    const wilayasOptions = algeriaWilayas.map((wilaya) => (
-        <option key={wilaya.code} value={wilaya.name[currentLanguage === 'ar' ? 'ar' : 'fr']}>
-            {wilaya.name[currentLanguage === 'ar' ? 'ar' : 'fr']}
-        </option>
-    ));
+  // Extraer valores de postData
+  const wilayaValue = postData?.[wilayaName] || '';
+  const communeValue = postData?.[communeName] || '';
 
-    // ✅ MANEJADOR LOCAL para el input
-    const handleLocalChange = (e) => {
-        if (handleChangeInput) {
-            handleChangeInput(e);
-        }
-    };
+  // Generar opciones de wilayas basadas en el idioma actual
+  const wilayasOptions = algeriaWilayas.map((wilaya) => (
+    <option key={wilaya.code} value={wilaya.name[currentLanguage === 'ar' ? 'ar' : 'fr']}>
+      {wilaya.name[currentLanguage === 'ar' ? 'ar' : 'fr']}
+    </option>
+  ));
 
-    return (
-        <Card className="p-3 mb-3">
-            {/* 📄 WILAYA */}
-            <Form.Group className="mb-3">
-                <Form.Label className="fw-bold mb-2">
-                    {t('wilaya', 'Wilaya')}
-                </Form.Label>
-                
-                <Form.Select
-                    name="wilaya"
-                    value={postData.wilaya || ''}
-                    onChange={handleLocalChange}
-                    required
-                    style={{
-                        textAlign: isRTL ? 'right' : 'left',
-                        direction: isRTL ? 'rtl' : 'ltr'
-                    }}
-                >
-                    <option value="">{t('selectWilaya', 'Selecciona la wilaya')}</option>
-                    {wilayasOptions}
-                </Form.Select>
-                
-                <div className="text-muted small mt-1" style={{
-                    textAlign: isRTL ? 'left' : 'right',
-                    direction: 'ltr'
-                }}>
-                    {t('wilayaHelp', 'Selecciona tu provincia')}
-                </div>
-            </Form.Group>
+  // ESTILOS IDÉNTICOS A MODELO
+  const styles = {
+    formControl: {
+      border: `1px solid ${theme === 'dark' ? '#4a5568' : '#cbd5e0'}`,
+      backgroundColor: theme === 'dark' ? '#2d3748' : '#ffffff',
+      padding: '10px 12px',
+      borderRadius: '8px',
+      color: theme === 'dark' ? 'white' : '#2d3748',
+      width: '100%',
+      fontSize: '14px'
+    },
+    formLabel: {
+      fontWeight: '600',
+      marginBottom: '6px',
+      display: 'block',
+      color: theme === 'dark' ? '#e2e8f0' : '#2d3748'
+    }
+  };
 
-            {/* 📄 COMMUNE */}
-            <Form.Group className="mb-3">
-                <Form.Label className="fw-bold mb-2">
-                    {t('commune', 'Commune')}
-                </Form.Label>
-                
-                <Form.Control
-                    type="text"
-                    name="commune"
-                    value={postData.commune || ''}
-                    onChange={handleLocalChange}
-                    placeholder={t('communePlaceholder', 'Ej: Bab El Oued, Sidi Mhamed...')}
-                    required
-                    style={{
-                        textAlign: isRTL ? 'right' : 'left',
-                        direction: isRTL ? 'rtl' : 'ltr'
-                    }}
-                />
-                
-                <div className="text-muted small mt-1" style={{
-                    textAlign: isRTL ? 'left' : 'right',
-                    direction: 'ltr'
-                }}>
-                    {t('communeHelp', 'Nombre de tu ciudad/barrio')}
-                </div>
-            </Form.Group>
-        </Card>
-    );
+  // Manejar cambios para ambos campos
+  const handleFieldChange = (e) => {
+    handleChangeInput(e);
+  };
+
+  return (
+    <>
+      {/* 📄 WILAYA */}
+      <Form.Group className={className}>
+        <Form.Label style={styles.formLabel}>
+          {wilayaLabel} {required && '*'}
+        </Form.Label>
+        
+        <Form.Select
+          name={wilayaName}
+          value={wilayaValue}
+          onChange={handleFieldChange}
+          required={required}
+          disabled={disabled}
+          isInvalid={!!error?.wilaya}
+          style={{
+            ...styles.formControl,
+            textAlign: isRTL ? 'right' : 'left',
+            direction: isRTL ? 'rtl' : 'ltr'
+          }}
+        >
+          <option value="">{t('selectWilaya', 'Selecciona la wilaya')}</option>
+          {wilayasOptions}
+        </Form.Select>
+        
+        <div className="text-muted small mt-1" style={{
+          textAlign: isRTL ? 'left' : 'right',
+          direction: 'ltr'
+        }}>
+          {t('wilayaHelp', 'Selecciona tu provincia')}
+        </div>
+        
+        {error?.wilaya && (
+          <Form.Control.Feedback type="invalid">
+            {error.wilaya}
+          </Form.Control.Feedback>
+        )}
+      </Form.Group>
+
+      {/* 📄 COMMUNE */}
+      <Form.Group className={className}>
+        <Form.Label style={styles.formLabel}>
+          {communeLabel} {required && '*'}
+        </Form.Label>
+        
+        <Form.Control
+          type="text"
+          name={communeName}
+          value={communeValue}
+          onChange={handleFieldChange}
+          required={required}
+          disabled={disabled}
+          isInvalid={!!error?.commune}
+          style={{
+            ...styles.formControl,
+            textAlign: isRTL ? 'right' : 'left',
+            direction: isRTL ? 'rtl' : 'ltr'
+          }}
+          placeholder={t('communePlaceholder', 'Ej: Bab El Oued, Sidi Mhamed...')}
+        />
+        
+        <div className="text-muted small mt-1" style={{
+          textAlign: isRTL ? 'left' : 'right',
+          direction: 'ltr'
+        }}>
+          {t('communeHelp', 'Nombre de tu ciudad/barrio')}
+        </div>
+        
+        {error?.commune && (
+          <Form.Control.Feedback type="invalid">
+            {error.commune}
+          </Form.Control.Feedback>
+        )}
+      </Form.Group>
+    </>
+  );
 };
 
-export default React.memo(WilayaCommune);
+export default WilayaCommune;

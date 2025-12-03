@@ -1,8 +1,18 @@
 import React from 'react';
-import { Form, Card } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
-const Talla = ({ postData, tallaData, onTallaChange }) => {
+const Talla = ({ 
+  postData, 
+  tallaData, 
+  onTallaChange,
+  label = '📏 Tallas Disponibles',  // Icono incluido
+  required = false,
+  className = 'mb-3',
+  disabled = false,
+  error = null,
+  theme = 'light'
+}) => {
   const { t, i18n } = useTranslation('talla');
   const isRTL = i18n.language === 'ar';
 
@@ -44,15 +54,35 @@ const Talla = ({ postData, tallaData, onTallaChange }) => {
     return Array.isArray(tallaData) && tallaData.includes(size);
   };
 
+  // ESTILOS IDÉNTICOS A MODELO (solo para el exterior)
+  const styles = {
+    formLabel: {
+      fontWeight: '600',
+      marginBottom: '6px',
+      display: 'block',
+      color: theme === 'dark' ? '#e2e8f0' : '#2d3748'
+    }
+  };
+
   if (!postData?.subCategory) {
     return (
-      <Card className="p-3 mb-3">
-        <div className="text-center py-2 text-muted">
+      <Form.Group className={className}>
+        <Form.Label style={styles.formLabel}>
+          {label} {required && '*'}
+        </Form.Label>
+        <div className="text-center py-2 text-muted" style={{
+          border: `1px solid ${theme === 'dark' ? '#4a5568' : '#cbd5e0'}`,
+          backgroundColor: theme === 'dark' ? '#2d3748' : '#ffffff',
+          padding: '10px 12px',
+          borderRadius: '8px',
+          color: theme === 'dark' ? '#a0aec0' : '#718096',
+          fontSize: '14px'
+        }}>
           <p className="mb-0">
             {isRTL ? 'اختر فئة فرعية لرؤية المقاسات' : 'Selecciona una subcategoría para ver las tallas'}
           </p>
         </div>
-      </Card>
+      </Form.Group>
     );
   }
 
@@ -60,21 +90,28 @@ const Talla = ({ postData, tallaData, onTallaChange }) => {
   const selectedCount = Array.isArray(tallaData) ? tallaData.length : 0;
 
   return (
-    <Card className="p-3 mb-3">
-      <Form.Group>
-        {/* 📄 TÍTULO SIMPLE */}
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <Form.Label className="fw-bold mb-0">
-            {t('size', 'Tallas Disponibles')}
-          </Form.Label>
-          {selectedCount > 0 && (
-            <small className="text-muted">
-              {selectedCount} {t('selected', 'seleccionadas')}
-            </small>
-          )}
-        </div>
-        
-        {/* 📝 CHECKBOXES SIMPLES */}
+    <Form.Group className={className}>
+      {/* EXACTAMENTE LA MISMA LÓGICA QUE MODELO: {label} directamente */}
+      <div className="d-flex justify-content-between align-items-center mb-2">
+        <Form.Label style={styles.formLabel} className="mb-0">
+          {label} {required && '*'}
+        </Form.Label>
+        {selectedCount > 0 && (
+          <small className="text-muted">
+            {selectedCount} {t('selected', 'seleccionadas')}
+          </small>
+        )}
+      </div>
+      
+      {/* CONTENEDOR EXTERIOR CON ESTILOS DE MODELO */}
+      <div style={{
+        border: `1px solid ${theme === 'dark' ? '#4a5568' : '#cbd5e0'}`,
+        backgroundColor: theme === 'dark' ? '#2d3748' : '#ffffff',
+        padding: '10px 12px',
+        borderRadius: '8px',
+        minHeight: '48px'
+      }}>
+        {/* 📝 CHECKBOXES SIMPLES (TUS CHECKBOXES ORIGINALES SIN MODIFICAR) */}
         <div className="d-flex flex-wrap gap-2">
           {sizes.map((size) => (
             <Form.Check
@@ -91,16 +128,23 @@ const Talla = ({ postData, tallaData, onTallaChange }) => {
             />
           ))}
         </div>
-        
-        {/* 🔢 INFO SIMPLE */}
-        <div className="text-muted small mt-2" style={{
-          textAlign: isRTL ? 'right' : 'left',
-          direction: isRTL ? 'rtl' : 'ltr'
-        }}>
-          {t('size_info', 'Selecciona las tallas disponibles')}
-        </div>
-      </Form.Group>
-    </Card>
+      </div>
+      
+      {/* INFO */}
+      <div className="text-muted small mt-1" style={{
+        textAlign: isRTL ? 'left' : 'right',
+        direction: 'ltr'
+      }}>
+        {t('size_info', 'Selecciona las tallas disponibles')}
+      </div>
+      
+      {/* FEEDBACK DE ERROR IDÉNTICO A MODELO */}
+      {error && (
+        <Form.Control.Feedback type="invalid">
+          {error}
+        </Form.Control.Feedback>
+      )}
+    </Form.Group>
   );
 };
 
