@@ -3,113 +3,30 @@
   "name": "Tassili Shopping - Marché en Ligne | Tous Types de Produits",
   "icons": [
     {
-      "src": "http://tassilishopping.onrender.com/logo192.png",
+      "src": "https://tassilishopping.onrender.com/logo192.png",
       "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     },
     {
-      "src": "http://tassilishopping.onrender.com/logo512.png",
+      "src": "https://tassilishopping.onrender.com/logo512.png", 
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
+      "type": "image/png"
     }
   ],
-  "start_url": "http://tassilishopping.onrender.com/",
-  "scope": "http://tassilishopping.onrender.com/",
+  "start_url": "https://tassilishopping.onrender.com/",
+  "scope": "https://tassilishopping.onrender.com/",
   "display": "standalone",
   "theme_color": "#4CAF50",
-  "background_color": "#FFFFFF",
+  "background_color": "#ffffff",
   "orientation": "portrait-primary",
-  "categories": ["shopping", "ecommerce", "marketplace", "retail"],
-  "description": "Votre marché en ligne pour tous types de produits. Découvrez des milliers d'articles : électronique, mode, maison, sports, et bien plus encore !",
-  "lang": "fr-FR",
-  "dir": "ltr",
+  "categories": ["shopping", "ecommerce", "retail"],
+  "description": "Votre marché en ligne pour tous types de produits. Électronique, mode, maison, sports, jouets et bien plus encore.",
+  "lang": "fr",
   "screenshots": [
     {
-      "src": "http://tassilishopping.onrender.com/screenshot1.png",
+      "src": "https://tassilishopping.onrender.com/screenshot1.png",
       "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "Page d'accueil Tassili Shopping"
-    },
-    {
-      "src": "http://tassilishopping.onrender.com/screenshot2.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "Application mobile Tassili Shopping"
+      "type": "image/png"
     }
-  ],
-  "shortcuts": [
-    {
-      "name": "Nouveaux Produits",
-      "short_name": "Nouveautés",
-      "description": "Découvrez les nouveaux produits",
-      "url": "/nouveaux-produits",
-      "icons": [
-        {
-          "src": "http://tassilishopping.onrender.com/icon-new.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Promotions",
-      "short_name": "Promos",
-      "description": "Voir toutes les promotions",
-      "url": "/promotions",
-      "icons": [
-        {
-          "src": "http://tassilishopping.onrender.com/icon-sale.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Mon Panier",
-      "short_name": "Panier",
-      "description": "Voir mon panier d'achat",
-      "url": "/panier",
-      "icons": [
-        {
-          "src": "http://tassilishopping.onrender.com/icon-cart.png",
-          "sizes": "96x96"
-        }
-      ]
-    }
-  ],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "scope_extensions": [],
-  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
-  "edge_side_panel": {
-    "preferred_width": 480
-  },
-  "protocol_handlers": [
-    {
-      "protocol": "web+tassili",
-      "url": "/handler?url=%s"
-    }
-  ],
-  "share_target": {
-    "action": "/partager",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url",
-      "files": [
-        {
-          "name": "images",
-          "accept": ["image/*"]
-        }
-      ]
-    }
-  },
-  "handle_links": "preferred",
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  }
+  ]
 }
