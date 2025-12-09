@@ -1,0 +1,30 @@
+{
+    "categories": "Catégories",
+    "select_category": "Sélectionnez une catégorie",
+    "immobilier": "Immobilier",
+    "automobiles": "Automobiles & Véhicules",
+    "pieces_detachees": "Pièces détachées",
+    "telephones": "Téléphones & Accessoires",
+    "informatique": "Informatique",
+    "electromenager": "Électroménager & Électronique",
+    "vetements": "Vêtements & Mode",
+    "sante_beaute": "Santé & Beauté",
+    "meubles": "Meubles & Maison",
+    "loisirs": "Loisirs & Divertissements",
+    "emploi": "Offres & Demandes d'emploi",
+    "all_categories": "Toutes les catégories",
+    "search_placeholder": "Rechercher une catégorie...",
+    "category_tips": {
+      "immobilier": "Appartements, Maisons, Terrains, Locaux commerciaux",
+      "automobiles": "Voitures, Moto, Véhicules utilitaires, Bateaux",
+      "pieces_detachees": "Pièces auto, Accessoires véhicules",
+      "telephones": "Smartphones, Tablettes, Accessoires mobiles",
+      "informatique": "Ordinateurs, Périphériques, Logiciels",
+      "electromenager": "Électroménagers, Téléviseurs, Audio",
+      "vetements": "Vêtements, Chaussures, Accessoires mode",
+      "sante_beaute": "Produits beauté, Santé, Cosmétiques",
+      "meubles": "Meubles, Décoration, Équipement maison",
+      "loisirs": "Sports, Jeux, Instruments, Livres",
+      "emploi": "Offres d'emploi, Recherche d'emploi"
+    }
+  }

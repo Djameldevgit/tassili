@@ -78,7 +78,7 @@ app.use("/api", require("./routes/settingsRouter"));
 setInterval(autoUnblockUsers, 5 * 60 * 1000);
 
 // --- MongoDB ---
-const URI = process.env.MONGO_URI;
+const URI = process.env.MONGODB_URI;
 
 mongoose.connect(URI, {
   useNewUrlParser: true,

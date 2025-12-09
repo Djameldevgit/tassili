@@ -324,13 +324,7 @@ getPosts: async (req, res) => {
         const currentPage = parseInt(page) || 1;
         const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-        console.log("📈 Resultados paginados:", {
-            encontrados: posts.length,
-            total: totalCount,
-            paginaActual: currentPage,
-            totalPaginas: totalPages,
-            porPagina: itemsPerPage
-        });
+       
 
         res.json({
             msg: "Success!",

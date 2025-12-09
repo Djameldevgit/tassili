@@ -1,0 +1,104 @@
+// DynamicFieldManager.jsx - El controlador principal CORREGIDO
+import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { getVisibleFields } from './FieldConfig';
+
+// Importar componentes específicos
+import ImmobilierFields from './specificFilelds/ImmobiliersFields';
+import VetementsFields from './specificFilelds/VetementsFields';
+import VehiculesFields from './specificFilelds/VehiculesFilelds';
+import TelephonesFields from './specificFilelds/TelephonesFields';
+import InformatiqueFields from './specificFilelds/InformatiqueFields';
+import ElectromenagerFields from './specificFilelds/ElectromenagerFields';
+import SanteBeauteFields from './specificFilelds/SanteBeauteFields';
+import MeublesFields from './specificFilelds/MeublesFields';
+import LoisirsFields from './specificFilelds/LoisirsFields';
+import SportFields from './specificFilelds/SportFields';
+import AlimentairesFields from './specificFilelds/AlimentairesFields';
+import MateriauxFields from './specificFilelds/MateriauxFields';
+import ServicesFields from './specificFilelds/ServicesFields';
+import VoyagesFields from './specificFilelds/VoyagesFields';
+import EmploiFields from './specificFilelds/EmploiFields';
+
+const DynamicFieldManager = ({ 
+  postData, 
+  handleChangeInput, 
+  mainCategory, 
+  subCategory, 
+  articleType 
+}) => {
+  const { t, i18n } = useTranslation();
+  const isRTL = i18n.language === 'ar';
+  const [visibleFields, setVisibleFields] = useState([]);
+
+  // Determinar qué campos mostrar
+  useEffect(() => {
+    const fields = getVisibleFields(mainCategory, subCategory, articleType);
+    setVisibleFields(fields);
+  }, [mainCategory, subCategory, articleType]);
+
+  // Si no hay categoría, no renderizar nada
+  if (!mainCategory) return null;
+
+  // Renderizar según categoría
+  const renderCategoryFields = () => {
+    const props = {
+      visibleFields,
+      postData,
+      handleChangeInput,
+      subCategory,
+      articleType,
+      isRTL
+    };
+
+    switch (mainCategory) {
+      case 'immobilier':
+        return <ImmobilierFields {...props} />;
+      case 'automobiles':
+        return <VehiculesFields {...props} />;
+      case 'vetements':
+        return <VetementsFields {...props} />;
+      case 'telephones':
+        return <TelephonesFields {...props} />;
+      case 'informatique':
+        return <InformatiqueFields {...props} />;
+      case 'electromenager':
+        return <ElectromenagerFields {...props} />;
+      case 'sante_beaute':
+        return <SanteBeauteFields {...props} />;
+      case 'meubles':
+        return <MeublesFields {...props} />;
+      case 'loisirs':
+        return <LoisirsFields {...props} />;
+      case 'sport':
+        return <SportFields {...props} />;
+      case 'alimentaires':
+        return <AlimentairesFields {...props} />;
+      case 'materiaux':
+        return <MateriauxFields {...props} />;
+      case 'services':
+        return <ServicesFields {...props} />;
+      case 'voyages':
+        return <VoyagesFields {...props} />;
+      case 'emploi':
+        return <EmploiFields {...props} />;
+      default:
+        return (
+          <div className={`text-center py-4 ${isRTL ? 'rtl' : 'ltr'}`}>
+            <div className="text-muted">
+              <p>🎯 {t('no_specific_fields', 'Aucun champ spécifique requis pour cette catégorie')}</p>
+            </div>
+          </div>
+        );
+    }
+  };
+
+  return (
+    <div className={`mt-4 p-3 border rounded ${isRTL ? 'rtl' : 'ltr'}`}>
+      
+      {renderCategoryFields()}
+    </div>
+  );
+};
+
+export default DynamicFieldManager;

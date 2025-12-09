@@ -474,7 +474,7 @@ const Navbar2 = () => {
             {/* Botón Agregar Post */}
             {(userRole === "Super-utilisateur" || userRole === "admin") && (
               <Link
-                to="/create-post"
+                to="/creer-annonce"
                 className="icon-button"
                 style={{
                   width: isMobile ? '34px' : '38px', // 🔥 REDUCIDO

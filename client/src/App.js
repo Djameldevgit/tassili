@@ -31,11 +31,12 @@ import { getPrivacySettings } from './redux/actions/privacyAction';
 import Bloginfo from './pages/bloginfo';
 import Bloqueos404 from './components/adminitration/Bloqueos404';
 import Appinfo2 from './pages/appinfo2';
-import Createpost from './pages/Createpost';
+  
 import Appinfo3 from './pages/appinfo3';
 import Map from './pages/Map';
 import PostId from './pages/PostId';
 import Message from './pages/message';
+import CreateAnnoncePage from './pages/CreateAnnoncePage';
 
 function App() {
   const { auth, status, modal, languageReducer } = useSelector(state => state)
@@ -146,8 +147,8 @@ function App() {
             <Route exact path="/bloginfo" component={Bloginfo} />
             <Route exact path="/infoaplicacionn" component={Appinfo2} />
             <Route exact path="/infoaplicacionn3" component={Appinfo3} />
-            <Route exact path="/create-post" component={Createpost} />
-            <Route exact path="/edit-post/:id" component={Createpost} />
+            <Route exact path="/creer-annonce" component={CreateAnnoncePage} />
+            <Route exact path="/editer-annonce/:id" component={CreateAnnoncePage} />
             <Route exact path="/post/:id" component={PostId} />
             <Route exact path="/message" component={Message} />
             <Route exact path="/bloqueos404" component={Bloqueos404} />
