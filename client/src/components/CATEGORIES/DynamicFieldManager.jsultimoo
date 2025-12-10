@@ -1,24 +1,7 @@
-// DynamicFieldManager.jsx - El controlador principal CORREGIDO
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import FieldRenderer from './FieldRenderer'; // Importamos FieldRenderer
 import { getVisibleFields } from './FieldConfig';
-
-// Importar componentes específicos
-import ImmobilierFields from './specificFilelds/ImmobiliersFields';
-import VetementsFields from './specificFilelds/VetementsFields';
-import VehiculesFields from './specificFilelds/VehiculesFilelds';
-import TelephonesFields from './specificFilelds/TelephonesFields';
-import InformatiqueFields from './specificFilelds/InformatiqueFields';
-import ElectromenagerFields from './specificFilelds/ElectromenagerFields';
-import SanteBeauteFields from './specificFilelds/SanteBeauteFields';
-import MeublesFields from './specificFilelds/MeublesFields';
-import LoisirsFields from './specificFilelds/LoisirsFields';
-import SportFields from './specificFilelds/SportFields';
-import AlimentairesFields from './specificFilelds/AlimentairesFields';
-import MateriauxFields from './specificFilelds/MateriauxFields';
-import ServicesFields from './specificFilelds/ServicesFields';
-import VoyagesFields from './specificFilelds/VoyagesFields';
-import EmploiFields from './specificFilelds/EmploiFields';
 
 const DynamicFieldManager = ({ 
   postData, 
@@ -33,70 +16,71 @@ const DynamicFieldManager = ({
 
   // Determinar qué campos mostrar
   useEffect(() => {
-    const fields = getVisibleFields(mainCategory, subCategory, articleType);
-    setVisibleFields(fields);
+    if (mainCategory && subCategory) {
+      const fields = getVisibleFields(mainCategory, subCategory, articleType);
+      setVisibleFields(fields);
+    } else {
+      setVisibleFields([]);
+    }
   }, [mainCategory, subCategory, articleType]);
 
-  // Si no hay categoría, no renderizar nada
-  if (!mainCategory) return null;
+  // Si no hay categoría o subcategoría, no renderizar nada
+  if (!mainCategory || !subCategory) {
+    return (
+      <div className={`text-center py-4 ${isRTL ? 'rtl' : 'ltr'}`}>
+        <div className="text-muted">
+          <p>🏁 {t('select_category_first', 'Sélectionnez d\'abord une catégorie')}</p>
+        </div>
+      </div>
+    );
+  }
 
-  // Renderizar según categoría
-  const renderCategoryFields = () => {
-    const props = {
-      visibleFields,
-      postData,
-      handleChangeInput,
-      subCategory,
-      articleType,
-      isRTL
-    };
+  // Si no hay campos visibles para esta categoría
+  if (visibleFields.length === 0) {
+    return (
+      <div className={`text-center py-4 ${isRTL ? 'rtl' : 'ltr'}`}>
+        <div className="text-muted">
+          <p>🎯 {t('no_specific_fields', 'Aucun champ spécifique requis pour cette catégorie')}</p>
+        </div>
+      </div>
+    );
+  }
 
-    switch (mainCategory) {
-      case 'immobilier':
-        return <ImmobilierFields {...props} />;
-      case 'automobiles':
-        return <VehiculesFields {...props} />;
-      case 'vetements':
-        return <VetementsFields {...props} />;
-      case 'telephones':
-        return <TelephonesFields {...props} />;
-      case 'informatique':
-        return <InformatiqueFields {...props} />;
-      case 'electromenager':
-        return <ElectromenagerFields {...props} />;
-      case 'sante_beaute':
-        return <SanteBeauteFields {...props} />;
-      case 'meubles':
-        return <MeublesFields {...props} />;
-      case 'loisirs':
-        return <LoisirsFields {...props} />;
-      case 'sport':
-        return <SportFields {...props} />;
-      case 'alimentaires':
-        return <AlimentairesFields {...props} />;
-      case 'materiaux':
-        return <MateriauxFields {...props} />;
-      case 'services':
-        return <ServicesFields {...props} />;
-      case 'voyages':
-        return <VoyagesFields {...props} />;
-      case 'emploi':
-        return <EmploiFields {...props} />;
-      default:
-        return (
-          <div className={`text-center py-4 ${isRTL ? 'rtl' : 'ltr'}`}>
-            <div className="text-muted">
-              <p>🎯 {t('no_specific_fields', 'Aucun champ spécifique requis pour cette catégorie')}</p>
-            </div>
-          </div>
-        );
-    }
-  };
-
+  // 🎯 RENDERIZAR CAMPOS USANDO FieldRenderer
   return (
-    <div className={`mt-4 p-3 border rounded ${isRTL ? 'rtl' : 'ltr'}`}>
+    <div className={`mt-4 p-3 border rounded bg-light ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div className="mb-3 border-bottom pb-2">
+        <h6 className="text-primary mb-0">
+          ⚙️ {t('specific_fields', 'Champs spécifiques')}
+          <small className="text-muted ms-2">
+            {t('for_category', 'pour')}: {t(`categories.${mainCategory}`, mainCategory)} → {t(`subcategories.${subCategory}`, subCategory)}
+          </small>
+        </h6>
+      </div>
       
-      {renderCategoryFields()}
+      <div className="row g-3">
+        {visibleFields.map((fieldName) => (
+          <div key={fieldName} className="col-12 col-md-6">
+            <FieldRenderer
+              fieldName={fieldName}
+              postData={postData}
+              handleChangeInput={handleChangeInput}
+              mainCategory={mainCategory}
+              subCategory={subCategory}
+              articleType={articleType}
+              isRTL={isRTL}
+            />
+          </div>
+        ))}
+      </div>
+      
+      {/* Información sobre los campos */}
+      <div className="mt-3 pt-2 border-top">
+        <small className="text-muted">
+          <i className="fas fa-info-circle me-1"></i>
+          {t('fields_info', `${visibleFields.length} champ(s) spécifique(s) pour cette catégorie`)}
+        </small>
+      </div>
     </div>
   );
 };

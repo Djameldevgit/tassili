@@ -2,6 +2,7 @@ import { GLOBALTYPES } from './globalTypes'
 import { imageUpload } from '../../utils/imageUpload'
 import { postDataAPI, getDataAPI, patchDataAPI, deleteDataAPI } from '../../utils/fetchData'
 import { createNotify, removeNotify } from './notifyAction'
+import { POST_TYPES_APROVE } from './postAproveAction';
 
 export const POST_TYPES = {
     CREATE_POST: 'CREATE_POST',
@@ -13,7 +14,6 @@ export const POST_TYPES = {
     VIEW_POST: 'VIEW_POST'
 
 }
-
 export const createPost = ({ 
     postData, 
     images, 

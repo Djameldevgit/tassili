@@ -5,7 +5,7 @@ const Toast = ({ msg, handleShow, bgColor, type }) => {
     useEffect(() => {
         const timer = setTimeout(() => {
             handleShow();
-        }, 5000); // 5000ms = 5 segundos
+        }, 15000); // 5000ms = 5 segundos
 
         return () => clearTimeout(timer);
     }, [handleShow]);

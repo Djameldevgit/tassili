@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import FieldRenderer from './FieldRenderer'; // Importamos FieldRenderer
+import FieldRenderer from './FieldRenderer';
 import { getVisibleFields } from './FieldConfig';
 
 const DynamicFieldManager = ({ 
@@ -8,21 +8,101 @@ const DynamicFieldManager = ({
   handleChangeInput, 
   mainCategory, 
   subCategory, 
-  articleType 
+  articleType,
+  onCategoryDataChange // 🔥 NUEVO: callback para enviar datos al padre
 }) => {
   const { t, i18n } = useTranslation();
   const isRTL = i18n.language === 'ar';
   const [visibleFields, setVisibleFields] = useState([]);
+  
+  // 🔥 REF para evitar re-renders innecesarios
+  const prevCategoryRef = useRef({ mainCategory: '', subCategory: '' });
+  
+  // 🔥 Estado para datos específicos de esta categoría
+  const [categoryData, setCategoryData] = useState({});
 
-  // Determinar qué campos mostrar
+  // 🎯 Determinar qué campos mostrar
   useEffect(() => {
     if (mainCategory && subCategory) {
       const fields = getVisibleFields(mainCategory, subCategory, articleType);
       setVisibleFields(fields);
+      
+      // 🔥 Resetear datos de categoría cuando cambia la categoría
+      if (prevCategoryRef.current.mainCategory !== mainCategory || 
+          prevCategoryRef.current.subCategory !== subCategory) {
+        setCategoryData({});
+        if (onCategoryDataChange) {
+          onCategoryDataChange({}); // Limpiar datos anteriores
+        }
+      }
+      
+      prevCategoryRef.current = { mainCategory, subCategory };
     } else {
       setVisibleFields([]);
     }
-  }, [mainCategory, subCategory, articleType]);
+  }, [mainCategory, subCategory, articleType, onCategoryDataChange]);
+
+  // 🔥 Efecto para extraer y enviar datos específicos
+  useEffect(() => {
+    if (visibleFields.length === 0 || !postData) return;
+
+    // Extraer solo los campos específicos de esta categoría
+    const specificData = {};
+    
+    visibleFields.forEach(fieldName => {
+      if (postData[fieldName] !== undefined && postData[fieldName] !== null) {
+        specificData[fieldName] = postData[fieldName];
+      }
+    });
+
+    // Si hay datos, actualizar estado y notificar al padre
+    if (Object.keys(specificData).length > 0) {
+      setCategoryData(specificData);
+      
+      if (onCategoryDataChange) {
+        onCategoryDataChange(specificData);
+      }
+    }
+    
+  }, [postData, visibleFields, onCategoryDataChange]);
+
+  // 🔥 Handler mejorado para cambios de campos
+  const handleFieldChange = useCallback((e) => {
+    // Primero, ejecutar el handler original
+    handleChangeInput(e);
+    
+    const { name, value, type, checked } = e.target;
+    const fieldValue = type === 'checkbox' ? checked : value;
+    
+    // 🔥 Actualizar datos específicos inmediatamente
+    setCategoryData(prev => ({
+      ...prev,
+      [name]: fieldValue
+    }));
+    
+    // 🔥 Notificar al padre del cambio
+    if (onCategoryDataChange && visibleFields.includes(name)) {
+      setTimeout(() => {
+        const updatedData = { ...categoryData, [name]: fieldValue };
+        onCategoryDataChange(updatedData);
+      }, 0);
+    }
+    
+  }, [handleChangeInput, onCategoryDataChange, categoryData, visibleFields]);
+
+  // 🔥 Función para obtener datos completos de la categoría
+  const getFullCategoryData = useCallback(() => {
+    const allData = {};
+    
+    // Combinar datos de postData que son específicos de esta categoría
+    visibleFields.forEach(fieldName => {
+      if (postData && postData[fieldName] !== undefined) {
+        allData[fieldName] = postData[fieldName];
+      }
+    });
+    
+    return allData;
+  }, [visibleFields, postData]);
 
   // Si no hay categoría o subcategoría, no renderizar nada
   if (!mainCategory || !subCategory) {
@@ -48,14 +128,30 @@ const DynamicFieldManager = ({
 
   // 🎯 RENDERIZAR CAMPOS USANDO FieldRenderer
   return (
-    <div className={`mt-4 p-3 border rounded bg-light ${isRTL ? 'rtl' : 'ltr'}`}>
-      <div className="mb-3 border-bottom pb-2">
+    <div className={`p-1 border rounded bg-light ${isRTL ? 'rtl' : 'ltr'}`}>
+      <div className="mb-3 border-bottom pb-1">
         <h6 className="text-primary mb-0">
           ⚙️ {t('specific_fields', 'Champs spécifiques')}
           <small className="text-muted ms-2">
             {t('for_category', 'pour')}: {t(`categories.${mainCategory}`, mainCategory)} → {t(`subcategories.${subCategory}`, subCategory)}
           </small>
         </h6>
+        
+        {/* 🔥 Debug info (opcional, eliminar en producción) */}
+        <div className="mt-2">
+          <small className="text-muted">
+            <button 
+              type="button"
+              className="btn btn-sm btn-outline-info me-2"
+              onClick={() => console.log('📊 Datos específicos:', getFullCategoryData())}
+            >
+              🧪 Ver Datos
+            </button>
+            <span className="badge bg-secondary">
+              {Object.keys(getFullCategoryData()).length}/{visibleFields.length} campos
+            </span>
+          </small>
+        </div>
       </div>
       
       <div className="row g-3">
@@ -64,7 +160,7 @@ const DynamicFieldManager = ({
             <FieldRenderer
               fieldName={fieldName}
               postData={postData}
-              handleChangeInput={handleChangeInput}
+              handleChangeInput={handleFieldChange} // 🔥 Usar handler mejorado
               mainCategory={mainCategory}
               subCategory={subCategory}
               articleType={articleType}
@@ -79,10 +175,39 @@ const DynamicFieldManager = ({
         <small className="text-muted">
           <i className="fas fa-info-circle me-1"></i>
           {t('fields_info', `${visibleFields.length} champ(s) spécifique(s) pour cette catégorie`)}
+          
+          {/* 🔥 Información adicional de datos */}
+          {Object.keys(categoryData).length > 0 && (
+            <span className="ms-2">
+              <i className="fas fa-database me-1"></i>
+              {Object.keys(categoryData).length} datos capturados
+            </span>
+          )}
         </small>
       </div>
     </div>
   );
+};
+
+// 🔥 Función helper para exportar datos
+DynamicFieldManager.getCategoryData = (postData, mainCategory, subCategory) => {
+  if (!mainCategory || !subCategory || !postData) return {};
+  
+  try {
+    const fields = getVisibleFields(mainCategory, subCategory, postData.articleType || 'vente');
+    const specificData = {};
+    
+    fields.forEach(fieldName => {
+      if (postData[fieldName] !== undefined && postData[fieldName] !== null) {
+        specificData[fieldName] = postData[fieldName];
+      }
+    });
+    
+    return specificData;
+  } catch (error) {
+    console.error('Error obteniendo datos de categoría:', error);
+    return {};
+  }
 };
 
 export default DynamicFieldManager;

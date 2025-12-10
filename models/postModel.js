@@ -1,116 +1,68 @@
- 
-const mongoose = require('mongoose');
+const mongoose = require('mongoose')
 
 const postSchema = new mongoose.Schema({
-    // 🔷 CAMPOS DEL SISTEMA BASE (FIJOS)
-    images:  [],
-       
-    likes: [{ 
-        type: mongoose.Types.ObjectId, 
-        ref: 'user' 
-    }],
-    user: { 
-        type: mongoose.Types.ObjectId, 
-        ref: 'user',
-        required: true 
-    },
-    
-    // 🔷 INFORMACIÓN BÁSICA (FIJOS)
-    title: {
+    // ==================== CAMPOS DEL SISTEMA ====================
+    categorie: {
         type: String,
-        required: true,
-        trim: true,
-        maxlength: 100
-    },
-    description: {
-        type: String,
-        required: true,
-        trim: true,
-        maxlength: 500
-    },
-    content: {
-        type: String,
-        trim: true,
-        maxlength: 1000
-    },
-    
-    // 🔷 CATEGORÍA Y SUBCATEGORÍA (FIJOS)
-    category: {
-        type: String,
-        required: true
+        required: [true, 'La catégorie est obligatoire']
     },
     subCategory: {
         type: String,
+        required: [true, 'La sous-catégorie est obligatoire']
+    },
+    
+    
+    user: {
+        type: mongoose.Types.ObjectId,
+        ref: 'user',
         required: true
     },
     
-    // 🔷 PRECIO Y VENTA (FIJOS)
-    price: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    tipodemoneda: String,
-    tipoventa: String,
+    images: [], // Mantén igual que antes
     
-    // 🔷 CONTACTO (FIJOS)
-    telefono: {
+    // ==================== CAMPOS PARA FRONTEND (COMPATIBILIDAD) ====================
+    // Estos campos deben existir para que tu UI funcione
+    title: String,
+    description: String,
+    content: String,  // ← IMPORTANTE: tu frontend usa este campo
+    price: Number,
+    wilaya: String,
+    commune: String,
+    telefono: String,  // ← Usa el nombre que espera tu frontend
+    
+    // ==================== CAMPOS DINÁMICOS (2 FORMAS) ====================
+    // Opción A: Campo estructurado (recomendado a largo plazo)
+    specificData: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
+    
+    // Opción B: Campo plano para compatibilidad inmediata
+    data: {
+        type: mongoose.Schema.Types.Mixed,
+        default: {}
+    },
+    
+    // ==================== METADATOS ====================
+    status: {
         type: String,
-        default: "0658556296",
-        validate: {
-            validator: function(phone) {
-                if (!phone) return true;
-                return /^[\d+][\d\s-()]+$/.test(phone);
-            },
-            message: 'Formato de teléfono inválido'
-        }
+        default: 'active',
+        enum: ['active', 'sold', 'expired', 'hidden', 'pending']
     },
+    views: { type: Number, default: 0 },
+    likes: [{ type: mongoose.Types.ObjectId, ref: 'user' }],
+  
     
-    // 🔷 ESTADO Y CARACTERÍSTICAS GENERALES (FIJOS)
-    etat: String,
-    estado: {
-        type: String,
-        enum: ["activo", "inactivo", "eliminado"],
-        default: "activo"
-    },
-    
-    // 🔷 REFERENCIA AL MODELO ESPECÍFICO
-    vetement: { 
-        type: mongoose.Types.ObjectId, 
-        ref: 'vetement',
-        required: function() {
-            return this.category === 'vetements';
-        }
-    },
-  telephone: { 
-        type: mongoose.Types.ObjectId, 
-        ref: 'telephone',
-        required: function() {
-            return this.category === 'telephones';
-        }
-    }
-
-
-
 }, {
-    timestamps: true
-});
+    timestamps: true,
+    strict: false  // ← 🔥 MANTÉN ESTO PARA COMPATIBILIDAD
+})
 
-// 🔷 ÍNDICES PARA MEJOR PERFORMANCE
-postSchema.index({ category: 1, subCategory: 1 });
-postSchema.index({ user: 1, createdAt: -1 });
-postSchema.index({ price: 1 });
-postSchema.index({ etat: 1 });
-postSchema.index({ estado: 1 });
-postSchema.index({ createdAt: -1 });
+// Índices
+postSchema.index({ categorie: 1, subCategory: 1, status: 1 })
+postSchema.index({ user: 1, createdAt: -1 })
+postSchema.index({ 'data.wilaya': 1 })
+postSchema.index({ 'data.price': 1 })
+postSchema.index({ price: 1 })
 
-// 🔷 MIDDLEWARE PARA POPULATE AUTOMÁTICO
-postSchema.pre('find', function() {
-    this.populate('vetement');
-});
-
-postSchema.pre('findOne', function() {
-    this.populate('vetement');
-});
-
-module.exports = mongoose.model('post', postSchema);
+module.exports = mongoose.model('post', postSchema)

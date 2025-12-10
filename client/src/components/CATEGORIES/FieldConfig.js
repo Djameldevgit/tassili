@@ -870,192 +870,88 @@ export const FieldConfig = {
       baseFields: [
         'typeVoyage',
         'destinationType',
-        'destinationRegion',
-        'destinationWilaya',
-        'destinationInternational',
-        'dureeVoyage',
-        'dateDepart',
-        'transportVoyage',
-        'hebergementVoyage',
-        'reservationDetails',
-        'prixOptions',
-        'prix'
+        'destinationLocation',
+        'startDate',
+        'endDate',
+        'servicesIncluded',
+        'pricePerPerson',
+        'contactPhone'
       ],
       conditional: {
         'destinationType': {
-          'local': ['destinationRegion', 'destinationWilaya'],
-          'international': ['destinationInternational'],
-          'mixte': ['destinationRegion', 'destinationWilaya', 'destinationInternational']
-        },
-        'destinationWilaya': {
-          'autre': ['autreWilaya'],
-          'multiple': ['listeWilayas']
-        },
-        'destinationInternational': {
-          'autre': ['autrePays']
+          'local': ['destinationWilaya'],
+          'international': ['destinationCountry']
         }
       }
     },
-    
     'location_vacances': {
       baseFields: [
         'typeHebergement',
-        'destinationType',
         'wilayaLocation',
         'communeLocation',
-        'capaciteHebergement',
-        'equipementsHebergement',
-        'localisationHebergement',
-        'periodeLocation',
-        'reservationConditions',
-        'prix'
+        'capacity',
+        'equipments',
+        'startDateLocation',
+        'endDateLocation',
+        'pricePerNight',
+        'contactPhone'
       ],
-      conditional: {
-        'wilayaLocation': {
-          'autre': ['autreWilayaLocation']
-        },
-        'caution': {
-          true: ['montantCaution']
-        },
-        'animauxAutorises': {
-          true: ['conditionsAnimaux']
-        }
-      }
+      conditional: {}
     },
-    
     'hajj_omra': {
       baseFields: [
         'typeVoyageReligieux',
-        'periodeVoyage',
-        'destinationHajj',
+        'hajjPeriod',
         'packageType',
-        'servicesInclus',
-        'guideReligieux',
-        'logementProche',
-        'reservationAvance',
-        'prixParPersonne',
-        'prix'
+        'servicesIncludedHajj',
+        'pricePerPersonHajj',
+        'contactPhone'
       ],
-      conditional: {
-        'guideReligieux': {
-          true: ['langueGuide']
-        },
-        'reservationAnticipee': {
-          true: ['reductionAnticipee']
-        },
-        'typeVoyageReligieux': {
-          'hajj': ['packageType', 'reservationAvance'],
-          'hajj_omra': ['packageType', 'reservationAvance'],
-          'omra_ramadan': ['packageType']
-        },
-        'packageType': {
-          'sur_mesure': ['detailsPackageSurMesure']
-        }
-      }
+      conditional: {}
     },
-    
     'reservations_visa': {
       baseFields: [
         'typeServiceVisa',
-        'destinationType',
-        'paysVisa',
-        'typeVisa',
-        'delaiVisa',
-        'suiviDossier',
-        'urgenceService',
-        'documentsRequis',
-        'prix'
+        'destinationCountry',
+        'visaType',
+        'processingTime',
+        'urgentService',
+        'priceVisa',
+        'contactPhone'
       ],
-      conditional: {
-        'typeServiceVisa': {
-          'urgent': ['urgenceService'],
-          'demande_visa': ['documentsRequis'],
-          'assistance_dossier': ['documentsRequis'],
-          'etudiant': ['documentsEtudiants'],
-          'medical': ['documentsMedical'],
-          'travail': ['documentsTravail']
-        },
-        'paysVisa': {
-          'autre': ['autrePaysVisa']
-        }
-      }
+      conditional: {}
     },
-    
     'sejour': {
       baseFields: [
         'typeSejour',
-        'destinationType',
         'regionSejour',
-        'dureeSejour',
-        'activitesSejour',
-        'formuleSejour',
-        'publicCible',
-        'optionsReservation',
-        'prix'
+        'durationSejour',
+        'activities',
+        'priceSejour',
+        'contactPhone'
       ],
-      conditional: {
-        'regionSejour': {
-          'international': ['paysSejourInternational']
-        },
-        'formuleSejour': {
-          'tout_inclus': ['detailsToutInclus'],
-          'demi_pension': ['detailsDemiPension'],
-          'formule_sur_mesure': ['detailsFormuleSurMesure']
-        },
-        'publicCible': {
-          true: ['ageMinimum', 'ageMaximum']
-        }
-      }
+      conditional: {}
     },
-    
     'croisiere': {
       baseFields: [
-        'compagnieCroisiere',
-        'departCroisiere',
-        'destinationCroisiere',
-        'dureeCroisiere',
-        'escalesCroisiere',
-        'typeCabine',
-        'reservationEarlyBird',
-        'prix'
+        'cruiseCompany',
+        'departurePort',
+        'destinationCruise',
+        'durationCruise',
+        'cabinType',
+        'priceCruise',
+        'contactPhone'
       ],
-      conditional: {
-        'compagnieCroisiere': {
-          'autre': ['autreCompagnie']
-        },
-        'departCroisiere': {
-          'autre': ['autrePortDepart']
-        },
-        'destinationCroisiere': {
-          'autre': ['autreDestinationCroisiere']
-        },
-        'reservationEarlyBird': {
-          true: ['reductionEarlyBird', 'dateLimiteEarlyBird']
-        },
-        'typeCabine': {
-          'suite': ['categorieSuite'],
-          'presidentielle': ['avantagesPresidentielle']
-        }
-      }
+      conditional: {}
     },
-    
     'autre': {
       baseFields: [
         'descriptionSpecifique',
-        'typeServiceVoyage',
-        'prix'
+        'serviceType',
+        'price',
+        'contactPhone'
       ],
-      conditional: {
-        'typeServiceVoyage': {
-          'transport': ['typeTransport', 'capaciteTransport', 'zonesTransport'],
-          'guide': ['langueGuide', 'specialiteGuide', 'experienceGuide'],
-          'evenementiel': ['typeEvenement', 'nombreParticipants', 'dureeEvenement'],
-          'logistique': ['servicesLogistiques'],
-          'assurance': ['typesCouverture', 'dureeValidite'],
-          'billet': ['typesBillets', 'compagniesAeriennes'],
-          'autre_service': ['detailsAutreService']
-        }
-      }
+      conditional: {}
     }
   }
   

@@ -105,7 +105,7 @@ const CardBodyTitle = ({ post }) => {
         });
 
         // ✅ Navegar a la página de edición con todos los datos del post
-        history.push(`/edit-post/${post._id}`, { 
+        history.push(`/editer-annonce/${post._id}`, { 
             isEdit: true, 
             postData: post // ← Asegúrate que 'post' tiene todos los datos necesarios
         });
