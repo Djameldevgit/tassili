@@ -79,6 +79,7 @@ export const createPost = ({
     }
 }
 
+// En tu archivo postAction.js
 export const updatePost = ({
     postData,
     images, 
@@ -121,6 +122,7 @@ export const updatePost = ({
         });
     }
 }
+
 
 export const getPosts = () => async (dispatch) => {
     try {

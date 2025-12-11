@@ -5,7 +5,21 @@ import {
   FaVenusMars, FaCloudSun, FaTshirt, FaStore, FaEnvelope, FaCalendarAlt, 
   FaSyncAlt, FaEye, FaShoppingCart, FaBoxes, FaBox, FaHome, FaCar, 
   FaBriefcase, FaGraduationCap, FaMusic, FaFootballBall, FaBaby,
-  FaHeart, FaBook, FaLaptop, FaMobileAlt, FaCamera, FaCouch, FaUtensils
+  FaHeart, FaBook, FaLaptop, FaMobileAlt, FaCamera, FaCouch, FaUtensils,
+  FaUser, FaStar, FaCheckCircle, FaBuilding, FaCity, FaGlobe, FaEuroSign,
+  FaDollarSign, FaMoneyBillWave, FaShippingFast, FaTools, FaCogs,
+  FaPaintBrush, FaTree, FaSwimmingPool, FaBed, FaBath, FaVectorSquare,
+  FaLayerGroup, FaMountain, FaSeedling, FaWarehouse, FaStoreAlt,
+  FaConciergeBell, FaWrench, FaCarBattery, FaTire, FaOilCan, FaShoePrints, FaGem, FaGlasses, FaShoppingBag,
+  FaUtensilSpoon, FaCookieBite, FaWineBottle, FaAppleAlt, FaHamburger,
+  FaPizzaSlice, FaIceCream, FaCoffee, FaBeer, FaCocktail,
+  FaBookOpen, FaGamepad, FaFilm, FaTheaterMasks, FaCampground,
+  FaFishingRod, FaBasketballBall, FaRunning, FaDumbbell, FaBicycle,
+  FaShip, FaPlane, FaTrain, FaBus, FaMotorcycle, FaTruck,
+  FaUserTie, FaUserGraduate, FaUserMd, FaUserNinja, FaUserAstronaut,
+  FaUserCheck, FaUserClock, FaUserCog, FaUserEdit, FaUserFriends,
+  FaUserLock, FaUserMinus, FaUserPlus, FaUserSecret, FaUserShield,
+  FaUserTimes, FaUsers
 } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
@@ -35,100 +49,321 @@ const DescriptionPost = ({ post }) => {
         changeLanguage();
     }, [lang, i18n]);
 
-    // 🔥🔥🔥 NUEVA LÓGICA: COMBINAR TODOS LOS CAMPOS
+    // 🔥🔥🔥 NUEVA LÓGICA MEJORADA: COMBINAR TODOS LOS CAMPOS
     const getAllPostData = useCallback(() => {
         if (!post) return {};
         
-        console.log('🔍 Estructura del post recibido:', {
-            tieneCategorySpecificData: !!post.categorySpecificData,
-            tipoCategorySpecificData: typeof post.categorySpecificData,
-            keysCategorySpecificData: post.categorySpecificData ? Object.keys(post.categorySpecificData) : [],
+        console.log('🔍 Analizando estructura del post:', {
+            categoria: post.categorie,
+            subCategoria: post.subCategory,
+            articleType: post.articleType, // ← NUEVO para Immobilier
+            tieneSpecificData: !!post.specificData,
             tieneData: !!post.data,
-            keysPost: Object.keys(post).filter(k => !['categorySpecificData', 'data'].includes(k))
+            tieneCategorySpecificData: !!post.categorySpecificData,
+            usuario: post.user ? post.user.username : 'Sin usuario'
         });
         
-        // Crear objeto combinado
+        // Crear objeto combinado con prioridad
         const combinedData = { ...post };
         
-        // 1. Si existe categorySpecificData, combinarlo
-        if (post.categorySpecificData && typeof post.categorySpecificData === 'object') {
-            Object.keys(post.categorySpecificData).forEach(key => {
-                if (post.categorySpecificData[key] !== undefined && post.categorySpecificData[key] !== null) {
-                    combinedData[key] = post.categorySpecificData[key];
+        // 🎯 ESTRATEGIA DE COMBINACIÓN POR PRIORIDAD:
+        // 1. Campos directos del post (máxima prioridad)
+        // 2. Campos de specificData (si existe)
+        // 3. Campos de data (compatibilidad)
+        // 4. Campos de categorySpecificData (legacy)
+        
+        const dataSources = [
+            post.specificData,    // Nueva estructura recomendada
+            post.data,            // Estructura antigua
+            post.categorySpecificData // Legacy
+        ];
+        
+        dataSources.forEach(source => {
+            if (source && typeof source === 'object') {
+                Object.keys(source).forEach(key => {
+                    if (source[key] !== undefined && source[key] !== null) {
+                        // Solo asignar si no existe ya (prioridad a campos directos)
+                        if (combinedData[key] === undefined || combinedData[key] === null) {
+                            combinedData[key] = source[key];
+                        }
+                    }
+                });
+            }
+        });
+        
+        // 🎯 GESTIÓN ESPECIAL PARA IMMOBILIER
+        // Si es immobilier, asegurar que articleType esté disponible
+        if (post.categorie === 'immobilier') {
+            if (post.articleType) {
+                combinedData.articleType = post.articleType;
+            }
+            // También buscar articleType en data/specificData
+            dataSources.forEach(source => {
+                if (source?.articleType) {
+                    combinedData.articleType = source.articleType;
                 }
             });
         }
         
-        // 2. Si existe data (formato antiguo), combinarlo también
-        if (post.data && typeof post.data === 'object') {
-            Object.keys(post.data).forEach(key => {
-                if (post.data[key] !== undefined && post.data[key] !== null) {
-                    combinedData[key] = post.data[key];
-                }
-            });
-        }
-        
-        // 3. Campos críticos que deben existir (con valores por defecto)
+        // 🎯 CAMPOS CRÍTICOS CON VALORES POR DEFECTO
         const essentialFields = {
             title: combinedData.title || 'Sin título',
-            price: combinedData.price || 0,
             description: combinedData.description || combinedData.content || '',
-            numeroTelephone: combinedData.numeroTelephone || combinedData.contactPhone || '',
+            price: combinedData.price || combinedData.prix || combinedData.loyer || 0,
+            numeroTelephone: combinedData.numeroTelephone || combinedData.telefono || combinedData.contactPhone || '',
             wilaya: combinedData.wilaya || '',
-            commune: combinedData.commune || ''
+            commune: combinedData.commune || '',
+            // Para Immobilier específicamente
+            superficie: combinedData.superficie || combinedData.surface || '',
+            nombrePieces: combinedData.nombrePieces || combinedData.pieces || ''
         };
         
-        console.log('🎯 Datos combinados finales:', {
+        console.log('🎯 Datos finales combinados:', {
             titulo: essentialFields.title,
             precio: essentialFields.price,
-            camposCombinados: Object.keys(combinedData).length,
+            articleType: combinedData.articleType || 'No especificado',
+            categoria: combinedData.categorie,
+            subCategoria: combinedData.subCategory,
+            camposTotal: Object.keys(combinedData).length,
             camposEspecificos: Object.keys(combinedData).filter(k => 
-                !['title', 'description', 'price', 'wilaya', 'commune', 
-                  'numeroTelephone', 'images', 'user', '_id', 
-                  'createdAt', 'updatedAt', 'categorySpecificData', 'data'].includes(k)
+                !['title', 'description', 'content', 'price', 'prix', 'loyer',
+                  'wilaya', 'commune', 'numeroTelephone', 'telefono', 'contactPhone',
+                  'images', 'user', '_id', 'createdAt', 'updatedAt', 'status',
+                  'views', 'likes', 'comments', 'categorie', 'subCategory',
+                  'articleType', 'specificData', 'data', 'categorySpecificData'].includes(k)
             )
         });
         
         return { ...combinedData, ...essentialFields };
     }, [post]);
     
-    const postData = getAllPostData(); // 🔥 Ahora contiene TODOS los campos
+    const postData = getAllPostData();
     
-    // 🔥 FUNCIÓN DE TRADUCCIÓN MEJORADA
+    // 🔥 FUNCIÓN DE TRADUCCIÓN MEJORADA CON SUPPORT PARA IMMOBILIER
     const translateOption = useCallback((optionKey, fallback = '') => {
         if (!optionKey) return fallback;
         
+        // Intentar traducción en createpost
         const translation = t(`createpost:options.${optionKey}`, { defaultValue: '' });
-        if (translation) return translation;
+        if (translation && translation !== optionKey) return translation;
         
+        // Intentar traducción en descripcion
         const descripcionTranslation = t(`descripcion:${optionKey}`, { defaultValue: '' });
-        return descripcionTranslation || fallback || optionKey;
-    }, [t]);
-
-    // 🔥 OBTENER ÍCONO SEGÚN CATEGORÍA
+        if (descripcionTranslation && descripcionTranslation !== optionKey) return descripcionTranslation;
+        
+        // Traducciones especiales para Immobilier
+        if (postData.categorie === 'immobilier') {
+            const immobilierTranslations = {
+                'vente': 'Vente',
+                'location': 'Location',
+                'location_vacances': 'Location vacances',
+                'cherche_location': 'Recherche location',
+                'cherche_achat': 'Recherche achat',
+                'appartement': 'Appartement',
+                'villa': 'Villa',
+                'terrain': 'Terrain',
+                'local': 'Local',
+                'immeuble': 'Immeuble',
+                'bungalow': 'Bungalow',
+                'terrain_agricole': 'Terrain agricole',
+                'superficie': 'Superficie',
+                'nombrePieces': 'Nombre de pièces',
+                'prix': 'Prix',
+                'loyer': 'Loyer',
+                'caution': 'Caution',
+                'dureeBail': 'Durée du bail',
+                'etage': 'Étage',
+                'ascenseur': 'Ascenseur',
+                'parking': 'Parking',
+                'meuble': 'Meublé',
+                'jardin': 'Jardin',
+                'piscine': 'Piscine',
+                'garage': 'Garage',
+                'etages': 'Nombre d\'étages',
+                'zonage': 'Zonage',
+                'viabilise': 'Viabilisé',
+                'pente': 'Pente',
+                'chargesComprises': 'Charges comprises',
+                'activiteAutorisee': 'Activité autorisée',
+                'vitrine': 'Vitrine',
+                'nombreEtages': 'Nombre d\'étages',
+                'nombreAppartements': 'Nombre d\'appartements',
+                'mobilite': 'Mobilité',
+                'capacite': 'Capacité',
+                'dureeMinimum': 'Durée minimum',
+                'budgetMax': 'Budget maximum'
+            };
+            
+            if (immobilierTranslations[optionKey]) {
+                return immobilierTranslations[optionKey];
+            }
+        }
+        
+        // Fallback: devolver la clave formateada
+        return fallback || optionKey.toString().replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+    }, [t, postData.categorie]);
+    
+    // 🔥 OBTENER ÍCONO SEGÚN CATEGORÍA (COMPLETO)
     const getCategoryIcon = (category) => {
         const icons = {
-            'mode': <FaTshirt />,
-            'automobiles': <FaCar />,
             'immobilier': <FaHome />,
+            'automobiles': <FaCar />,
+            'vetements': <FaTshirt />,
+            'telephones': <FaMobileAlt />,
+            'informatique': <FaLaptop />,
+            'electromenager': <FaCogs />,
+            'piecesDetachees': <FaTools />,
+            'sante_beaute': <FaHeart />,
+            'meubles': <FaCouch />,
+            'alimentaires': <FaUtensils />,
+            'materiaux': <FaBox />,
+            'services': <FaConciergeBell />,
+            'loisirs': <FaGamepad />,
             'emploi': <FaBriefcase />,
+            'sport': <FaFootballBall />,
+            'voyages': <FaPlane />,
+            'mode': <FaTshirt />,
             'education': <FaGraduationCap />,
             'musique': <FaMusic />,
-            'sport': <FaFootballBall />,
             'bebe': <FaBaby />,
-            'sante': <FaHeart />,
             'livres': <FaBook />,
-            'informatique': <FaLaptop />,
-            'telephonie': <FaMobileAlt />,
             'photo': <FaCamera />,
-            'maison': <FaCouch />,
-            'voyages': <FaEnvelope />,
-            'services': <FaUtensils />
+            'maison': <FaHome />
         };
         return icons[category] || <FaTag />;
     };
-
-    // 🔥 LÓGICA DEL CHAT - AHORA USA postData
+    
+    // 🔥 OBTENER TÍTULO DE CATEGORÍA TRADUCIDO
+    const getCategoryTitle = () => {
+        const categoryMap = {
+            'immobilier': t('descripcion:immobilier', 'Immobilier'),
+            'automobiles': t('descripcion:automobiles', 'Automobiles'),
+            'vetements': t('descripcion:vetements', 'Vêtements'),
+            'telephones': t('descripcion:telephones', 'Téléphones'),
+            'informatique': t('descripcion:informatique', 'Informatique'),
+            'electromenager': t('descripcion:electromenager', 'Électroménager'),
+            'piecesDetachees': t('descripcion:piecesDetachees', 'Pièces détachées'),
+            'sante_beaute': t('descripcion:sante_beaute', 'Santé & Beauté'),
+            'meubles': t('descripcion:meubles', 'Meubles'),
+            'alimentaires': t('descripcion:alimentaires', 'Alimentaires'),
+            'materiaux': t('descripcion:materiaux', 'Matériaux'),
+            'services': t('descripcion:services', 'Services'),
+            'loisirs': t('descripcion:loisirs', 'Loisirs'),
+            'emploi': t('descripcion:emploi', 'Emploi'),
+            'sport': t('descripcion:sport', 'Sport'),
+            'voyages': t('descripcion:voyages', 'Voyages')
+        };
+        
+        return categoryMap[postData.categorie] || postData.categorie;
+    };
+    
+    // 🔥 OBTENER ÍCONO SEGÚN EL CAMPO (COMPLETO PARA TODAS CATEGORÍAS)
+    const getFieldIcon = (fieldName) => {
+        const iconMap = {
+            // GENERALES
+            'title': '📝',
+            'description': '📋',
+            'price': '💰',
+            'prix': '💰',
+            'loyer': '💵',
+            'caution': '🔒',
+            'numeroTelephone': '📞',
+            'telefono': '📞',
+            'contactPhone': '📞',
+            'email': '📧',
+            'wilaya': '🏛️',
+            'commune': '🏘️',
+            'location': '📍',
+            'address': '📍',
+            
+            // IMMOBILIER
+            'articleType': '📋',
+            'superficie': '📐',
+            'surface': '📐',
+            'nombrePieces': '🚪',
+            'pieces': '🚪',
+            'etage': '🏢',
+            'ascenseur': '🛗',
+            'parking': '🅿️',
+            'meuble': '🛋️',
+            'jardin': '🌳',
+            'piscine': '🏊',
+            'garage': '🚗',
+            'etages': '🏘️',
+            'zonage': '🗺️',
+            'viabilise': '⚡',
+            'pente': '↗️',
+            'chargesComprises': '💡',
+            'activiteAutorisee': '🏢',
+            'vitrine': '🪟',
+            'nombreEtages': '🏢',
+            'nombreAppartements': '🏠',
+            'mobilite': '🚚',
+            'capacite': '👥',
+            'dureeBail': '⏱️',
+            'dureeMinimum': '📅',
+            'budgetMax': '💰',
+            
+            // AUTOMOBILES
+            'marque': '🚗',
+            'modele': '🏎️',
+            'annee': '📅',
+            'kilometrage': '🛣️',
+            'carburant': '⛽',
+            'boite': '⚙️',
+            'puissance': '⚡',
+            'couleur': '🎨',
+            
+            // VOYAGES
+            'typeVoyage': '✈️',
+            'destinationType': '🌍',
+            'startDate': '📅',
+            'endDate': '📅',
+            'pricePerPerson': '💰',
+            'pricePerNight': '💰',
+            
+            // ALIMENTAIRES
+            'quantite': '📦',
+            'typeProduit': '🍎',
+            'datePeremption': '📅',
+            'contenance': '🥫',
+            
+            // SERVICES
+            'typeService': '🔧',
+            'experience': '💼',
+            'zoneIntervention': '🗺️',
+            
+            // EMPLOI
+            'salaire': '💰',
+            'contrat': '📝',
+            'experienceRequise': '💼',
+            'niveauEtude': '🎓',
+            
+            // MARCAS Y ESTADOS
+            'brand': '🏷️',
+            'marque': '🏷️',
+            'condition': '🔄',
+            'etat': '🔄',
+            'color': '🎨',
+            'couleur': '🎨',
+            'size': '📏',
+            'taille': '📏',
+            'quantity': '📦',
+            'quantite': '📦',
+            
+            // FECHAS
+            'createdAt': '📅',
+            'updatedAt': '🔄',
+            'date': '📅',
+            
+            // POR DEFECTO
+            'default': <FaTag />
+        };
+        
+        return iconMap[fieldName] || iconMap['default'];
+    };
+    
+    // 🔥 LÓGICA DEL CHAT (MANTIENE TU CÓDIGO ORIGINAL)
     const handleChatWithOwner = () => {
         if (!auth.user) {
             dispatch({ 
@@ -182,7 +417,7 @@ const DescriptionPost = ({ post }) => {
     };
 
     const handleCallOwner = () => {
-        const phone = postData.numeroTelephone || postData.contactPhone;
+        const phone = postData.numeroTelephone || postData.contactPhone || postData.telefono;
         if (!phone) {
             dispatch({ 
                 type: GLOBALTYPES.ALERT, 
@@ -215,21 +450,24 @@ const DescriptionPost = ({ post }) => {
             postData: post 
         });
     };
-
-    // 🎨 ESTILOS
+    
+    // 🎨 ESTILOS (MANTENIENDO TU ESTILO)
     const styles = {
         primaryColor: "#8b5cf6",
         accentColor: "#f472b6",
         successColor: "#34d399",
         warningColor: "#fbbf24",
+        infoColor: "#3b82f6",
         textDark: "#000000",
         textMedium: "#374151",
         textLight: "#ffffff",
         mainGradient: "linear-gradient(135deg, #f472b6 0%, #8b5cf6 100%)",
         contactGradient: "linear-gradient(135deg, #fbbf24 0%, #f472b6 100%)",
-        cardShadow: "0 2px 8px rgba(0, 0, 0, 0.1)"
+        userGradient: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
+        cardShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+        borderRadius: "10px"
     };
-
+    
     // 🔥 TRADUCCIONES PARA LOS VALORES
     const getTranslatedValue = (field, value) => {
         if (!value) return '';
@@ -239,32 +477,38 @@ const DescriptionPost = ({ post }) => {
             return value.map(item => translateOption(`${field}.${item}`, item)).join(', ');
         }
         
-        // Para valores booleanos (true/false)
+        // Para valores booleanos
         if (typeof value === 'boolean') {
             return value ? t('descripcion:yes') : t('descripcion:no');
         }
         
-        // Si es un objeto, convertirlo a string JSON
+        // Para objetos complejos
         if (typeof value === 'object' && value !== null) {
-            console.warn(`⚠️ Campo "${field}" es un objeto, convirtiendo:`, value);
-            return JSON.stringify(value, null, 2);
+            try {
+                return JSON.stringify(value, null, 2);
+            } catch {
+                return String(value);
+            }
         }
         
         // Para valores individuales
-        return translateOption(`${field}.${value}`, value.toString());
+        const translated = translateOption(`${field}.${value}`, value.toString());
+        return translated;
     };
-
-    // 🔥 COMPONENTE PARA MOSTRAR CAMPO - SEGURO CONTRA OBJETOS
+    
+    // 🔥 COMPONENTE PARA MOSTRAR CAMPO
     const FieldDisplay = ({ label, value, icon, type = "text", isHighlighted = false }) => {
-        // Validar que el valor no sea un objeto profundo
         const safeValue = React.useMemo(() => {
             if (value === null || value === undefined || value === '') {
                 return null;
             }
             
-            // Si es un objeto, convertirlo
             if (typeof value === 'object' && !Array.isArray(value)) {
-                return JSON.stringify(value);
+                try {
+                    return JSON.stringify(value);
+                } catch {
+                    return String(value);
+                }
             }
             
             return value;
@@ -321,10 +565,17 @@ const DescriptionPost = ({ post }) => {
             </div>
         );
     };
-
-    // 💰 COMPONENTE PRECIO
+    
+    // 💰 COMPONENTE PRECIO MEJORADO
     const PriceDisplay = () => {
-        if (!postData.price) return null;
+        const price = postData.price || postData.prix || postData.loyer;
+        if (!price && price !== 0) return null;
+
+        const isRent = postData.categorie === 'immobilier' && 
+                      (postData.articleType === 'location' || postData.articleType === 'location_vacances');
+        
+        const priceLabel = isRent ? t('descripcion:rent') : t('descripcion:price');
+        const currency = postData.currency || 'DZD';
 
         return (
             <div style={{
@@ -332,9 +583,9 @@ const DescriptionPost = ({ post }) => {
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '20px',
-                backgroundColor: '#ecfdf5',
+                backgroundColor: isRent ? '#f0f9ff' : '#ecfdf5',
                 borderRadius: '10px',
-                border: '2px solid #10b981',
+                border: isRent ? '2px solid #3b82f6' : '2px solid #10b981',
                 marginBottom: '16px',
                 flexDirection: isRTL ? 'row-reverse' : 'row',
                 width: '100%',
@@ -342,26 +593,36 @@ const DescriptionPost = ({ post }) => {
             }}>
                 <span style={{ 
                     fontWeight: '700',
-                    color: '#000000',
+                    color: isRent ? '#1e40af' : '#065f46',
                     fontSize: '20px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '10px'
                 }}>
-                    💰 {t('descripcion:price')}:
+                    {isRent ? '💵' : '💰'} {priceLabel}:
                 </span>
                 <div style={{ textAlign: isRTL ? 'left' : 'right' }}>
                     <div style={{ 
                         fontSize: '28px',
                         fontWeight: '800',
-                        color: '#065f46'
+                        color: isRent ? '#1e40af' : '#065f46'
                     }}>
-                        {postData.price} {postData.currency || 'DZD'}
+                        {price} {currency}
                     </div>
+                    {isRent && postData.dureeBail && (
+                        <div style={{
+                            fontSize: '14px',
+                            color: '#3b82f6',
+                            fontWeight: '600',
+                            marginTop: '4px'
+                        }}>
+                            {translateOption('dureeBail', postData.dureeBail)}
+                        </div>
+                    )}
                     {postData.negotiable && (
                         <div style={{
                             fontSize: '14px',
-                            color: '#059669',
+                            color: isRent ? '#3b82f6' : '#059669',
                             fontWeight: '600',
                             marginTop: '4px'
                         }}>
@@ -372,15 +633,23 @@ const DescriptionPost = ({ post }) => {
             </div>
         );
     };
-
+    
     // 🔥 SECCIÓN PRINCIPAL CON INFORMACIÓN BÁSICA
     const generateMainSection = () => {
+        // Determinar subtítulo según categoría
+        let subtitle = '';
+        if (postData.categorie === 'immobilier' && postData.articleType && postData.subCategory) {
+            subtitle = `${translateOption(postData.articleType)} - ${translateOption(postData.subCategory)}`;
+        } else if (postData.subCategory) {
+            subtitle = translateOption(postData.subCategory);
+        }
+        
         return (
             <div style={{
                 background: styles.mainGradient,
                 color: 'white',
                 padding: '24px',
-                borderRadius: '12px',
+                borderRadius: styles.borderRadius,
                 marginBottom: '20px',
                 textAlign: 'center',
                 width: '100%',
@@ -391,39 +660,62 @@ const DescriptionPost = ({ post }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '15px',
-                    marginBottom: '15px'
+                    marginBottom: '15px',
+                    flexDirection: 'column'
                 }}>
-                    {getCategoryIcon(post.categorie)}
-                    <h1 style={{
-                        margin: 0,
-                        fontSize: '26px',
-                        fontWeight: '800',
-                        wordBreak: 'break-word'
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {getCategoryIcon(postData.categorie)}
+                        <h1 style={{
+                            margin: 0,
+                            fontSize: '26px',
+                            fontWeight: '800',
+                            wordBreak: 'break-word'
+                        }}>
+                            {postData.title}
+                        </h1>
+                    </div>
+                    
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center'
                     }}>
-                        {postData.title}
-                    </h1>
+                        <span style={{
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            padding: '6px 12px',
+                            borderRadius: '20px',
+                            fontSize: '16px',
+                            fontWeight: '600'
+                        }}>
+                            {getCategoryTitle()}
+                        </span>
+                        
+                        {subtitle && (
+                            <span style={{
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                padding: '6px 12px',
+                                borderRadius: '20px',
+                                fontSize: '16px',
+                                fontWeight: '600'
+                            }}>
+                                {subtitle}
+                            </span>
+                        )}
+                    </div>
                 </div>
-                
-                <p style={{
-                    fontSize: '19px',
-                    opacity: '0.95',
-                    lineHeight: '1.5',
-                    marginBottom: '20px',
-                    wordBreak: 'break-word',
-                    fontWeight: '600'
-                }}>
-                    {getTranslatedValue('categories', post.subCategory)} 
-                    {postData.subSubCategory && ` - ${getTranslatedValue('categories', postData.subSubCategory)}`}
-                </p>
 
-                {/* Información clave */}
+                {/* Información clave específica por categoría */}
                 <div style={{
                     display: 'flex',
                     justifyContent: 'center',
                     gap: '20px',
-                    flexWrap: 'wrap'
+                    flexWrap: 'wrap',
+                    marginTop: '15px'
                 }}>
-                    {postData.brand && (
+                    {/* Marca */}
+                    {(postData.brand || postData.marque) && (
                         <div style={{ 
                             textAlign: 'center', 
                             backgroundColor: 'rgba(255,255,255,0.2)',
@@ -443,12 +735,13 @@ const DescriptionPost = ({ post }) => {
                                 fontSize: '18px',
                                 fontWeight: '700'
                             }}>
-                                {postData.brand}
+                                {postData.brand || postData.marque}
                             </div>
                         </div>
                     )}
 
-                    {postData.condition && (
+                    {/* Estado/Condición */}
+                    {(postData.condition || postData.etat) && (
                         <div style={{ 
                             textAlign: 'center',
                             backgroundColor: 'rgba(255,255,255,0.2)',
@@ -468,12 +761,13 @@ const DescriptionPost = ({ post }) => {
                                 fontSize: '18px',
                                 fontWeight: '700'
                             }}>
-                                {getTranslatedValue('conditions', postData.condition)}
+                                {getTranslatedValue('conditions', postData.condition || postData.etat)}
                             </div>
                         </div>
                     )}
 
-                    {postData.articleType && (
+                    {/* Para Immobilier: Superficie */}
+                    {(postData.superficie || postData.surface) && (
                         <div style={{ 
                             textAlign: 'center',
                             backgroundColor: 'rgba(255,255,255,0.2)',
@@ -487,13 +781,39 @@ const DescriptionPost = ({ post }) => {
                                 fontWeight: '600',
                                 marginBottom: '6px'
                             }}>
-                                {t('descripcion:type')}
+                                {t('descripcion:surface')}
                             </div>
                             <div style={{
                                 fontSize: '18px',
                                 fontWeight: '700'
                             }}>
-                                {getTranslatedValue('articleTypes', postData.articleType)}
+                                {postData.superficie || postData.surface} m²
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Para Immobilier: Número de piezas */}
+                    {(postData.nombrePieces || postData.pieces) && (
+                        <div style={{ 
+                            textAlign: 'center',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            padding: '14px 18px',
+                            borderRadius: '8px',
+                            minWidth: '140px'
+                        }}>
+                            <div style={{ 
+                                fontSize: '15px',
+                                opacity: '0.9',
+                                fontWeight: '600',
+                                marginBottom: '6px'
+                            }}>
+                                {t('descripcion:rooms')}
+                            </div>
+                            <div style={{
+                                fontSize: '18px',
+                                fontWeight: '700'
+                            }}>
+                                {postData.nombrePieces || postData.pieces}
                             </div>
                         </div>
                     )}
@@ -501,7 +821,7 @@ const DescriptionPost = ({ post }) => {
             </div>
         );
     };
-
+    
     // 🔥 SECCIÓN DESCRIPCIÓN
     const generateDescriptionSection = () => {
         const textToShow = postData.description || postData.content;
@@ -511,7 +831,7 @@ const DescriptionPost = ({ post }) => {
             <div style={{
                 backgroundColor: '#f8fafc',
                 padding: '20px',
-                borderRadius: '10px',
+                borderRadius: styles.borderRadius,
                 marginBottom: '16px',
                 border: '1px solid #e5e7eb',
                 width: '100%',
@@ -563,33 +883,50 @@ const DescriptionPost = ({ post }) => {
             </div>
         );
     };
-
-    // 🔥 SECCIÓN INFORMACIÓN ESPECÍFICA POR CATEGORÍA
+    
+    // 🔥 SECCIÓN INFORMACIÓN ESPECÍFICA POR CATEGORÍA (MEJORADA)
     const generateCategorySpecificSection = () => {
-        // Lista de campos comunes que ya se muestran en otras secciones
+        // Campos excluidos (ya se muestran en otras secciones)
         const excludedFields = [
-            'title', 'description', 'content', 'price', 'currency', 'negotiable',
-            'wilaya', 'commune', 'location', 'numeroTelephone', 'contactPhone',
-            'brand', 'condition', 'articleType', 'categorie', 'subCategory',
-            'subSubCategory', 'user', 'createdAt', 'updatedAt', 'status',
-            'views', 'likes', 'comments', 'images', '_id',
-            'categorySpecificData', 'data' // 🔥 Excluir los contenedores
+            'title', 'description', 'content', 'price', 'prix', 'loyer', 'currency',
+            'wilaya', 'commune', 'location', 'numeroTelephone', 'telefono', 'contactPhone',
+            'email', 'brand', 'marque', 'condition', 'etat', 'articleType',
+            'categorie', 'subCategory', 'subSubCategory', 'user', 
+            'createdAt', 'updatedAt', 'status', 'views', 'likes', 'comments', 
+            'images', '_id', 'specificData', 'data', 'categorySpecificData',
+            'superficie', 'surface', 'nombrePieces', 'pieces' // Ya mostrados en main
         ];
 
-        // Obtener todos los campos específicos
+        // Obtener campos específicos organizados por prioridad
         const specificFields = Object.keys(postData)
-            .filter(key => !excludedFields.includes(key) && postData[key])
-            .map(key => ({
-                key,
-                value: postData[key],
-                label: t(`descripcion:${key}`, key),
-                icon: getFieldIcon(key)
-            }))
-            .filter(field => {
-                const val = field.value;
-                return val !== '' && val !== null && val !== undefined && 
-                       (!Array.isArray(val) || val.length > 0);
-            });
+            .filter(key => !excludedFields.includes(key) && postData[key] !== undefined && postData[key] !== null)
+            .map(key => {
+                const value = postData[key];
+                let displayValue = value;
+                
+                // Filtrar valores vacíos
+                if (value === '' || (Array.isArray(value) && value.length === 0)) {
+                    return null;
+                }
+                
+                // Convertir booleanos
+                if (typeof value === 'boolean') {
+                    displayValue = value ? t('descripcion:yes') : t('descripcion:no');
+                }
+                
+                // Crear label traducido
+                const label = t(`descripcion:${key}`, key);
+                
+                return {
+                    key,
+                    value: displayValue,
+                    label,
+                    icon: getFieldIcon(key),
+                    priority: getFieldPriority(key, postData.categorie)
+                };
+            })
+            .filter(field => field !== null)
+            .sort((a, b) => b.priority - a.priority); // Ordenar por prioridad
 
         if (specificFields.length === 0) return null;
 
@@ -597,7 +934,7 @@ const DescriptionPost = ({ post }) => {
             <div style={{
                 backgroundColor: '#f0f9ff',
                 padding: '20px',
-                borderRadius: '10px',
+                borderRadius: styles.borderRadius,
                 marginBottom: '16px',
                 border: '1px solid #bae6fd',
                 width: '100%',
@@ -612,7 +949,7 @@ const DescriptionPost = ({ post }) => {
                     alignItems: 'center',
                     gap: '10px'
                 }}>
-                    {getCategoryIcon(post.categorie)} {t('descripcion:specifications')}
+                    {getCategoryIcon(postData.categorie)} {t('descripcion:specifications')}
                 </h2>
                 
                 {specificFields.map(field => (
@@ -622,65 +959,50 @@ const DescriptionPost = ({ post }) => {
                         value={field.value}
                         icon={field.icon}
                         type={field.key}
+                        isHighlighted={field.priority > 5}
                     />
                 ))}
             </div>
         );
     };
-
-    // 🔥 OBTENER ÍCONO SEGÚN EL CAMPO
-    const getFieldIcon = (fieldName) => {
-        const iconMap = {
-            // Automóviles
-            'marque': '🚗',
-            'modele': '🏎️',
-            'annee': '📅',
-            'kilometrage': '🛣️',
-            'carburant': '⛽',
-            'boite': '⚙️',
-            'puissance': '⚡',
-            'couleur': '🎨',
-            
-            // Viajes
-            'typeVoyage': '✈️',
-            'destinationType': '🌍',
-            'startDate': '📅',
-            'endDate': '📅',
-            'pricePerPerson': '💰',
-            
-            // Inmobiliaria
-            'surface': '📐',
-            'pieces': '🏠',
-            'etage': '🏢',
-            'meuble': '🛋️',
-            'quartier': '📍',
-            
-            // Empleo
-            'salaire': '💰',
-            'contrat': '📝',
-            'experience': '💼',
-            'formation': '🎓',
-            
-            // Moda
-            'gender': <FaVenusMars />,
-            'season': <FaCloudSun />,
-            'material': <FaTshirt />,
-            'sizes': <FaRuler />,
-            'colors': <FaPalette />,
-            
-            // General
-            'phone': <FaPhone />,
-            'email': <FaEnvelope />,
-            'address': <FaMapMarkerAlt />,
-            'date': <FaCalendarAlt />,
-            
-            // Por defecto
-            'default': <FaTag />
+    
+    // 🔥 FUNCIÓN PARA ASIGNAR PRIORIDAD A CAMPOS
+    const getFieldPriority = (fieldName, category) => {
+        const priorityRules = {
+            'immobilier': {
+                'etage': 10,
+                'ascenseur': 9,
+                'parking': 9,
+                'meuble': 8,
+                'jardin': 10,
+                'piscine': 10,
+                'garage': 9,
+                'zonage': 8,
+                'viabilise': 8
+            },
+            'automobiles': {
+                'annee': 10,
+                'kilometrage': 10,
+                'carburant': 9,
+                'boite': 9,
+                'puissance': 8
+            },
+            'default': {
+                'model': 10,
+                'modele': 10,
+                'color': 8,
+                'couleur': 8,
+                'size': 7,
+                'taille': 7,
+                'quantity': 6,
+                'quantite': 6
+            }
         };
-
-        return iconMap[fieldName] || iconMap['default'];
+        
+        const categoryRules = priorityRules[category] || priorityRules['default'];
+        return categoryRules[fieldName] || 5; // Prioridad media por defecto
     };
-
+    
     // 🔥 SECCIÓN UBICACIÓN
     const generateLocationSection = () => {
         const hasLocation = postData.wilaya || postData.commune || postData.location;
@@ -690,7 +1012,7 @@ const DescriptionPost = ({ post }) => {
             <div style={{
                 backgroundColor: '#faf5ff',
                 padding: '20px',
-                borderRadius: '10px',
+                borderRadius: styles.borderRadius,
                 marginBottom: '16px',
                 border: '1px solid #e9d5ff',
                 width: '100%',
@@ -721,20 +1043,341 @@ const DescriptionPost = ({ post }) => {
                     icon="🏘️"
                 />
                 
-                <FieldDisplay
-                    label={t('descripcion:address')}
-                    value={postData.location}
-                    icon="📍"
-                />
+                {postData.location && (
+                    <FieldDisplay
+                        label={t('descripcion:address')}
+                        value={postData.location}
+                        icon="📍"
+                    />
+                )}
             </div>
         );
     };
-
-    // 🔥 SECCIÓN CONTACTO
+    
+    // 🔥🔥🔥 NUEVA SECCIÓN: INFORMACIÓN DEL USUARIO (AL FINAL)
+    const generateUserInfoSection = () => {
+        if (!post.user) return null;
+        
+        const user = post.user;
+        const userSince = user.createdAt ? new Date(user.createdAt).getFullYear() : 'N/A';
+        const userRating = user.rating || '5.0';
+        const totalPosts = user.postCount || 0;
+        const isVerified = user.verified || false;
+        
+        return (
+            <div style={{
+                background: styles.userGradient,
+                color: 'white',
+                padding: '24px',
+                borderRadius: styles.borderRadius,
+                marginBottom: '16px',
+                width: '100%',
+                boxSizing: 'border-box'
+            }}>
+                <h2 style={{
+                    marginBottom: '20px',
+                    fontSize: '24px',
+                    fontWeight: '700',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    justifyContent: 'center'
+                }}>
+                    <FaUser /> {t('descripcion:sellerInfo')}
+                </h2>
+                
+                <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '20px',
+                    flexDirection: isRTL ? 'row-reverse' : 'row',
+                    flexWrap: 'wrap',
+                    marginBottom: '20px'
+                }}>
+                    {/* Avatar y nombre */}
+                    <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '15px',
+                        flex: 1,
+                        minWidth: '250px'
+                    }}>
+                        <div style={{
+                            width: '80px',
+                            height: '80px',
+                            borderRadius: '50%',
+                            overflow: 'hidden',
+                            border: '3px solid white',
+                            backgroundColor: '#f0f9ff'
+                        }}>
+                            {user.avatar ? (
+                                <img 
+                                    src={user.avatar} 
+                                    alt={user.username}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            ) : (
+                                <div style={{
+                                    width: '100%',
+                                    height: '100%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    backgroundColor: styles.primaryColor,
+                                    color: 'white',
+                                    fontSize: '30px',
+                                    fontWeight: 'bold'
+                                }}>
+                                    {user.username?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                marginBottom: '6px'
+                            }}>
+                                <h3 style={{
+                                    margin: 0,
+                                    fontSize: '22px',
+                                    fontWeight: '700'
+                                }}>
+                                    {user.fullname || user.username}
+                                </h3>
+                                {isVerified && (
+                                    <FaCheckCircle style={{ color: '#10b981', fontSize: '20px' }} />
+                                )}
+                            </div>
+                            <p style={{
+                                margin: 0,
+                                fontSize: '16px',
+                                opacity: '0.9'
+                            }}>
+                                @{user.username}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    {/* Estadísticas del usuario */}
+                    <div style={{
+                        display: 'flex',
+                        gap: '20px',
+                        flexWrap: 'wrap',
+                        flex: 1,
+                        justifyContent: 'center'
+                    }}>
+                        <div style={{
+                            textAlign: 'center',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            padding: '15px',
+                            borderRadius: '8px',
+                            minWidth: '120px'
+                        }}>
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                marginBottom: '8px'
+                            }}>
+                                <FaStar />
+                                <div style={{
+                                    fontSize: '18px',
+                                    fontWeight: '700'
+                                }}>
+                                    {userRating}
+                                </div>
+                            </div>
+                            <div style={{
+                                fontSize: '14px',
+                                opacity: '0.9'
+                            }}>
+                                {t('descripcion:rating')}
+                            </div>
+                        </div>
+                        
+                        <div style={{
+                            textAlign: 'center',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            padding: '15px',
+                            borderRadius: '8px',
+                            minWidth: '120px'
+                        }}>
+                            <div style={{
+                                fontSize: '20px',
+                                fontWeight: '700',
+                                marginBottom: '8px'
+                            }}>
+                                {totalPosts}
+                            </div>
+                            <div style={{
+                                fontSize: '14px',
+                                opacity: '0.9'
+                            }}>
+                                {t('descripcion:totalPosts')}
+                            </div>
+                        </div>
+                        
+                        <div style={{
+                            textAlign: 'center',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            padding: '15px',
+                            borderRadius: '8px',
+                            minWidth: '120px'
+                        }}>
+                            <div style={{
+                                fontSize: '20px',
+                                fontWeight: '700',
+                                marginBottom: '8px'
+                            }}>
+                                {userSince}
+                            </div>
+                            <div style={{
+                                fontSize: '14px',
+                                opacity: '0.9'
+                            }}>
+                                {t('descripcion:memberSince')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* Información de contacto del usuario */}
+                <div style={{
+                    backgroundColor: 'rgba(255,255,255,0.1)',
+                    padding: '20px',
+                    borderRadius: '8px',
+                    marginTop: '20px'
+                }}>
+                    <h3 style={{
+                        margin: '0 0 15px 0',
+                        fontSize: '18px',
+                        fontWeight: '600'
+                    }}>
+                        {t('descripcion:contactSeller')}
+                    </h3>
+                    
+                    <div style={{
+                        display: 'flex',
+                        gap: '15px',
+                        flexWrap: 'wrap'
+                    }}>
+                        {/* Teléfono del usuario */}
+                        {(user.phone || postData.numeroTelephone) && (
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                padding: '12px 18px',
+                                borderRadius: '8px',
+                                flex: 1,
+                                minWidth: '200px',
+                                cursor: 'pointer',
+                                transition: 'all 0.3s'
+                            }} 
+                            onClick={handleCallOwner}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
+                            >
+                                <FaPhone size={20} />
+                                <div>
+                                    <div style={{
+                                        fontSize: '16px',
+                                        fontWeight: '600'
+                                    }}>
+                                        {user.phone || postData.numeroTelephone}
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        opacity: '0.8'
+                                    }}>
+                                        {t('descripcion:clickToCall')}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Email del usuario */}
+                        {user.email && (
+                            <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                padding: '12px 18px',
+                                borderRadius: '8px',
+                                flex: 1,
+                                minWidth: '200px'
+                            }}>
+                                <FaEnvelope size={20} />
+                                <div>
+                                    <div style={{
+                                        fontSize: '16px',
+                                        fontWeight: '600'
+                                    }}>
+                                        {user.email}
+                                    </div>
+                                    <div style={{
+                                        fontSize: '14px',
+                                        opacity: '0.8'
+                                    }}>
+                                        {t('descripcion:email')}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                    
+                    {/* Botón para iniciar chat */}
+                    <div style={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        marginTop: '20px'
+                    }}>
+                        <button
+                            onClick={handleChatWithOwner}
+                            style={{
+                                background: 'white',
+                                color: styles.primaryColor,
+                                border: 'none',
+                                padding: '14px 28px',
+                                borderRadius: '8px',
+                                fontSize: '16px',
+                                fontWeight: '700',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '10px',
+                                transition: 'all 0.3s',
+                                minWidth: '200px',
+                                justifyContent: 'center'
+                            }}
+                            onMouseEnter={e => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.15)';
+                            }}
+                            onMouseLeave={e => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = 'none';
+                            }}
+                        >
+                            <FaComment size={20} />
+                            {t('descripcion:chatWithSeller')}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+    
+    // 🔥 SECCIÓN CONTACTO (SIMPLIFICADA - AHORA LA INFO DEL USUARIO VA AL FINAL)
     const generateContactSection = () => {
-        const phone = postData.numeroTelephone || postData.contactPhone;
-        const email = postData.email;
-        const hasContact = phone || email;
+        const phone = postData.numeroTelephone || postData.contactPhone || postData.telefono;
+        const hasContact = phone;
 
         if (!hasContact) return null;
 
@@ -743,69 +1386,59 @@ const DescriptionPost = ({ post }) => {
                 background: styles.contactGradient,
                 color: 'white',
                 padding: '20px',
-                borderRadius: '10px',
+                borderRadius: styles.borderRadius,
                 textAlign: 'center',
                 width: '100%',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                marginBottom: '16px'
             }}>
                 <h2 style={{
                     margin: '0 0 20px 0',
                     fontSize: '22px',
                     fontWeight: '700'
                 }}>
-                    {t('descripcion:contact')}
+                    {t('descripcion:quickContact')}
                 </h2>
 
                 <div style={{
                     display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    gap: '10px',
+                    justifyContent: 'center',
+                    gap: '15px',
+                    flexWrap: 'wrap',
                     marginBottom: '20px'
                 }}>
-                    {/* Teléfono */}
+                    {/* Llamar */}
                     {phone && (
                         <div 
                             style={{ 
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
+                                gap: '10px',
                                 cursor: 'pointer',
-                                padding: '12px 14px',
+                                padding: '14px 20px',
                                 borderRadius: '8px',
                                 backgroundColor: 'rgba(255,255,255,0.2)',
                                 flex: 1,
-                                justifyContent: 'center'
+                                minWidth: '180px',
+                                maxWidth: '250px',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s'
                             }}
                             onClick={handleCallOwner}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
                         >
-                            <FaPhone size={20} />
-                            <span style={{ fontSize: '16px', fontWeight: '600' }}>
-                                {t('descripcion:call')}
-                            </span>
+                            <FaPhone size={22} />
+                            <div>
+                                <div style={{ fontSize: '17px', fontWeight: '600' }}>
+                                    {t('descripcion:callNow')}
+                                </div>
+                                <div style={{ fontSize: '14px', opacity: '0.9' }}>
+                                    {phone}
+                                </div>
+                            </div>
                         </div>
                     )}
-
-                    {/* Chat */}
-                    <div 
-                        style={{ 
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            cursor: 'pointer',
-                            padding: '12px 14px',
-                            borderRadius: '8px',
-                            backgroundColor: 'rgba(255,255,255,0.2)',
-                            flex: 1,
-                            justifyContent: 'center'
-                        }}
-                        onClick={handleChatWithOwner}
-                    >
-                        <FaComment size={20} />
-                        <span style={{ fontSize: '16px', fontWeight: '600' }}>
-                            {t('descripcion:message')}
-                        </span>
-                    </div>
 
                     {/* Mapa */}
                     {(postData.location || postData.wilaya || postData.commune) && (
@@ -813,56 +1446,44 @@ const DescriptionPost = ({ post }) => {
                             style={{ 
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '8px',
+                                gap: '10px',
                                 cursor: 'pointer',
-                                padding: '12px 14px',
+                                padding: '14px 20px',
                                 borderRadius: '8px',
                                 backgroundColor: 'rgba(255,255,255,0.2)',
                                 flex: 1,
-                                justifyContent: 'center'
+                                minWidth: '180px',
+                                maxWidth: '250px',
+                                justifyContent: 'center',
+                                transition: 'all 0.3s'
                             }}
                             onClick={handleOpenMap}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.3)'}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.2)'}
                         >
-                            <FaMapMarkerAlt size={20} />
-                            <span style={{ fontSize: '16px', fontWeight: '600' }}>
-                                {t('descripcion:map')}
-                            </span>
-                        </div>
-                    )}
-                </div>
-
-                {/* Información de contacto */}
-                <div style={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    gap: '20px',
-                    flexWrap: 'wrap'
-                }}>
-                    {phone && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FaPhone size={16} />
-                            <span style={{ fontSize: '16px', fontWeight: '600' }}>{phone}</span>
-                        </div>
-                    )}
-                    
-                    {email && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <FaEnvelope size={16} />
-                            <span style={{ fontSize: '16px', fontWeight: '600' }}>{email}</span>
+                            <FaMapMarkerAlt size={22} />
+                            <div>
+                                <div style={{ fontSize: '17px', fontWeight: '600' }}>
+                                    {t('descripcion:viewMap')}
+                                </div>
+                                <div style={{ fontSize: '14px', opacity: '0.9' }}>
+                                    {t('descripcion:seeLocation')}
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
         );
     };
-
+    
     // 🔥 SECCIÓN INFORMACIÓN ADICIONAL
     const generateAdditionalInfoSection = () => {
         return (
             <div style={{
                 backgroundColor: '#f8fafc',
                 padding: '20px',
-                borderRadius: '10px',
+                borderRadius: styles.borderRadius,
                 marginBottom: '16px',
                 border: '1px solid #e5e7eb',
                 width: '100%',
@@ -877,7 +1498,7 @@ const DescriptionPost = ({ post }) => {
                     {t('descripcion:additionalInfo')}
                 </h2>
 
-                {/* Fechas de publicación */}
+                {/* Fechas */}
                 <div style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -890,7 +1511,7 @@ const DescriptionPost = ({ post }) => {
                         {t('descripcion:publishedOn')}:
                     </span>
                     <span style={{ color: '#374151', fontSize: '17px' }}>
-                        {new Date(post.createdAt).toLocaleDateString()} à {new Date(post.createdAt).toLocaleTimeString()}
+                        {post.createdAt ? new Date(post.createdAt).toLocaleDateString() : 'N/A'}
                     </span>
                 </div>
 
@@ -906,7 +1527,7 @@ const DescriptionPost = ({ post }) => {
                         {t('descripcion:updatedOn')}:
                     </span>
                     <span style={{ color: '#374151', fontSize: '17px' }}>
-                        {new Date(post.updatedAt).toLocaleDateString()} à {new Date(post.updatedAt).toLocaleTimeString()}
+                        {post.updatedAt ? new Date(post.updatedAt).toLocaleDateString() : 'N/A'}
                     </span>
                 </div>
 
@@ -923,23 +1544,24 @@ const DescriptionPost = ({ post }) => {
                             {t('descripcion:views')}:
                         </span>
                         <span style={{ color: '#374151', fontSize: '17px' }}>
-                            {post.views}
+                            {post.views.toLocaleString()}
                         </span>
                     </div>
                 )}
             </div>
         );
     };
-
-    // 🔥 SECCIÓN PRECIO (si existe)
+    
+    // 🔥 SECCIÓN PRECIO
     const generatePricingSection = () => {
-        if (!postData.price) return null;
+        const price = postData.price || postData.prix || postData.loyer;
+        if (!price && price !== 0) return null;
 
         return (
             <div style={{
                 backgroundColor: '#fffbeb',
                 padding: '20px',
-                borderRadius: '10px',
+                borderRadius: styles.borderRadius,
                 marginBottom: '16px',
                 border: '1px solid #fde68a',
                 width: '100%',
@@ -977,7 +1599,7 @@ const DescriptionPost = ({ post }) => {
         );
     }
 
-    // 🎯 RENDER PRINCIPAL
+    // 🎯 RENDER PRINCIPAL - ORDEN OPTIMIZADO
     return (
         <div style={{
             direction: isRTL ? 'rtl' : 'ltr',
@@ -990,13 +1612,29 @@ const DescriptionPost = ({ post }) => {
             width: '100%',
             boxSizing: 'border-box'
         }}>
+            {/* SECCIÓN 1: INFORMACIÓN PRINCIPAL */}
             {generateMainSection()}
+            
+            {/* SECCIÓN 2: DESCRIPCIÓN */}
             {generateDescriptionSection()}
+            
+            {/* SECCIÓN 3: PRECIO */}
             {generatePricingSection()}
+            
+            {/* SECCIÓN 4: ESPECIFICACIONES POR CATEGORÍA */}
             {generateCategorySpecificSection()}
+            
+            {/* SECCIÓN 5: UBICACIÓN */}
             {generateLocationSection()}
+            
+            {/* SECCIÓN 6: INFORMACIÓN ADICIONAL */}
             {generateAdditionalInfoSection()}
+            
+            {/* SECCIÓN 7: CONTACTO RÁPIDO */}
             {generateContactSection()}
+            
+            {/* 🔥🔥🔥 SECCIÓN 8: INFORMACIÓN DEL USUARIO (AL FINAL) */}
+            {generateUserInfoSection()}
         </div>
     );
 };

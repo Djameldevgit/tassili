@@ -32,21 +32,21 @@ const postCtrl = {
             if(!images || images.length === 0) {
                 return res.status(400).json({msg: "Veuillez ajouter au moins une photo."});
             }
-    
+            if (!postData.categorie) {
+                return res.status(400).json({msg: "La catégorie est requise."});
+            }
+     
             if (!postData.subCategory) {
                 return res.status(400).json({msg: "La catégorie est requise."});
             }
-    
-            // 🔥 PASO CRÍTICO: SEPARAR CAMPOS COMUNES vs ESPECÍFICOS
-            // 1. DEFINIR qué campos son COMUNES (deben coincidir con tu Schema)
+     
             const commonFields = [
                 'categorie', 'subCategory', 'articleType',
                 'title', 'description', 'price',
                 'wilaya', 'commune', 'numeroTelephone',
-                'content' // si lo usas
+                  
             ];
-    
-            // 2. Crear objetos separados
+     
             const commonData = {};
             const specificData = {};
     
@@ -74,15 +74,15 @@ const postCtrl = {
                 
                 // Arrays inicializados
                 likes: [],
-                comments: [],
-                views: 0,
-                status: 'active'
+            
+                
+              
             });
     
             await newPost.save();
     
             // 🔥 POPULATE (ajustado para la nueva estructura)
-            await newPost.populate('user', 'avatar username followers');
+            await newPost.populate('user', 'avatar username');
             
             res.json({
                 msg: 'Post créé avec succès!',
@@ -110,258 +110,6 @@ const postCtrl = {
         }
     },
    
-    likePost: async (req, res) => {
-        try {
-            const post = await Posts.find({_id: req.params.id, likes: req.user._id})
-            if(post.length > 0) return res.status(400).json({msg: "You liked this post."})
-
-            const like = await Posts.findOneAndUpdate({_id: req.params.id}, {
-                $push: {likes: req.user._id}
-            }, {new: true})
-
-            if(!like) return res.status(400).json({msg: 'This post does not exist.'})
-
-            res.json({msg: 'Liked Post!'})
-
-        } catch (err) {
-            return res.status(500).json({msg: err.message})
-        }
-    },
-    unLikePost: async (req, res) => {
-        try {
-
-            const like = await Posts.findOneAndUpdate({_id: req.params.id}, {
-                $pull: {likes: req.user._id}
-            }, {new: true})
-
-            if(!like) return res.status(400).json({msg: 'This post does not exist.'})
-
-            res.json({msg: 'UnLiked Post!'})
-
-        } catch (err) {
-            return res.status(500).json({msg: err.message})
-        }
-    },
-
-// ✅ NUEVO ENDPOINT PARA BÚSQUEDA INTELIGENTE
-// ✅ NUEVO CONTROLADOR PARA BÚSQUEDA INTELIGENTE DE POSTS
-// controllers/postCtrl.js
- 
-getPosts: async (req, res) => {
-    try {
-        const { 
-            subCategory, 
-            title,           // 🆕 Nombre del producto
-            talla,           // 🆕 Talla
-            genero,          // 🆕 Género
-            color,           // 🆕 Color
-            marca,           // 🆕 Marca
-            estado,          // 🆕 Estado/condición
-            minPrice,        // Precio mínimo
-            maxPrice,        // Precio máximo
-            sort
-        } = req.query;
-
-        // 🔹 INICIALIZAR QUERY
-        const query = {};
-
-        // 🔹 Filtros directos
-        if (subCategory && subCategory.trim() !== "") {
-            query.subCategory = { $regex: subCategory.trim(), $options: "i" };
-        }
-
-        // 🆕 BÚSQUEDA POR TÍTULO/NOMBRE DEL PRODUCTO
-        if (title && title.trim() !== "") {
-            const searchTitle = title.trim();
-            query.$or = query.$or || [];
-            query.$or.push(
-                { title: { $regex: searchTitle, $options: "i" } },
-                { description: { $regex: searchTitle, $options: "i" } },
-                { content: { $regex: searchTitle, $options: "i" } }
-            );
-        }
-
-        // 🆕 FILTRO POR TALLA
-        if (talla && talla.trim() !== "") {
-            const searchTalla = talla.trim();
-            query.$or = query.$or || [];
-            query.$or.push(
-                { talla: { $regex: searchTalla, $options: "i" } },
-                { tallaSaco: { $regex: searchTalla, $options: "i" } }
-            );
-        }
-
-        // 🆕 FILTRO POR GÉNERO
-        if (genero && genero.trim() !== "") {
-            query.genero = { $regex: genero.trim(), $options: "i" };
-        }
-
-        // 🆕 FILTRO POR COLOR
-        if (color && color.trim() !== "") {
-            const searchColor = color.trim();
-            query.$or = query.$or || [];
-            query.$or.push(
-                { color: { $regex: searchColor, $options: "i" } },
-                { tipocolor: { $regex: searchColor, $options: "i" } }
-            );
-        }
-
-        // 🆕 FILTRO POR MARCA
-        if (marca && marca.trim() !== "") {
-            query.marca = { $regex: marca.trim(), $options: "i" };
-        }
-
-        // 🆕 FILTRO POR ESTADO/CONDICIÓN
-        if (estado && estado.trim() !== "") {
-            query.etat = { $regex: estado.trim(), $options: "i" };
-        }
-
-        // 🆕 FILTRO POR RANGO DE PRECIOS - MEJORADO PARA ROPA
-        if (minPrice || maxPrice) {
-            const priceFilter = {};
-            
-            if (minPrice) {
-                const min = parseFloat(minPrice);
-                if (!isNaN(min)) {
-                    priceFilter.$gte = min;
-                }
-            }
-            
-            if (maxPrice) {
-                const max = parseFloat(maxPrice);
-                if (!isNaN(max)) {
-                    priceFilter.$lte = max;
-                }
-            }
-            
-            // Solo aplicar filtro si hay precios válidos
-            if (Object.keys(priceFilter).length > 0) {
-                // Buscar en múltiples campos de precio para ropa
-                query.$or = query.$or || [];
-                query.$or.push(
-                    { price: priceFilter },
-                    { precioBase: priceFilter }
-                );
-            }
-        }
-
-        // 🔥 Optimizar consulta si hay múltiples condiciones OR
-        if (query.$or && query.$or.length === 0) {
-            delete query.$or;
-        }
-
-        // 🔥 Mantener paginación con APIfeatures
-        const features = new APIfeatures(Posts.find(query), req.query).paginating();
-
-        // ✅ MANEJO DEL SORT
-        let sortOption = "-createdAt";
-        if (sort && sort === "-createdAt") {
-            sortOption = "-createdAt";
-        }
-
-        const posts = await features.query
-            .sort(sortOption)
-            .populate("user likes", "avatar username")
-           
-        res.json({
-            msg: "Success!",
-            result: posts.length,
-            posts,
-        });
-    } catch (err) {
-        console.error("Error en getPosts:", err);
-        return res.status(500).json({ msg: err.message });
-    }
-},
-
-    getUserPosts: async (req, res) => {
-        try {
-            const features = new APIfeatures(Posts.find({user: req.params.id}), req.query)
-            .paginating()
-            const posts = await features.query.sort("-createdAt")
-
-            res.json({
-                posts,
-                result: posts.length
-            })
-
-        } catch (err) {
-            return res.status(500).json({msg: err.message})
-        }
-    },
-    getPost: async (req, res) => {
-        try {
-            const post = await Posts.findById(req.params.id)
-                .populate("user likes", "avatar username followers")
-                .populate({
-                    path: "comments",
-                    populate: {
-                        path: "user likes",
-                        select: "-password"
-                    }
-                });
-
-            if (!post) return res.status(400).json({ msg: req.__('post.post_not_exist') });
-
-            res.json({ post });
-        } catch (err) {
-            return res.status(500).json({ msg: err.message });
-        }
-    },
-
-
-    viewPost: async (req, res) => {
-        try {
-            const { id } = req.params;
-
-            if (!mongoose.Types.ObjectId.isValid(id)) {
-                return res.status(400).json({ msg: 'ID inválido' });
-            }
-
-            const postUpdated = await Posts.findByIdAndUpdate(
-                id,
-                { $inc: { views: 1 } },
-                { new: true }
-            )
-                .populate("user likes", "avatar username followers")
-                .populate({
-                    path: "comments",
-                    populate: {
-                        path: "user likes",
-                        select: "-password"
-                    }
-                });
-
-            if (!postUpdated) return res.status(404).json({ msg: 'Post no encontrado' });
-
-            res.json({ post: postUpdated }); // ✅ enviar post completo
-        } catch (err) {
-            return res.status(500).json({ msg: err.message });
-        }
-    },
-
-    getPostsDicover: async (req, res) => {
-        try {
-
-            const newArr = [...req.user.following, req.user._id]
-
-            const num  = req.query.num || 9
-
-            const posts = await Posts.aggregate([
-                { $match: { user : { $nin: newArr } } },
-                { $sample: { size: Number(num) } },
-            ])
-
-            return res.json({
-                msg: 'Success!',
-                result: posts.length,
-                posts
-            })
-
-        } catch (err) {
-            return res.status(500).json({msg: err.message})
-        }
-    },
     updatePost: async (req, res) => {
         try {
             const { postData, images } = req.body;
@@ -491,7 +239,252 @@ getPosts: async (req, res) => {
             return res.status(500).json({msg: err.message});
         }
     },
+    getPosts: async (req, res) => {
+        try {
+            const { 
+                subCategory, 
+                title,           // 🆕 Nombre del producto
+                talla,           // 🆕 Talla
+                genero,          // 🆕 Género
+                color,           // 🆕 Color
+                marca,           // 🆕 Marca
+                estado,          // 🆕 Estado/condición
+                minPrice,        // Precio mínimo
+                maxPrice,        // Precio máximo
+                sort
+            } = req.query;
+    
+            // 🔹 INICIALIZAR QUERY
+            const query = {};
+    
+            // 🔹 Filtros directos
+            if (subCategory && subCategory.trim() !== "") {
+                query.subCategory = { $regex: subCategory.trim(), $options: "i" };
+            }
+    
+            // 🆕 BÚSQUEDA POR TÍTULO/NOMBRE DEL PRODUCTO
+            if (title && title.trim() !== "") {
+                const searchTitle = title.trim();
+                query.$or = query.$or || [];
+                query.$or.push(
+                    { title: { $regex: searchTitle, $options: "i" } },
+                    { description: { $regex: searchTitle, $options: "i" } },
+                    { content: { $regex: searchTitle, $options: "i" } }
+                );
+            }
+    
+            // 🆕 FILTRO POR TALLA
+            if (talla && talla.trim() !== "") {
+                const searchTalla = talla.trim();
+                query.$or = query.$or || [];
+                query.$or.push(
+                    { talla: { $regex: searchTalla, $options: "i" } },
+                    { tallaSaco: { $regex: searchTalla, $options: "i" } }
+                );
+            }
+    
+            // 🆕 FILTRO POR GÉNERO
+            if (genero && genero.trim() !== "") {
+                query.genero = { $regex: genero.trim(), $options: "i" };
+            }
+    
+            // 🆕 FILTRO POR COLOR
+            if (color && color.trim() !== "") {
+                const searchColor = color.trim();
+                query.$or = query.$or || [];
+                query.$or.push(
+                    { color: { $regex: searchColor, $options: "i" } },
+                    { tipocolor: { $regex: searchColor, $options: "i" } }
+                );
+            }
+    
+            // 🆕 FILTRO POR MARCA
+            if (marca && marca.trim() !== "") {
+                query.marca = { $regex: marca.trim(), $options: "i" };
+            }
+    
+            // 🆕 FILTRO POR ESTADO/CONDICIÓN
+            if (estado && estado.trim() !== "") {
+                query.etat = { $regex: estado.trim(), $options: "i" };
+            }
+    
+            // 🆕 FILTRO POR RANGO DE PRECIOS - MEJORADO PARA ROPA
+            if (minPrice || maxPrice) {
+                const priceFilter = {};
+                
+                if (minPrice) {
+                    const min = parseFloat(minPrice);
+                    if (!isNaN(min)) {
+                        priceFilter.$gte = min;
+                    }
+                }
+                
+                if (maxPrice) {
+                    const max = parseFloat(maxPrice);
+                    if (!isNaN(max)) {
+                        priceFilter.$lte = max;
+                    }
+                }
+                
+                // Solo aplicar filtro si hay precios válidos
+                if (Object.keys(priceFilter).length > 0) {
+                    // Buscar en múltiples campos de precio para ropa
+                    query.$or = query.$or || [];
+                    query.$or.push(
+                        { price: priceFilter },
+                        { precioBase: priceFilter }
+                    );
+                }
+            }
+    
+            // 🔥 Optimizar consulta si hay múltiples condiciones OR
+            if (query.$or && query.$or.length === 0) {
+                delete query.$or;
+            }
+    
+            // 🔥 Mantener paginación con APIfeatures
+            const features = new APIfeatures(Posts.find(query), req.query).paginating();
+    
+            // ✅ MANEJO DEL SORT
+            let sortOption = "-createdAt";
+            if (sort && sort === "-createdAt") {
+                sortOption = "-createdAt";
+            }
+    
+            const posts = await features.query
+                .sort(sortOption)
+                .populate("user likes", "avatar username")
+               
+            res.json({
+                msg: "Success!",
+                result: posts.length,
+                posts,
+            });
+        } catch (err) {
+            console.error("Error en getPosts:", err);
+            return res.status(500).json({ msg: err.message });
+        }
+    },
+    likePost: async (req, res) => {
+        try {
+            const post = await Posts.find({_id: req.params.id, likes: req.user._id})
+            if(post.length > 0) return res.status(400).json({msg: "You liked this post."})
 
+            const like = await Posts.findOneAndUpdate({_id: req.params.id}, {
+                $push: {likes: req.user._id}
+            }, {new: true})
+
+            if(!like) return res.status(400).json({msg: 'This post does not exist.'})
+
+            res.json({msg: 'Liked Post!'})
+
+        } catch (err) {
+            return res.status(500).json({msg: err.message})
+        }
+    },
+    unLikePost: async (req, res) => {
+        try {
+
+            const like = await Posts.findOneAndUpdate({_id: req.params.id}, {
+                $pull: {likes: req.user._id}
+            }, {new: true})
+
+            if(!like) return res.status(400).json({msg: 'This post does not exist.'})
+
+            res.json({msg: 'UnLiked Post!'})
+
+        } catch (err) {
+            return res.status(500).json({msg: err.message})
+        }
+    },
+        getUserPosts: async (req, res) => {
+            try {
+                const features = new APIfeatures(Posts.find({user: req.params.id}), req.query)
+                .paginating()
+                const posts = await features.query.sort("-createdAt")
+    
+                res.json({
+                    posts,
+                    result: posts.length
+                })
+    
+            } catch (err) {
+                return res.status(500).json({msg: err.message})
+            }
+        },
+        getPost: async (req, res) => {
+            try {
+                const post = await Posts.findById(req.params.id)
+                    .populate("user likes", "avatar username followers")
+                    .populate({
+                        path: "comments",
+                        populate: {
+                            path: "user likes",
+                            select: "-password"
+                        }
+                    });
+    
+                if (!post) return res.status(400).json({ msg: req.__('post.post_not_exist') });
+    
+                res.json({ post });
+            } catch (err) {
+                return res.status(500).json({ msg: err.message });
+            }
+        },
+    
+    
+        viewPost: async (req, res) => {
+            try {
+                const { id } = req.params;
+    
+                if (!mongoose.Types.ObjectId.isValid(id)) {
+                    return res.status(400).json({ msg: 'ID inválido' });
+                }
+    
+                const postUpdated = await Posts.findByIdAndUpdate(
+                    id,
+                    { $inc: { views: 1 } },
+                    { new: true }
+                )
+                    .populate("user likes", "avatar username followers")
+                    .populate({
+                        path: "comments",
+                        populate: {
+                            path: "user likes",
+                            select: "-password"
+                        }
+                    });
+    
+                if (!postUpdated) return res.status(404).json({ msg: 'Post no encontrado' });
+    
+                res.json({ post: postUpdated }); // ✅ enviar post completo
+            } catch (err) {
+                return res.status(500).json({ msg: err.message });
+            }
+        },
+    
+        getPostsDicover: async (req, res) => {
+            try {
+    
+                const newArr = [...req.user.following, req.user._id]
+    
+                const num  = req.query.num || 9
+    
+                const posts = await Posts.aggregate([
+                    { $match: { user : { $nin: newArr } } },
+                    { $sample: { size: Number(num) } },
+                ])
+    
+                return res.json({
+                    msg: 'Success!',
+                    result: posts.length,
+                    posts
+                })
+    
+            } catch (err) {
+                return res.status(500).json({msg: err.message})
+            }
+        },
     savePost: async (req, res) => {
         try {
             const user = await Users.find({_id: req.user._id, saved: req.params.id})

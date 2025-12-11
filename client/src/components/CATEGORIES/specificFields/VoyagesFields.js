@@ -1,894 +1,641 @@
 import React from 'react';
-import { Form, Row, Col, InputGroup } from 'react-bootstrap';
+import { Form } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
-const VoyagesFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
+const ImmobilierFields = ({ fieldName, postData, handleChangeInput, subCategory, articleType, isRTL }) => {
   const { t } = useTranslation();
   
-  // CORREGIDO: Arrays REDUCIDOS con solo campos ESENCIALES
+  console.log('🏠 ImmobilierFields recibió:', { 
+    fieldName, 
+    subCategory, 
+    articleType,
+    postDataKeys: Object.keys(postData)
+  });
+  
+  // CORREGIDO: Arrays con campos específicos por subcategoría
   const getSubCategorySpecificFields = () => {
     const specificFields = {
-      'voyage_organise': [
-        'typeVoyage',
-        'destinationType',        
-        'destinationLocation',    // Campo ÚNICO para destino
-        'startDate',
-        'endDate',
-        'servicesIncluded',       // Checkboxes agrupados
-        'pricePerPerson',
-        'contactPhone'
+      // Campos por TIPO DE BIEN (subCategory)
+      'appartement': [
+        'superficie',
+        'nombrePieces',
+        'etage',
+        'ascenseur',
+        'parking',
+        'meuble'
       ],
-      'location_vacances': [
-        'typeHebergement',
-        'wilayaLocation',
-        'communeLocation',
-        'capacity',
-        'equipments',            // Checkboxes agrupados
-        'startDateLocation',
-        'endDateLocation',
-        'pricePerNight',
-        'contactPhone'
+      'villa': [
+        'superficie',
+        'nombrePieces',
+        'jardin',
+        'piscine',
+        'garage',
+        'etages'
       ],
-      'hajj_omra': [
-        'typeVoyageReligieux',
-        'hajjPeriod',
-        'packageType',
-        'servicesIncludedHajj',   // Checkboxes agrupados
-        'pricePerPersonHajj',
-        'contactPhone'
+      'terrain': [
+        'superficie',
+        'zonage',
+        'viabilise',
+        'pente'
       ],
-      'reservations_visa': [
-        'typeServiceVisa',
-        'destinationCountry',
-        'visaType',
-        'processingTime',
-        'urgentService',
-        'priceVisa',
-        'contactPhone'
+      'local': [
+        'superficie',
+        'activiteAutorisee',
+        'vitrine'
       ],
-      'sejour': [
-        'typeSejour',
-        'regionSejour',
-        'durationSejour',
-        'activities',
-        'priceSejour',
-        'contactPhone'
+      'immeuble': [
+        'superficie',
+        'nombreEtages',
+        'nombreAppartements'
       ],
-      'croisiere': [
-        'cruiseCompany',
-        'departurePort',
-        'destinationCruise',
-        'durationCruise',
-        'cabinType',
-        'priceCruise',
-        'contactPhone'
+      'bungalow': [
+        'superficie',
+        'mobilite',
+        'capacite'
       ],
-      'autre': [
-        'descriptionSpecifique',
-        'serviceType',
-        'price',
-        'contactPhone'
+      'terrain_agricole': [
+        'superficie',
+        'zonage',
+        'viabilise'
       ]
     };
     
-    return specificFields[subCategory] || [];
+    // Agregar campos según TYPE D'OPÉRATION (articleType)
+    const operationFields = {};
+    
+    if (articleType === 'vente') {
+      operationFields['prix'] = 'prix';
+    } else if (articleType === 'location') {
+      operationFields['loyer'] = 'loyer';
+      operationFields['caution'] = 'caution';
+      operationFields['dureeBail'] = 'dureeBail';
+    } else if (articleType === 'location_vacances') {
+      operationFields['loyer'] = 'loyer';
+      operationFields['dureeMinimum'] = 'dureeMinimum';
+      operationFields['capacite'] = 'capacite';
+    } else if (articleType === 'cherche_location' || articleType === 'cherche_achat') {
+      operationFields['budgetMax'] = 'budgetMax';
+    }
+    
+    // Combinar campos: específicos del tipo de bien + campos de la operación
+    const baseFields = specificFields[subCategory] || [];
+    const operationSpecificFields = Object.values(operationFields);
+    
+    console.log('🔍 Campos encontrados:', {
+      subCategory,
+      baseFields,
+      articleType,
+      operationSpecificFields
+    });
+    
+    return [...new Set([...baseFields, ...operationSpecificFields])];
   };
   
-  // OBJETO SIMPLIFICADO de campos ESENCIALES
+  // 🔥 TODOS LOS CAMPOS DEFINIDOS (igual que VoyagesFields)
   const fields = {
-    // ==================== VOYAGE ORGANISÉ ====================
-    'typeVoyage': (
-      <Form.Group key="typeVoyage">
-        <Form.Label>✈️ {t('travel_type', 'Type de voyage')}</Form.Label>
-        <Form.Select
-          name="typeVoyage"
-          value={postData.typeVoyage || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_travel_type', 'Sélectionnez')}</option>
-          <option value="touristique">{t('tourist', 'Touristique')}</option>
-          <option value="culturel">{t('cultural', 'Culturel')}</option>
-          <option value="balneaire">{t('beach', 'Balnéaire')}</option>
-          <option value="familial">{t('family', 'Familial')}</option>
-          <option value="affaires">{t('business', 'Affaires')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'destinationType': (
-      <Form.Group key="destinationType">
-        <Form.Label>🌍 {t('destination_type', 'Type de destination')}</Form.Label>
-        <Form.Select
-          name="destinationType"
-          value={postData.destinationType || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_destination_type', 'Sélectionnez')}</option>
-          <option value="local">{t('local', 'Local (Algérie)')}</option>
-          <option value="international">{t('international', 'International')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'destinationLocation': (
-      <Form.Group key="destinationLocation">
-        <Form.Label>📍 {t('destination', 'Destination')}</Form.Label>
-        {postData.destinationType === 'local' ? (
-          <Form.Select
-            name="destinationWilaya"
-            value={postData.destinationWilaya || ''}
-            onChange={handleChangeInput}
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
-            <option value="">{t('select_wilaya', 'Sélectionnez une wilaya')}</option>
-            <option value="alger">{t('algiers', 'Alger')}</option>
-            <option value="oran">{t('oran', 'Oran')}</option>
-            <option value="constantine">{t('constantine', 'Constantine')}</option>
-            <option value="annaba">{t('annaba', 'Annaba')}</option>
-            <option value="tlemcen">{t('tlemcen', 'Tlemcen')}</option>
-            <option value="autre">{t('other_wilaya', 'Autre')}</option>
-          </Form.Select>
-        ) : (
-          <Form.Control
-            type="text"
-            name="destinationCountry"
-            value={postData.destinationCountry || ''}
-            onChange={handleChangeInput}
-            placeholder={t('enter_country', 'Pays de destination')}
-            dir={isRTL ? 'rtl' : 'ltr'}
-          />
-        )}
-      </Form.Group>
-    ),
-    
-    'startDate': (
-      <Form.Group key="startDate">
-        <Form.Label>📅 {t('start_date', 'Date de départ')}</Form.Label>
-        <Form.Control
-          type="date"
-          name="startDate"
-          value={postData.startDate || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-          min={new Date().toISOString().split('T')[0]}
-        />
-      </Form.Group>
-    ),
-    
-    'endDate': (
-      <Form.Group key="endDate">
-        <Form.Label>📅 {t('end_date', 'Date de retour')}</Form.Label>
-        <Form.Control
-          type="date"
-          name="endDate"
-          value={postData.endDate || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-          min={postData.startDate || new Date().toISOString().split('T')[0]}
-        />
-      </Form.Group>
-    ),
-    
-    'servicesIncluded': (
-      <Form.Group key="servicesIncluded">
-        <Form.Label>✅ {t('services_included', 'Services inclus')}</Form.Label>
-        <div className="mb-2">
-          <Form.Check
-            type="checkbox"
-            name="transportIncluded"
-            label={t('transport', 'Transport')}
-            checked={postData.transportIncluded || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="accommodationIncluded"
-            label={t('accommodation', 'Hébergement')}
-            checked={postData.accommodationIncluded || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="mealsIncluded"
-            label={t('meals', 'Repas')}
-            checked={postData.mealsIncluded || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="guideIncluded"
-            label={t('guide', 'Guide')}
-            checked={postData.guideIncluded || false}
-            onChange={handleChangeInput}
-          />
-        </div>
-      </Form.Group>
-    ),
-    
-    'pricePerPerson': (
-      <Form.Group key="pricePerPerson">
-        <Form.Label>💰 {t('price_per_person', 'Prix par personne')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="pricePerPerson"
-            value={postData.pricePerPerson || ''}
-            onChange={handleChangeInput}
-            placeholder="Ex: 150000"
-            min="0"
-          />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
-      </Form.Group>
-    ),
-    
-    'contactPhone': (
-      <Form.Group key="contactPhone">
-        <Form.Label>📞 {t('contact_phone', 'Téléphone de contact')}</Form.Label>
-        <InputGroup>
-          <InputGroup.Text>+213</InputGroup.Text>
-          <Form.Control
-            type="tel"
-            name="contactPhone"
-            value={postData.contactPhone || ''}
-            onChange={handleChangeInput}
-            placeholder="555123456"
-            dir="ltr"
-            pattern="[0-9]{9}"
-            maxLength="9"
-          />
-        </InputGroup>
-        <Form.Text className="text-muted">
-          💡 {t('phone_format', 'Format: +213 555 123 456')}
-        </Form.Text>
-      </Form.Group>
-    ),
-    
-    // ==================== LOCATION VACANCES ====================
-    'typeHebergement': (
-      <Form.Group key="typeHebergement">
-        <Form.Label>🏡 {t('accommodation_type', 'Type d\'hébergement')}</Form.Label>
-        <Form.Select
-          name="typeHebergement"
-          value={postData.typeHebergement || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_accommodation', 'Sélectionnez')}</option>
-          <option value="appartement">{t('apartment', 'Appartement')}</option>
-          <option value="villa">{t('villa', 'Villa')}</option>
-          <option value="maison">{t('house', 'Maison')}</option>
-          <option value="riad">{t('riad', 'Riad')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'wilayaLocation': (
-      <Form.Group key="wilayaLocation">
-        <Form.Label>📍 {t('wilaya', 'Wilaya')}</Form.Label>
-        <Form.Select
-          name="wilayaLocation"
-          value={postData.wilayaLocation || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_wilaya', 'Sélectionnez')}</option>
-          <option value="alger">Alger</option>
-          <option value="oran">Oran</option>
-          <option value="constantine">Constantine</option>
-          <option value="annaba">Annaba</option>
-          <option value="tlemcen">Tlemcen</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'communeLocation': (
-      <Form.Group key="communeLocation">
-        <Form.Label>🏘️ {t('commune', 'Commune/Quartier')}</Form.Label>
-        <Form.Control
-          type="text"
-          name="communeLocation"
-          value={postData.communeLocation || ''}
-          onChange={handleChangeInput}
-          placeholder={t('enter_commune', 'Nom de la commune')}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
-      </Form.Group>
-    ),
-    
-    'capacity': (
-      <Form.Group key="capacity">
-        <Form.Label>👥 {t('capacity', 'Capacité')}</Form.Label>
+    'superficie': (
+      <Form.Group key="superficie">
+        <Form.Label>📏 {t('surface', 'Superficie')} (m²)</Form.Label>
         <Form.Control
           type="number"
-          name="capacity"
-          value={postData.capacity || ''}
+          name="superficie"
+          value={postData.superficie || ''}
           onChange={handleChangeInput}
-          placeholder={t('enter_capacity', 'Nombre de personnes')}
+          placeholder="Ex: 90"
+          min="0"
+          step="0.1"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'nombrePieces': (
+      <Form.Group key="nombrePieces">
+        <Form.Label>🚪 {t('rooms', 'Nombre de pièces')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="nombrePieces"
+          value={postData.nombrePieces || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 3"
           min="1"
-        />
-      </Form.Group>
-    ),
-    
-    'equipments': (
-      <Form.Group key="equipments">
-        <Form.Label>🏠 {t('equipments', 'Équipements')}</Form.Label>
-        <div className="mb-2">
-          <Form.Check
-            type="checkbox"
-            name="wifi"
-            label="Wi-Fi"
-            checked={postData.wifi || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="kitchen"
-            label={t('kitchen', 'Cuisine')}
-            checked={postData.kitchen || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="parking"
-            label={t('parking', 'Parking')}
-            checked={postData.parking || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="ac"
-            label="Climatisation"
-            checked={postData.ac || false}
-            onChange={handleChangeInput}
-          />
-        </div>
-      </Form.Group>
-    ),
-    
-    'startDateLocation': (
-      <Form.Group key="startDateLocation">
-        <Form.Label>📅 {t('available_from', 'Disponible du')}</Form.Label>
-        <Form.Control
-          type="date"
-          name="startDateLocation"
-          value={postData.startDateLocation || ''}
-          onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         />
       </Form.Group>
     ),
     
-    'endDateLocation': (
-      <Form.Group key="endDateLocation">
-        <Form.Label>📅 {t('available_to', 'Disponible au')}</Form.Label>
-        <Form.Control
-          type="date"
-          name="endDateLocation"
-          value={postData.endDateLocation || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
-      </Form.Group>
-    ),
-    
-    'pricePerNight': (
-      <Form.Group key="pricePerNight">
-        <Form.Label>💰 {t('price_per_night', 'Prix par nuit')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="pricePerNight"
-            value={postData.pricePerNight || ''}
-            onChange={handleChangeInput}
-            placeholder="Ex: 10000"
-            min="0"
-          />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
-      </Form.Group>
-    ),
-    
-    // ==================== HAJJ & OMRA ====================
-    'typeVoyageReligieux': (
-      <Form.Group key="typeVoyageReligieux">
-        <Form.Label>🕋 {t('religious_travel_type', 'Type')}</Form.Label>
-        <Form.Select
-          name="typeVoyageReligieux"
-          value={postData.typeVoyageReligieux || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_type', 'Sélectionnez')}</option>
-          <option value="hajj">{t('hajj', 'Hajj')}</option>
-          <option value="omra">{t('umrah', 'Omra')}</option>
-          <option value="hajj_omra">{t('hajj_umrah', 'Hajj & Omra')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'hajjPeriod': (
-      <Form.Group key="hajjPeriod">
-        <Form.Label>📅 {t('period', 'Période')}</Form.Label>
-        <Form.Select
-          name="hajjPeriod"
-          value={postData.hajjPeriod || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_period', 'Sélectionnez')}</option>
-          <option value="hajj_2024">{t('hajj_2024', 'Hajj 2024')}</option>
-          <option value="hajj_2025">{t('hajj_2025', 'Hajj 2025')}</option>
-          <option value="ramadan">{t('ramadan', 'Ramadan')}</option>
-          <option value="all_year">{t('all_year', 'Toute l\'année')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'packageType': (
-      <Form.Group key="packageType">
-        <Form.Label>📦 {t('package_type', 'Package')}</Form.Label>
-        <Form.Select
-          name="packageType"
-          value={postData.packageType || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_package', 'Sélectionnez')}</option>
-          <option value="economique">{t('economy', 'Économique')}</option>
-          <option value="standard">{t('standard', 'Standard')}</option>
-          <option value="premium">{t('premium', 'Premium')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'servicesIncludedHajj': (
-      <Form.Group key="servicesIncludedHajj">
-        <Form.Label>✅ {t('services_included', 'Services inclus')}</Form.Label>
-        <div className="mb-2">
-          <Form.Check
-            type="checkbox"
-            name="flightHajj"
-            label={t('flight', 'Billet avion')}
-            checked={postData.flightHajj || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="hotelHajj"
-            label={t('hotel', 'Hôtel')}
-            checked={postData.hotelHajj || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="transportHajj"
-            label={t('transport', 'Transport')}
-            checked={postData.transportHajj || false}
-            onChange={handleChangeInput}
-            className="mb-1"
-          />
-          <Form.Check
-            type="checkbox"
-            name="guideHajj"
-            label={t('guide', 'Guide religieux')}
-            checked={postData.guideHajj || false}
-            onChange={handleChangeInput}
-          />
-        </div>
-      </Form.Group>
-    ),
-    
-    'pricePerPersonHajj': (
-      <Form.Group key="pricePerPersonHajj">
-        <Form.Label>💰 {t('price_per_person', 'Prix par personne')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="pricePerPersonHajj"
-            value={postData.pricePerPersonHajj || ''}
-            onChange={handleChangeInput}
-            placeholder="Ex: 500000"
-            min="0"
-          />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
-      </Form.Group>
-    ),
-    
-    // ==================== RESERVATIONS VISA ====================
-    'typeServiceVisa': (
-      <Form.Group key="typeServiceVisa">
-        <Form.Label>📋 {t('visa_service', 'Service visa')}</Form.Label>
-        <Form.Select
-          name="typeServiceVisa"
-          value={postData.typeServiceVisa || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_service', 'Sélectionnez')}</option>
-          <option value="tourist">{t('tourist_visa', 'Visa touristique')}</option>
-          <option value="business">{t('business_visa', 'Visa affaires')}</option>
-          <option value="student">{t('student_visa', 'Visa étudiant')}</option>
-          <option value="urgent">{t('urgent_visa', 'Visa urgent')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'destinationCountry': (
-      <Form.Group key="destinationCountry">
-        <Form.Label>🇺🇸 {t('destination_country', 'Pays de destination')}</Form.Label>
-        <Form.Select
-          name="destinationCountry"
-          value={postData.destinationCountry || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_country', 'Sélectionnez')}</option>
-          <option value="france">France</option>
-          <option value="canada">Canada</option>
-          <option value="usa">États-Unis</option>
-          <option value="uae">Émirats Arabes Unis</option>
-          <option value="saudi">Arabie Saoudite</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'visaType': (
-      <Form.Group key="visaType">
-        <Form.Label>📄 {t('visa_type', 'Type de visa')}</Form.Label>
-        <Form.Select
-          name="visaType"
-          value={postData.visaType || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_type', 'Sélectionnez')}</option>
-          <option value="single">{t('single_entry', 'Entrée simple')}</option>
-          <option value="multiple">{t('multiple_entry', 'Entrées multiples')}</option>
-          <option value="schengen">Schengen</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'processingTime': (
-      <Form.Group key="processingTime">
-        <Form.Label>⏱️ {t('processing_time', 'Délai de traitement')}</Form.Label>
-        <Form.Select
-          name="processingTime"
-          value={postData.processingTime || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_time', 'Sélectionnez')}</option>
-          <option value="express_48h">Express (48h)</option>
-          <option value="standard_1w">Standard (1 semaine)</option>
-          <option value="normal_2w">Normal (2 semaines)</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'urgentService': (
-      <Form.Group key="urgentService">
-        <Form.Label>🚨 {t('urgent_service', 'Service urgent')}</Form.Label>
-        <Form.Check
-          type="switch"
-          name="urgentService"
-          checked={postData.urgentService || false}
-          onChange={handleChangeInput}
-          label={postData.urgentService ? t('yes', 'Oui') : t('no', 'Non')}
-          reverse={isRTL}
-        />
-      </Form.Group>
-    ),
-    
-    'priceVisa': (
-      <Form.Group key="priceVisa">
+    'prix': (
+      <Form.Group key="prix">
         <Form.Label>💰 {t('price', 'Prix')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="priceVisa"
-            value={postData.priceVisa || ''}
-            onChange={handleChangeInput}
-            placeholder="Ex: 25000"
-            min="0"
-          />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
-      </Form.Group>
-    ),
-    
-    // ==================== SÉJOUR ====================
-    'regionSejour': (
-      <Form.Group key="regionSejour">
-        <Form.Label>🗺️ {t('region', 'Région')}</Form.Label>
-        <Form.Select
-          name="regionSejour"
-          value={postData.regionSejour || ''}
+        <Form.Control
+          type="number"
+          name="prix"
+          value={postData.prix || ''}
           onChange={handleChangeInput}
+          placeholder="Ex: 250000"
+          min="0"
           dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_region', 'Sélectionnez')}</option>
-          <option value="coast">{t('coast', 'Côte')}</option>
-          <option value="kabylie">Kabylie</option>
-          <option value="sahara">Sahara</option>
-          <option value="international">{t('international', 'International')}</option>
-        </Form.Select>
+        />
       </Form.Group>
     ),
     
-    'durationSejour': (
-      <Form.Group key="durationSejour">
-        <Form.Label>⏱️ {t('duration', 'Durée')}</Form.Label>
+    'loyer': (
+      <Form.Group key="loyer">
+        <Form.Label>💵 {t('rent', 'Loyer mensuel')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="loyer"
+          value={postData.loyer || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 800"
+          min="0"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'caution': (
+      <Form.Group key="caution">
+        <Form.Label>🔒 {t('deposit', 'Caution')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="caution"
+          value={postData.caution || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 800"
+          min="0"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'dureeBail': (
+      <Form.Group key="dureeBail">
+        <Form.Label>⏱️ {t('lease_duration', 'Durée du bail')}</Form.Label>
         <Form.Select
-          name="durationSejour"
-          value={postData.durationSejour || ''}
+          name="dureeBail"
+          value={postData.dureeBail || ''}
           onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
           <option value="">{t('select_duration', 'Sélectionnez')}</option>
-          <option value="weekend">Week-end (2-3 jours)</option>
-          <option value="1_week">1 semaine</option>
-          <option value="2_weeks">2 semaines</option>
-          <option value="custom">{t('custom', 'Sur mesure')}</option>
+          <option value="1_an">1 an</option>
+          <option value="2_ans">2 ans</option>
+          <option value="3_ans">3 ans</option>
+          <option value="9_ans">9 ans (bail commercial)</option>
+          <option value="vide">Bail vide</option>
+          <option value="meuble">Bail meublé</option>
         </Form.Select>
       </Form.Group>
     ),
     
-    'activities': (
-      <Form.Group key="activities">
-        <Form.Label>🎯 {t('activities', 'Activités')}</Form.Label>
-        <Form.Control
-          as="textarea"
-          name="activities"
-          value={postData.activities || ''}
+    'etage': (
+      <Form.Group key="etage">
+        <Form.Label>🏢 {t('floor', 'Étage')}</Form.Label>
+        <Form.Select
+          name="etage"
+          value={postData.etage || ''}
           onChange={handleChangeInput}
-          placeholder={t('enter_activities', 'Activités proposées...')}
-          rows={2}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_floor', 'Sélectionnez')}</option>
+          <option value="rez_de_chaussee">Rez-de-chaussée</option>
+          <option value="1">1er étage</option>
+          <option value="2">2ème étage</option>
+          <option value="3">3ème étage</option>
+          <option value="4">4ème étage</option>
+          <option value="5_plus">5ème et plus</option>
+          <option value="dernier">Dernier étage</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'ascenseur': (
+      <Form.Group key="ascenseur">
+        <Form.Label>🛗 {t('elevator', 'Ascenseur')}</Form.Label>
+        <Form.Select
+          name="ascenseur"
+          value={postData.ascenseur || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'parking': (
+      <Form.Group key="parking">
+        <Form.Label>🅿️ {t('parking', 'Parking')}</Form.Label>
+        <Form.Select
+          name="parking"
+          value={postData.parking || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="inclus">Inclus</option>
+          <option value="optionnel">Optionnel</option>
+          <option value="non">Non disponible</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'meuble': (
+      <Form.Group key="meuble">
+        <Form.Label>🛋️ {t('furnished', 'Meublé')}</Form.Label>
+        <Form.Select
+          name="meuble"
+          value={postData.meuble || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+          <option value="partiel">Partiellement</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'jardin': (
+      <Form.Group key="jardin">
+        <Form.Label>🌳 {t('garden', 'Jardin')}</Form.Label>
+        <Form.Select
+          name="jardin"
+          value={postData.jardin || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'piscine': (
+      <Form.Group key="piscine">
+        <Form.Label>🏊 {t('pool', 'Piscine')}</Form.Label>
+        <Form.Select
+          name="piscine"
+          value={postData.piscine || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="privee">Privée</option>
+          <option value="commune">Communautaire</option>
+          <option value="non">Non</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'garage': (
+      <Form.Group key="garage">
+        <Form.Label>🚗 {t('garage', 'Garage')}</Form.Label>
+        <Form.Select
+          name="garage"
+          value={postData.garage || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="simple">Simple</option>
+          <option value="double">Double</option>
+          <option value="box">Box fermé</option>
+          <option value="non">Non</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'etages': (
+      <Form.Group key="etages">
+        <Form.Label>🏘️ {t('floors', 'Nombre d\'étages')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="etages"
+          value={postData.etages || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 2"
+          min="1"
           dir={isRTL ? 'rtl' : 'ltr'}
         />
       </Form.Group>
     ),
     
-    'priceSejour': (
-      <Form.Group key="priceSejour">
-        <Form.Label>💰 {t('price', 'Prix')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="priceSejour"
-            value={postData.priceSejour || ''}
-            onChange={handleChangeInput}
-            placeholder="Ex: 80000"
-            min="0"
-          />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
-      </Form.Group>
-    ),
-    
-    // ==================== CROISIÈRE ====================
-    'cruiseCompany': (
-      <Form.Group key="cruiseCompany">
-        <Form.Label>🚢 {t('cruise_company', 'Compagnie')}</Form.Label>
+    'zonage': (
+      <Form.Group key="zonage">
+        <Form.Label>🗺️ {t('zoning', 'Zonage')}</Form.Label>
         <Form.Select
-          name="cruiseCompany"
-          value={postData.cruiseCompany || ''}
+          name="zonage"
+          value={postData.zonage || ''}
           onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <option value="">{t('select_company', 'Sélectionnez')}</option>
-          <option value="msc">MSC Croisières</option>
-          <option value="costa">Costa Croisières</option>
-          <option value="royal">Royal Caribbean</option>
+          <option value="">{t('select_zoning', 'Sélectionnez')}</option>
+          <option value="urbain">Urbain</option>
+          <option value="agricole">Agricole</option>
+          <option value="constructible">Constructible</option>
+          <option value="non_constructible">Non constructible</option>
+          <option value="industriel">Industriel</option>
         </Form.Select>
       </Form.Group>
     ),
     
-    'departurePort': (
-      <Form.Group key="departurePort">
-        <Form.Label>⛵ {t('departure_port', 'Port de départ')}</Form.Label>
+    'viabilise': (
+      <Form.Group key="viabilise">
+        <Form.Label>⚡ {t('utilities', 'Viabilisé')}</Form.Label>
         <Form.Select
-          name="departurePort"
-          value={postData.departurePort || ''}
+          name="viabilise"
+          value={postData.viabilise || ''}
           onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <option value="">{t('select_port', 'Sélectionnez')}</option>
-          <option value="algiers">Alger</option>
-          <option value="barcelona">Barcelone</option>
-          <option value="marseille">Marseille</option>
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="oui">Oui (eau, électricité, assainissement)</option>
+          <option value="partiel">Partiellement</option>
+          <option value="non">Non</option>
         </Form.Select>
       </Form.Group>
     ),
     
-    'destinationCruise': (
-      <Form.Group key="destinationCruise">
-        <Form.Label>🌊 {t('destination', 'Destination')}</Form.Label>
+    'pente': (
+      <Form.Group key="pente">
+        <Form.Label>↗️ {t('slope', 'Pente')}</Form.Label>
         <Form.Select
-          name="destinationCruise"
-          value={postData.destinationCruise || ''}
+          name="pente"
+          value={postData.pente || ''}
           onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <option value="">{t('select_destination', 'Sélectionnez')}</option>
-          <option value="mediterranean">Méditerranée</option>
-          <option value="caribbean">Caraïbes</option>
-          <option value="baltic">Baltique</option>
+          <option value="">{t('select_slope', 'Sélectionnez')}</option>
+          <option value="plate">Plate</option>
+          <option value="legere">Légère pente</option>
+          <option value="moyenne">Pente moyenne</option>
+          <option value="forte">Forte pente</option>
         </Form.Select>
       </Form.Group>
     ),
     
-    'durationCruise': (
-      <Form.Group key="durationCruise">
-        <Form.Label>⏱️ {t('duration', 'Durée')}</Form.Label>
+    'chargesComprises': (
+      <Form.Group key="chargesComprises">
+        <Form.Label>💡 {t('utilities_included', 'Charges comprises')}</Form.Label>
         <Form.Select
-          name="durationCruise"
-          value={postData.durationCruise || ''}
+          name="chargesComprises"
+          value={postData.chargesComprises || ''}
           onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <option value="">{t('select_duration', 'Sélectionnez')}</option>
-          <option value="3_5">3-5 jours</option>
-          <option value="7_10">7-10 jours</option>
-          <option value="14+">14+ jours</option>
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
+          <option value="partiel">Partiellement</option>
         </Form.Select>
       </Form.Group>
     ),
     
-    'cabinType': (
-      <Form.Group key="cabinType">
-        <Form.Label>🛏️ {t('cabin_type', 'Type de cabine')}</Form.Label>
-        <Form.Select
-          name="cabinType"
-          value={postData.cabinType || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_cabin', 'Sélectionnez')}</option>
-          <option value="inside">Intérieure</option>
-          <option value="outside">Extérieure</option>
-          <option value="balcony">Avec balcon</option>
-          <option value="suite">Suite</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'priceCruise': (
-      <Form.Group key="priceCruise">
-        <Form.Label>💰 {t('price_per_person', 'Prix par personne')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="priceCruise"
-            value={postData.priceCruise || ''}
-            onChange={handleChangeInput}
-            placeholder="Ex: 200000"
-            min="0"
-          />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
-      </Form.Group>
-    ),
-    
-    // ==================== AUTRE ====================
-    'descriptionSpecifique': (
-      <Form.Group key="descriptionSpecifique">
-        <Form.Label>📝 {t('description', 'Description')}</Form.Label>
+    'activiteAutorisee': (
+      <Form.Group key="activiteAutorisee">
+        <Form.Label>🏢 {t('authorized_activity', 'Activité autorisée')}</Form.Label>
         <Form.Control
-          as="textarea"
-          name="descriptionSpecifique"
-          value={postData.descriptionSpecifique || ''}
+          type="text"
+          name="activiteAutorisee"
+          value={postData.activiteAutorisee || ''}
           onChange={handleChangeInput}
-          placeholder={t('enter_description', 'Décrivez votre service...')}
-          rows={3}
+          placeholder={t('enter_activity', 'Ex: Commerce, Bureau, Restaurant...')}
           dir={isRTL ? 'rtl' : 'ltr'}
         />
       </Form.Group>
     ),
     
-    'serviceType': (
-      <Form.Group key="serviceType">
-        <Form.Label>🔧 {t('service_type', 'Type de service')}</Form.Label>
+    'vitrine': (
+      <Form.Group key="vitrine">
+        <Form.Label>🪟 {t('storefront', 'Vitrine')}</Form.Label>
         <Form.Select
-          name="serviceType"
-          value={postData.serviceType || ''}
+          name="vitrine"
+          value={postData.vitrine || ''}
           onChange={handleChangeInput}
           dir={isRTL ? 'rtl' : 'ltr'}
         >
-          <option value="">{t('select_service_type', 'Sélectionnez')}</option>
-          <option value="transport">{t('transport', 'Transport')}</option>
-          <option value="guide">{t('guide', 'Guide')}</option>
-          <option value="other">{t('other', 'Autre')}</option>
+          <option value="">{t('select_option', 'Sélectionnez')}</option>
+          <option value="oui">Oui</option>
+          <option value="non">Non</option>
         </Form.Select>
       </Form.Group>
     ),
     
-    'price': (
-      <Form.Group key="price">
-        <Form.Label>💰 {t('price', 'Prix')}</Form.Label>
-        <InputGroup>
-          <Form.Control
-            type="number"
-            name="price"
-            value={postData.price || ''}
+    'nombreEtages': (
+      <Form.Group key="nombreEtages">
+        <Form.Label>🏢 {t('building_floors', 'Nombre d\'étages du bâtiment')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="nombreEtages"
+          value={postData.nombreEtages || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 5"
+          min="1"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'nombreAppartements': (
+      <Form.Group key="nombreAppartements">
+        <Form.Label>🏠 {t('apartments_count', 'Nombre d\'appartements')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="nombreAppartements"
+          value={postData.nombreAppartements || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 10"
+          min="1"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'mobilite': (
+      <Form.Group key="mobilite">
+        <Form.Label>🚚 {t('mobility', 'Mobilité')}</Form.Label>
+        <Form.Select
+          name="mobilite"
+          value={postData.mobilite || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_mobility', 'Sélectionnez')}</option>
+          <option value="mobile">Mobile (sur roues)</option>
+          <option value="fixe">Fixe</option>
+          <option value="demontable">Démontable</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'capacite': (
+      <Form.Group key="capacite">
+        <Form.Label>👥 {t('capacity', 'Capacité d\'accueil')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="capacite"
+          value={postData.capacite || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 6 personnes"
+          min="1"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'dureeMinimum': (
+      <Form.Group key="dureeMinimum">
+        <Form.Label>📅 {t('minimum_stay', 'Durée minimum de séjour')}</Form.Label>
+        <Form.Select
+          name="dureeMinimum"
+          value={postData.dureeMinimum || ''}
+          onChange={handleChangeInput}
+          dir={isRTL ? 'rtl' : 'ltr'}
+        >
+          <option value="">{t('select_minimum_stay', 'Sélectionnez')}</option>
+          <option value="1_nuit">1 nuit</option>
+          <option value="2_nuits">2 nuits</option>
+          <option value="7_nuits">1 semaine</option>
+          <option value="30_nuits">1 mois</option>
+        </Form.Select>
+      </Form.Group>
+    ),
+    
+    'budgetMax': (
+      <Form.Group key="budgetMax">
+        <Form.Label>💰 {t('max_budget', 'Budget maximum')}</Form.Label>
+        <Form.Control
+          type="number"
+          name="budgetMax"
+          value={postData.budgetMax || ''}
+          onChange={handleChangeInput}
+          placeholder="Ex: 500000"
+          min="0"
+          dir={isRTL ? 'rtl' : 'ltr'}
+        />
+      </Form.Group>
+    ),
+    
+    'equipements': (
+      <Form.Group key="equipements">
+        <Form.Label>🏡 {t('equipment', 'Équipements inclus')}</Form.Label>
+        <div className="border rounded p-3 bg-light">
+          <Form.Check
+            type="checkbox"
+            id="equipement_cuisine"
+            name="equipements_cuisine"
+            label="🍳 Cuisine équipée"
+            checked={postData.equipements_cuisine || false}
             onChange={handleChangeInput}
-            placeholder="Ex: 50000"
-            min="0"
+            className="mb-2"
           />
-          <InputGroup.Text>DA</InputGroup.Text>
-        </InputGroup>
+          <Form.Check
+            type="checkbox"
+            id="equipement_lave_linge"
+            name="equipements_lave_linge"
+            label="🧺 Lave-linge"
+            checked={postData.equipements_lave_linge || false}
+            onChange={handleChangeInput}
+            className="mb-2"
+          />
+          <Form.Check
+            type="checkbox"
+            id="equipement_climatisation"
+            name="equipements_climatisation"
+            label="❄️ Climatisation"
+            checked={postData.equipements_climatisation || false}
+            onChange={handleChangeInput}
+            className="mb-2"
+          />
+          <Form.Check
+            type="checkbox"
+            id="equipement_wifi"
+            name="equipements_wifi"
+            label="📶 Wi-Fi"
+            checked={postData.equipements_wifi || false}
+            onChange={handleChangeInput}
+            className="mb-2"
+          />
+          <Form.Check
+            type="checkbox"
+            id="equipement_tv"
+            name="equipements_tv"
+            label="📺 Télévision"
+            checked={postData.equipements_tv || false}
+            onChange={handleChangeInput}
+            className="mb-2"
+          />
+          <Form.Check
+            type="checkbox"
+            id="equipement_parking"
+            name="equipements_parking"
+            label="🅿️ Parking"
+            checked={postData.equipements_parking || false}
+            onChange={handleChangeInput}
+          />
+        </div>
       </Form.Group>
     )
   };
   
-  // Lógica de renderizado
+  // Obtener campos específicos para esta subcategoría
   const subCategoryFields = getSubCategorySpecificFields();
   
-  console.log('✈️ VoyagesFields - Renderizando:', {
-    subCategory,
+  console.log('🔍 ImmobilierFields - Campos para renderizar:', {
     fieldName,
-    fieldsCount: subCategoryFields.length
+    subCategory,
+    articleType,
+    subCategoryFields
   });
   
-  // Si se solicita un campo específico
+  // Si fieldName está especificado, devolver solo ese campo
   if (fieldName) {
     const fieldComponent = fields[fieldName];
     if (!fieldComponent) {
-      console.error(`❌ Campo '${fieldName}' no encontrado en VoyagesFields`);
+      console.warn(`⚠️ Campo '${fieldName}' no encontrado en ImmobilierFields`);
       return (
-        <div className="alert alert-danger">
-          <strong>Error:</strong> Campo '{fieldName}' no está definido.
+        <div className="alert alert-warning small">
+          <small>Campo '{fieldName}' no disponible para immobilier</small>
         </div>
       );
     }
     return fieldComponent;
   }
   
-  // Si hay subcategoría, renderizar todos sus campos
+  // Si no hay fieldName, devolver todos los campos de la subcategoría
   if (subCategory && subCategoryFields.length > 0) {
     return (
-      <div className="row g-3">
-        {subCategoryFields.map(fieldKey => {
+      <>
+        {subCategoryFields.map((fieldKey) => {
           const fieldComponent = fields[fieldKey];
           
           if (!fieldComponent) {
-            console.error(`❌ Campo '${fieldKey}' no definido para ${subCategory}`);
-            return (
-              <div key={fieldKey} className="col-12">
-                <div className="alert alert-warning">
-                  <strong>Advertencia:</strong> Campo '{fieldKey}' no disponible.
-                </div>
-              </div>
-            );
+            console.warn(`⚠️ Campo '${fieldKey}' no encontrado en ImmobilierFields`);
+            return null;
           }
           
           return (
-            <div key={fieldKey} className="col-12 col-md-6">
+            <div key={fieldKey} className="mb-3">
               {fieldComponent}
             </div>
           );
         })}
-      </div>
+      </>
     );
   }
   
-  // Si no hay subcategoría seleccionada
-  if (!subCategory) {
+  // Si no hay campos para esta subcategoría
+  if (subCategory) {
     return (
       <div className="alert alert-info">
-        <strong>✈️ Information:</strong> Sélectionnez une sous-catégorie.
+        <h6>🏠 {t('real_estate_fields', 'Champs immobiliers')}</h6>
+        <p>Les champs spécifiques seront affichés ici.</p>
       </div>
     );
   }
@@ -896,4 +643,4 @@ const VoyagesFields = ({ fieldName, postData, handleChangeInput, subCategory, is
   return null;
 };
 
-export default VoyagesFields;
+export default ImmobilierFields;

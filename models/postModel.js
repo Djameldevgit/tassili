@@ -11,7 +11,7 @@ const postSchema = new mongoose.Schema({
         required: [true, 'La sous-catégorie est obligatoire']
     },
     
-    
+    articleType: '',
     user: {
         type: mongoose.Types.ObjectId,
         ref: 'user',
@@ -24,7 +24,7 @@ const postSchema = new mongoose.Schema({
     // Estos campos deben existir para que tu UI funcione
     title: String,
     description: String,
-    content: String,  // ← IMPORTANTE: tu frontend usa este campo
+  
     price: Number,
     wilaya: String,
     commune: String,
@@ -44,12 +44,12 @@ const postSchema = new mongoose.Schema({
     },
     
     // ==================== METADATOS ====================
-    status: {
+    estado: {
         type: String,
-        default: 'active',
-        enum: ['active', 'sold', 'expired', 'hidden', 'pending']
+        default: 'aprobado',
+        enum: ['aprobado',  'pendiente']
     },
-    views: { type: Number, default: 0 },
+ 
     likes: [{ type: mongoose.Types.ObjectId, ref: 'user' }],
   
     

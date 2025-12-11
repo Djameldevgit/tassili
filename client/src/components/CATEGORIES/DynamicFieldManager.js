@@ -131,27 +131,13 @@ const DynamicFieldManager = ({
     <div className={`p-1 border rounded bg-light ${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="mb-3 border-bottom pb-1">
         <h6 className="text-primary mb-0">
-          ⚙️ {t('specific_fields', 'Champs spécifiques')}
+         
           <small className="text-muted ms-2">
             {t('for_category', 'pour')}: {t(`categories.${mainCategory}`, mainCategory)} → {t(`subcategories.${subCategory}`, subCategory)}
           </small>
         </h6>
         
-        {/* 🔥 Debug info (opcional, eliminar en producción) */}
-        <div className="mt-2">
-          <small className="text-muted">
-            <button 
-              type="button"
-              className="btn btn-sm btn-outline-info me-2"
-              onClick={() => console.log('📊 Datos específicos:', getFullCategoryData())}
-            >
-              🧪 Ver Datos
-            </button>
-            <span className="badge bg-secondary">
-              {Object.keys(getFullCategoryData()).length}/{visibleFields.length} campos
-            </span>
-          </small>
-        </div>
+    
       </div>
       
       <div className="row g-3">
