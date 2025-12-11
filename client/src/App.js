@@ -24,8 +24,7 @@ import ResetPassword from './auth/ResetPassword';
 
 import { getUsers } from './redux/actions/userAction';
 
-import Navbar2 from './components/header/Navbar2'
-
+  
 import Video from './pages/video';
 import { getPrivacySettings } from './redux/actions/privacyAction';
 import Bloginfo from './pages/bloginfo';
@@ -37,6 +36,7 @@ import Map from './pages/Map';
 import PostId from './pages/PostId';
 import Message from './pages/message';
 import CreateAnnoncePage from './pages/CreateAnnoncePage';
+import Navbar2 from './components/header/Navbar2';
 
 function App() {
   const { auth, status, modal, languageReducer } = useSelector(state => state)

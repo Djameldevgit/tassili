@@ -303,11 +303,11 @@ const CreateAnnoncePage = () => {
   return (
     <Container className="py-4" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* TITRE */}
-      <div className="text-center mb-4">
-        <h1 className="fw-bold">
+      <div className="mb-4">
+        <h3 className="fw-bold">
           {isEdit ? '✏️ ' : '➕ '}
           {isEdit ? t('edit_ad', 'Modifier') : t('create_ad', 'Créer une annonce')}
-        </h1>
+        </h3>
         {isEdit && (
           <p className="text-muted">
             Modification de: <strong>{postData.title || 'Sans titre'}</strong>
@@ -330,21 +330,21 @@ const CreateAnnoncePage = () => {
       <form onSubmit={handleSubmit}>
         {/* SECTION 1: CATÉGORIES */}
         <Card className="mb-3 border-0 shadow-sm">
-          <Card.Body>
+         
             <Categories
               postData={postData}
               handleChangeInput={handleChangeInput}
             />
             
             {postData.categorie && (
-              <div className="mt-3">
+              <div className="mt-2">
                 <SubCategories
                   postData={postData}
                   handleChangeInput={handleChangeInput}
                 />
               </div>
             )}
-          </Card.Body>
+      
         </Card>
 
         {/* SECTION 2: CHAMPS DYNAMIQUES */}
@@ -353,7 +353,7 @@ const CreateAnnoncePage = () => {
             <Card.Header>
               <h5 className="mb-0">🔧 {t('specific_fields', 'Champs spécifiques')}</h5>
             </Card.Header>
-            <Card.Body>
+            
               <DynamicFieldManager
                 postData={postData}
                 handleChangeInput={handleChangeInput}
@@ -363,7 +363,7 @@ const CreateAnnoncePage = () => {
                 isRTL={isRTL}
                 onCategoryDataChange={handleCategoryDataChange}
               />
-            </Card.Body>
+           
           </Card>
         )}
 
@@ -372,7 +372,7 @@ const CreateAnnoncePage = () => {
           <Card.Header>
             <h5 className="mb-0">📝 {t('basic_info', 'Informations de base')}</h5>
           </Card.Header>
-          <Card.Body>
+        
             <div className="row g-3">
               <div className="col-12">
                 <TitleField
@@ -396,7 +396,7 @@ const CreateAnnoncePage = () => {
                 />
               </div>
             </div>
-          </Card.Body>
+          
         </Card>
 
         {/* SECTION 4: LOCALISATION & CONTACT */}
@@ -404,7 +404,7 @@ const CreateAnnoncePage = () => {
           <Card.Header>
             <h5 className="mb-0">📍 {t('location_contact', 'Localisation & Contact')}</h5>
           </Card.Header>
-          <Card.Body>
+         
             <div className="row g-3">
               <div className="col-md-6">
                 <WilayaCommunesField
@@ -421,7 +421,7 @@ const CreateAnnoncePage = () => {
                 />
               </div>
             </div>
-          </Card.Body>
+        
         </Card>
 
         {/* SECTION 5: IMAGES */}
@@ -429,7 +429,7 @@ const CreateAnnoncePage = () => {
           <Card.Header>
             <h5 className="mb-0">🖼️ {t('images', 'Photos')} *</h5>
           </Card.Header>
-          <Card.Body>
+          
             <ImageUploadField
               images={images}
               handleChangeImages={handleChangeImages}
@@ -440,7 +440,7 @@ const CreateAnnoncePage = () => {
             <small className="text-muted">
               * {t('required_field', 'Champ obligatoire')}
             </small>
-          </Card.Body>
+         
         </Card>
 
         {/* BOUTONS */}
