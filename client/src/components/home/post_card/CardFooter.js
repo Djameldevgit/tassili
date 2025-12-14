@@ -223,7 +223,7 @@ const CardFooter = ({ post }) => {
                     <ListGroup.Item className="border-0 px-1 py-1">
                         <div className="d-flex justify-content-between align-items-center">
                             {/* Número en rojo */}
-                            {post.price && (
+                            {post.categorySpecificData.subCategory && (
                                 <span 
                                     className="fw-bold"
                                     style={{ 
@@ -231,22 +231,13 @@ const CardFooter = ({ post }) => {
                                         color: '#dc3545'
                                     }}
                                 >
-                                    {post.price}
+                                    {post.categorySpecificData.subCategory}
                                 </span>
                             )}
                             
                             {/* "DA" al extremo derecho */}
-                            {post.price && (
-                                <span 
-                                    className="text-muted"
-                                    style={{ 
-                                        fontSize: '14px',
-                                        fontWeight: '500'
-                                    }}
-                                >
-                                    DA
-                                </span>
-                            )}
+                            {post.wilaya}
+                            {post.commune}
                         </div>
                     </ListGroup.Item>
 

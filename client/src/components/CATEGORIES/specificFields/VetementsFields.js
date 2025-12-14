@@ -1,8 +1,11 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import CouleurField from '../camposComun/CouleurField';
+import MarqueField from '../camposComun/MarqueField';
+import TailleField from '../camposComun/TailleField';
 
-const VetementsFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
+const VetementsFields = ({ fieldName, postData, handleChangeInput,mainCategory, subCategory, isRTL }) => {
   const { t } = useTranslation();
   
   const getSubCategorySpecificFields = () => {
@@ -202,242 +205,53 @@ const VetementsFields = ({ fieldName, postData, handleChangeInput, subCategory, 
     
     // 2. TAILLE
     'taille': (
-      <Form.Group key="taille">
-        <Form.Label>📏 {t('size', 'Taille')}</Form.Label>
-        <Form.Select
-          name="taille"
-          value={postData.taille || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_size', 'Sélectionnez taille')}</option>
-          {getTailleOptions(subCategory).map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    // 3. COULEUR CON MEJORAS
-    'couleur': (
-      <Form.Group key="couleur">
-        <Form.Label>🎨 {t('color', 'Couleur')}</Form.Label>
-        <Row>
-          <Col>
-            <Form.Select
-              name="couleur"
-              value={postData.couleur || ''}
-              onChange={handleChangeInput}
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              <option value="">{t('main_color', 'Couleur principale')}</option>
-              {getColorsForCategory(subCategory).map(color => (
-                <option key={color.value} value={color.value}>
-                  {color.emoji ? `${color.emoji} ${color.label}` : color.label}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
-          <Col>
-            <Form.Select
-              name="couleurSecondaire"
-              value={postData.couleurSecondaire || ''}
-              onChange={handleChangeInput}
-              dir={isRTL ? 'rtl' : 'ltr'}
-            >
-              <option value="">{t('secondary_color', 'Couleur secondaire')}</option>
-              <option value="aucune">{t('none', 'Aucune')}</option>
-              {getColorsForCategory(subCategory).map(color => (
-                <option key={`sec_${color.value}`} value={color.value}>
-                  {color.emoji ? `${color.emoji} ${color.label}` : color.label}
-                </option>
-              ))}
-            </Form.Select>
-          </Col>
-        </Row>
+       <TailleField
+       key={`taille_${subCategory}`}
+       selectedCategory={mainCategory}        // ✅ Usar la categoría que viene del padre
+       selectedSubCategory={subCategory}      // ✅ La subcategoría actual
+       postData={postData}
+       handleChangeInput={handleChangeInput}
+       isRTL={isRTL}
+       t={t}
+       name="taille"
+       label="taille"
+       
+       
+       
+       />
+
+
+
         
-        {/* Selector de tipo de venta */}
-        <div className="mt-3">
-          <Form.Label>💰 {t('sale_type', 'Type de vente')}</Form.Label>
-          <div className="d-flex flex-wrap gap-3">
-            <Form.Check
-              type="radio"
-              id="vente_detaille"
-              name="venteType"
-              label={<><span className="fs-5">🛍️</span> Vente au détail</>}
-              value="detaile"
-              checked={postData.venteType === 'detaile'}
-              onChange={handleChangeInput}
-              className="mb-2"
-            />
-            <Form.Check
-              type="radio"
-              id="vente_grossiste"
-              name="venteType"
-              label={<><span className="fs-5">📦</span> Vente en gros</>}
-              value="gross"
-              checked={postData.venteType === 'gross'}
-              onChange={handleChangeInput}
-              className="mb-2"
-            />
-            <Form.Check
-              type="radio"
-              id="vente_mixte"
-              name="venteType"
-              label={<><span className="fs-5">🔄</span> Mixte (détail + gros)</>}
-              value="mixte"
-              checked={postData.venteType === 'mixte'}
-              onChange={handleChangeInput}
-              className="mb-2"
-            />
-          </div>
-        </div>
-      </Form.Group>
     ),
+    'couleur': (
+      <CouleurField
+        key={`couleur_${subCategory}`}
+        selectedCategory={mainCategory}        // ✅ Usar la categoría que viene del padre
+        selectedSubCategory={subCategory}      // ✅ La subcategoría actual
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="couleur"
+        label="couleur"
+      />
+    ),
+    // 3. COULEUR CON MEJORAS
     
     // 4. MARQUE
     'marque': (
-      <Form.Group key="marque">
-        <Form.Label>🏷️ {t('brand', 'Marque')}</Form.Label>
-        <Form.Select
-          name="marque"
-          value={postData.marque || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_brand', 'Sélectionnez marque')}</option>
-          
-          {/* Marcas de lujo */}
-          <optgroup label="💎 Marques de luxe">
-            <option value="gucci">Gucci</option>
-            <option value="louis_vuitton">Louis Vuitton</option>
-            <option value="chanel">Chanel</option>
-            <option value="hermes">Hermès</option>
-            <option value="dior">Dior</option>
-            <option value="prada">Prada</option>
-            <option value="burberry">Burberry</option>
-            <option value="versace">Versace</option>
-            <option value="fendi">Fendi</option>
-            <option value="givenchy">Givenchy</option>
-          </optgroup>
-          
-          {/* Marcas premium */}
-          <optgroup label="⭐ Marques premium">
-            <option value="ralph_lauren">Ralph Lauren</option>
-            <option value="tommy_hilfiger">Tommy Hilfiger</option>
-            <option value="calvin_klein">Calvin Klein</option>
-            <option value="boss">Hugo Boss</option>
-            <option value="lacoste">Lacoste</option>
-            <option value="fred_perry">Fred Perry</option>
-            <option value="polo_ralph">Polo Ralph Lauren</option>
-          </optgroup>
-          
-          {/* Marcas fast fashion */}
-          <optgroup label="🛍️ Fast Fashion">
-            <option value="zara">Zara</option>
-            <option value="h&m">H&M</option>
-            <option value="mango">Mango</option>
-            <option value="uniqlo">Uniqlo</option>
-            <option value="gap">Gap</option>
-            <option value="bershka">Bershka</option>
-            <option value="pull&bear">Pull&Bear</option>
-            <option value="stradivarius">Stradivarius</option>
-          </optgroup>
-          
-          {/* Marcas deportivas */}
-          <optgroup label="🏃 Marques sport">
-            <option value="nike">Nike</option>
-            <option value="adidas">Adidas</option>
-            <option value="puma">Puma</option>
-            <option value="reebok">Reebok</option>
-            <option value="under_armour">Under Armour</option>
-            <option value="new_balance">New Balance</option>
-            <option value="asics">Asics</option>
-            <option value="converse">Converse</option>
-            <option value="vans">Vans</option>
-          </optgroup>
-          
-          {/* Marcas calzado específico */}
-          {(subCategory?.includes('chaussures')) && (
-            <optgroup label="👟 Marques chaussures">
-              <option value="clarks">Clarks</option>
-              <option value="ecco">Ecco</option>
-              <option value="geox">Geox</option>
-              <option value="timberland">Timberland</option>
-              <option value="dr_martens">Dr. Martens</option>
-              <option value="skechers">Skechers</option>
-              <option value="salomon">Salomon</option>
-              <option value="birkenstock">Birkenstock</option>
-            </optgroup>
-          )}
-          
-          {/* Marcas bolsos */}
-          {(subCategory?.includes('sacs')) && (
-            <optgroup label="👜 Marques sacs">
-              <option value="longchamp">Longchamp</option>
-              <option value="coach">Coach</option>
-              <option value="michael_kors">Michael Kors</option>
-              <option value="kate_spade">Kate Spade</option>
-              <option value="tumi">Tumi</option>
-              <option value="samsonite">Samsonite</option>
-            </optgroup>
-          )}
-          
-          {/* Marcas relojes */}
-          {(subCategory?.includes('montres')) && (
-            <optgroup label="⌚ Marques montres">
-              <option value="rolex">Rolex</option>
-              <option value="omega">Omega</option>
-              <option value="tag_heuer">Tag Heuer</option>
-              <option value="casio">Casio</option>
-              <option value="seiko">Seiko</option>
-              <option value="citizen">Citizen</option>
-              <option value="fossil">Fossil</option>
-              <option value="swatch">Swatch</option>
-              <option value="guess">Guess</option>
-            </optgroup>
-          )}
-          
-          {/* Marcas gafas */}
-          {(subCategory?.includes('lunettes')) && (
-            <optgroup label="👓 Marques lunettes">
-              <option value="ray_ban">Ray-Ban</option>
-              <option value="oakley">Oakley</option>
-              <option value="prada_lunettes">Prada</option>
-              <option value="dior_lunettes">Dior</option>
-              <option value="tom_ford">Tom Ford</option>
-              <option value="gucci_lunettes">Gucci</option>
-              <option value="persol">Persol</option>
-              <option value="maui_jim">Maui Jim</option>
-            </optgroup>
-          )}
-          
-          {/* Marcas joyería */}
-          {(subCategory?.includes('bijoux')) && (
-            <optgroup label="💎 Marques bijoux">
-              <option value="tiffany">Tiffany & Co.</option>
-              <option value="cartier">Cartier</option>
-              <option value="bulgari">Bulgari</option>
-              <option value="swarovski">Swarovski</option>
-              <option value="pandora">Pandora</option>
-              <option value="thomas_sabo">Thomas Sabo</option>
-              <option value="les_nereides">Les Néréides</option>
-            </optgroup>
-          )}
-          
-          <optgroup label="🏠 Artisanat & Local">
-            <option value="artisanat_local">Artisanat local</option>
-            <option value="marque_regionale">Marque régionale</option>
-            <option value="fabrique_locale">Fabriqué localement</option>
-            <option value="tisserand">Tisserand traditionnel</option>
-          </optgroup>
-          
-          <option value="sans_marque">🚫 Sans marque/Générique</option>
-          <option value="autre">❓ Autre marque</option>
-        </Form.Select>
-      </Form.Group>
+      <MarqueField
+        key={`marque_${subCategory}`}
+        selectedCategory={mainCategory}        // ✅ Usar la categoría que viene del padre
+        selectedSubCategory={subCategory}      // ✅ La subcategoría actual
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="marque"
+        label="Marque"
+      />
     ),
     
     // 5. MATIERE

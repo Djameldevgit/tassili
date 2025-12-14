@@ -1,7 +1,8 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-
+import MarquePCPortableField from '../camposComun/marques/MarquePCPortableField';
+ 
 const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
   const { t } = useTranslation();
   
@@ -59,39 +60,18 @@ const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategor
     ),
     
     'marque': (
-      <Form.Group key="marque">
-        <Form.Label>🏷️ {t('brand', 'Marque')}</Form.Label>
-        <Form.Select
-          name="marque"
-          value={postData.marque || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_brand', 'Sélectionnez marque')}</option>
-          <optgroup label="💻 Ordinateurs">
-            <option value="dell">Dell</option>
-            <option value="hp">HP</option>
-            <option value="lenovo">Lenovo</option>
-            <option value="asus">Asus</option>
-            <option value="acer">Acer</option>
-            <option value="msi">MSI</option>
-            <option value="apple">Apple</option>
-            <option value="microsoft">Microsoft Surface</option>
-          </optgroup>
-          <optgroup label="⚙️ Composants">
-            <option value="intel">Intel</option>
-            <option value="amd">AMD</option>
-            <option value="nvidia">NVIDIA</option>
-            <option value="corsair">Corsair</option>
-            <option value="kingston">Kingston</option>
-            <option value="samsung">Samsung</option>
-            <option value="western_digital">Western Digital</option>
-          </optgroup>
-          <option value="autre">{t('other', 'Autre')}</option>
-        </Form.Select>
-      </Form.Group>
+      <MarquePCPortableField
+        key="marque"
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="marque"
+        label="stay_price"
+      />
     ),
-    
+
+
     'modele': (
       <Form.Group key="modele">
         <Form.Label>📋 {t('model', 'Modèle')}</Form.Label>

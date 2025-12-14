@@ -25,150 +25,113 @@ class APIfeatures {
 }
 
 const postCtrl = {
-    createPost: async (req, res) => {
-        try {
-            const { postData, images } = req.body;
-    
-            if(!images || images.length === 0) {
-                return res.status(400).json({msg: "Veuillez ajouter au moins une photo."});
-            }
-            if (!postData.categorie) {
-                return res.status(400).json({msg: "La catégorie est requise."});
-            }
-     
-            if (!postData.subCategory) {
-                return res.status(400).json({msg: "La catégorie est requise."});
-            }
-     
-            const commonFields = [
-                'categorie', 'subCategory', 'articleType',
-                'title', 'description', 'price',
-                'wilaya', 'commune', 'numeroTelephone',
-                  
-            ];
-     
-            const commonData = {};
-            const specificData = {};
-    
-            Object.keys(postData).forEach(key => {
-                if (commonFields.includes(key)) {
-                    // Va al nivel raíz del documento
-                    commonData[key] = postData[key];
-                } else {
-                    // Va al campo "cajón" Mixed
-                    specificData[key] = postData[key];
-                }
-            });
-    
-            // 🔥 CREAR POST CON ESTRUCTURA CORRECTA
-            const newPost = new Posts({
-                // Campos comunes (nivel raíz)
-                ...commonData,
-                
-                // Campo Mixed con todos los datos específicos
-                categorySpecificData: specificData, // ← ¡IMPORTANTE!
-                
-                // Otros campos
-                images: images,
-                user: req.user._id,
-                
-                // Arrays inicializados
-                likes: [],
-            
-                
-              
-            });
-    
-            await newPost.save();
-    
-            // 🔥 POPULATE (ajustado para la nueva estructura)
-            await newPost.populate('user', 'avatar username');
-            
-            res.json({
-                msg: 'Post créé avec succès!',
-                newPost: {
-                    ...newPost._doc,
-                    user: req.user
-                }
-            });
-    
-        } catch (err) {
-            console.error('❌ Error en createPost:', err);
-            
-            // Mensaje más informativo
-            if (err.name === 'ValidationError') {
-                return res.status(400).json({
-                    msg: 'Erreur de validation',
-                    errors: Object.keys(err.errors).map(key => ({
-                        field: key,
-                        message: err.errors[key].message
-                    }))
-                });
-            }
-            
-            return res.status(500).json({msg: err.message || 'Erreur serveur'});
+ // 📄 controllers/postController.js - createPost
+createPost: async (req, res) => {
+    try {
+      const { postData, images } = req.body;
+      
+      // ... validaciones ...
+      
+      const commonFields = [
+        'categorie', 'subCategory', 'articleType',
+        'title', 'description', 'price',
+        'wilaya', 'commune', 'numeroTelephone',
+      ];
+      
+      const commonData = {};
+      const specificData = {};
+      
+      Object.keys(postData).forEach(key => {
+        if (commonFields.includes(key)) {
+          commonData[key] = postData[key];
+        } else {
+          specificData[key] = postData[key];
         }
-    },
+      });
+      
+      // ✅ CREAR POST CON ESTRUCTURA CORRECTA
+      const newPost = new Posts({
+        ...commonData,
+        categorySpecificData: specificData, // ← ¡Nombre consistente!
+        images: images,
+        user: req.user._id,
+        likes: [],
+      });
+      
+      await newPost.save();
+      
+      res.json({
+        msg: 'Post créé avec succès!',
+        newPost
+      });
+    } catch (err) {
+        console.error('Error en creePost:', err);
+        return res.status(500).json({msg: err.message});
+    }
+  },
    
-    updatePost: async (req, res) => {
-        try {
-            const { postData, images } = req.body;
-    
-            // 1. Obtener el post actual ANTES de actualizar
-            const oldPost = await Posts.findById(req.params.id);
-            if (!oldPost) {
-                return res.status(400).json({msg: "Ce post n'existe pas."});
-            }
-    
-            console.log('🔄 Actualizando post - Imágenes nuevas:', images);
-            console.log('📸 Imágenes antiguas:', oldPost.images);
-    
-            // 2. Identificar imágenes eliminadas para borrar de Cloudinary
-            const oldImageIds = oldPost.images.map(img => img.public_id).filter(Boolean);
-            const newImageIds = images.map(img => img.public_id).filter(Boolean);
-            
-            const deletedImageIds = oldImageIds.filter(id => !newImageIds.includes(id));
-    
-            console.log('🗑️ Imágenes a borrar de Cloudinary:', deletedImageIds);
-    
-            // 3. Borrar imágenes eliminadas de Cloudinary
-            if (deletedImageIds.length > 0) {
-                for (const publicId of deletedImageIds) {
-                    try {
-                        await cloudinary.uploader.destroy(publicId);
-                        console.log('✅ Imagen borrada de Cloudinary:', publicId);
-                    } catch (cloudinaryErr) {
-                        console.error('❌ Error borrando imagen de Cloudinary:', publicId, cloudinaryErr);
-                        // Continuar aunque falle una imagen
-                    }
-                }
-            }
-    
-            // 4. Actualizar el post en MongoDB
-            const post = await Posts.findOneAndUpdate(
-                { _id: req.params.id },
-                {
-                    $set: {
-                        ...postData,
-                        images: images || postData.images,
-                    }
-                },
-                { new: true, runValidators: true }
-            );
-    
-            // 5. Populate para obtener datos del usuario
-            await post.populate('user', 'avatar username   followers');
-    
-            res.json({
-                msg: 'Post modifié avec succès!',
-                newPost: post
-            });
-    
-        } catch (err) {
-            console.error('Error en updatePost:', err);
-            return res.status(500).json({msg: err.message});
+   // 📄 controllers/postController.js - updatePost
+updatePost: async (req, res) => {
+    try {
+      const { postData, images } = req.body;
+      
+      // 1. Obtener el post actual
+      const oldPost = await Posts.findById(req.params.id);
+      if (!oldPost) {
+        return res.status(400).json({msg: "Ce post n'existe pas."});
+      }
+      
+      // 2. Separar campos base de campos específicos
+      const commonFields = [
+        'categorie', 'subCategory', 'articleType',
+        'title', 'description', 'price',
+        'wilaya', 'commune', 'numeroTelephone',
+      ];
+      
+      const updateData = {};
+      const specificData = {};
+      
+      Object.keys(postData).forEach(key => {
+        if (commonFields.includes(key)) {
+          updateData[key] = postData[key];
+        } else {
+          specificData[key] = postData[key];
         }
-    },
+      });
+      
+      // 3. Añadir categorySpecificData al updateData
+      if (Object.keys(specificData).length > 0) {
+        updateData.categorySpecificData = specificData;
+      }
+      
+      // 4. Añadir imágenes
+      updateData.images = images || postData.images;
+      
+      console.log('🔄 Datos para actualizar:', {
+        updateData,
+        specificDataKeys: Object.keys(specificData)
+      });
+      
+      // 5. Actualizar en MongoDB
+      const post = await Posts.findOneAndUpdate(
+        { _id: req.params.id },
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+      
+      // 6. Populate
+      await post.populate('user', 'avatar username');
+      
+      res.json({
+        msg: 'Post modifié avec succès!',
+        newPost: post
+      });
+      
+    } catch (err) {
+      console.error('Error en updatePost:', err);
+      return res.status(500).json({msg: err.message});
+    }
+  },
     deletePost: async (req, res) => {
         try {
             const postId = req.params.id;

@@ -1,6 +1,9 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import CouleurField from '../camposComun/CouleurField';
+import MarqueField from '../camposComun/MarqueField';
+import ModeleField from '../camposComun/ModeleField';
 
 const TelephonesFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
   const { t } = useTranslation();
@@ -185,31 +188,27 @@ const TelephonesFields = ({ fieldName, postData, handleChangeInput, subCategory,
   // Tu objeto de fields existente (necesitas AGREGAR campos nuevos)
   const fields = {
     'marque': (
-      <Form.Group>
-        <Form.Label>🏷️ {t('brand', 'Marque')}</Form.Label>
-        <Form.Select
-          name="marque"
-          value={postData.marque || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          {/* ... tu código existente ... */}
-        </Form.Select>
-      </Form.Group>
+      <MarqueField
+        key="marque"
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="marque"
+        label="stay_price"
+      />
     ),
     
     'modele': (
-      <Form.Group>
-        <Form.Label>📱 {t('model', 'Modèle')}</Form.Label>
-        <Form.Control
-          type="text"
-          name="modele"
-          value={postData.modele || ''}
-          onChange={handleChangeInput}
-          placeholder={t('enter_model', 'Ex: iPhone 13, Galaxy S21, Redmi Note 10...')}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
-      </Form.Group>
+      <ModeleField
+      key="modele"
+      postData={postData}
+      handleChangeInput={handleChangeInput}
+      isRTL={isRTL}
+      t={t}
+      name="modele"
+      label="model"
+    />
     ),
     
     'etat': (
@@ -241,17 +240,15 @@ const TelephonesFields = ({ fieldName, postData, handleChangeInput, subCategory,
     ),
     
     'couleur': (
-      <Form.Group>
-        <Form.Label>🎨 {t('color', 'Couleur')}</Form.Label>
-        <Form.Select
-          name="couleur"
-          value={postData.couleur || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          {/* ... tu código existente ... */}
-        </Form.Select>
-      </Form.Group>
+      <CouleurField
+      key="couleur"
+      postData={postData}
+      handleChangeInput={handleChangeInput}
+      isRTL={isRTL}
+      t={t}
+      name="couleur"
+      label="couleur"
+    />
     ),
     
     'systemeExploitation': (

@@ -1,13 +1,17 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-
+import MarqueField from '../camposComun/MarqueField';
+import ModeleField from '../camposComun/ModeleField';
+ 
+ 
+ 
 const VehiculesFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
   const { t } = useTranslation();
   
   const getSubCategorySpecificFields = () => {
     const specificFields = {
-      'voitures': {
+      'automobiles': {
         'marque': 'marque',
         'modele': 'modele',
         'annee': 'annee',
@@ -112,46 +116,33 @@ const VehiculesFields = ({ fieldName, postData, handleChangeInput, subCategory, 
   
   const fields = {
     'marque': (
-      <Form.Group key="marque">
-        <Form.Label>🏷️ {t('brand', 'Marque')}</Form.Label>
-        <Form.Select
-          name="marque"
-          value={postData.marque || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_brand', 'Sélectionnez la marque')}</option>
-          <option value="renault">Renault</option>
-          <option value="peugeot">Peugeot</option>
-          <option value="citroen">Citroën</option>
-          <option value="bmw">BMW</option>
-          <option value="mercedes">Mercedes</option>
-          <option value="audi">Audi</option>
-          <option value="volkswagen">Volkswagen</option>
-          <option value="toyota">Toyota</option>
-          <option value="honda">Honda</option>
-          <option value="hyundai">Hyundai</option>
-          <option value="kia">Kia</option>
-          <option value="dacia">Dacia</option>
-          <option value="autre">{t('other', 'Autre')}</option>
-        </Form.Select>
-      </Form.Group>
+      <MarqueField
+        key="marque"
+        selectedCategory="automobiles" // Categoría fija
+        selectedSubCategory={subCategory} // ✅ ¡IMPORTANTE! Pasamos la subcategoría
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="marque" // Nombre único en la base de datos
+        label="brand"
+      />
     ),
-    
     'modele': (
-      <Form.Group key="modele">
-        <Form.Label>🚘 {t('model', 'Modèle')}</Form.Label>
-        <Form.Control
-          type="text"
-          name="modele"
-          value={postData.modele || ''}
-          onChange={handleChangeInput}
-          placeholder={t('enter_model', 'Ex: Clio, 208, Golf...')}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
-      </Form.Group>
+      <ModeleField
+        key="modele"
+        selectedCategory="automobiles" // Categoría fija
+        selectedSubCategory={subCategory} // ✅ ¡IMPORTANTE! Pasamos la subcategoría
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="modele" // Nombre único en la base de datos
+        label="brand"
+      />
     ),
     
+  
     'annee': (
       <Form.Group key="annee">
         <Form.Label>📅 {t('year', 'Année')}</Form.Label>

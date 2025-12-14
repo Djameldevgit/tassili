@@ -1,12 +1,15 @@
-import React from 'react';
-import { Form, Alert } from 'react-bootstrap';
+// FieldRenderer.js - VERSIÓN SIMPLIFICADA Y FUNCIONAL
+import React, { useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Form } from 'react-bootstrap';
 
-// Importar componentes específicos de categorías
-  import ImmobilierFields from './specificFields/ImmobiliersFields';
+// 🔥 IMPORTAR TODOS LOS CAMPOS COMUNES DESDE EL INDEX
+import * as CamposComun from './camposComun/index';
+
+// 🔥 IMPORTAR COMPONENTES ESPECÍFICOS DE CATEGORÍAS
+import ImmobilierFields from './specificFields/ImmobiliersFields';
 import VetementsFields from './specificFields/VetementsFields';
-import VehiculesFields from './specificFields/VehiculesFields'
- 
+import VehiculesFields from './specificFields/VehiculesFields';
 import TelephonesFields from './specificFields/TelephonesFields';
 import InformatiqueFields from './specificFields/InformatiqueFields';
 import ElectromenagerFields from './specificFields/ElectromenagerFields';
@@ -19,118 +22,80 @@ import MateriauxFields from './specificFields/MateriauxFields';
 import ServicesFields from './specificFields/ServicesFields';
 import VoyagesFields from './specificFields/VoyagesFields';
 import EmploiFields from './specificFields/EmploiFields';
+import PiecesDetacheesFields from './specificFields/PiecesDetacheesFields';
 
-
-// Campos compartidos básicos
-const sharedFieldComponents = {
-  'prix': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>💰 {t('price', 'Prix')}</Form.Label>
-      <Form.Control
-        type="number"
-        name="prix"
-        value={postData.prix || ''}
-        onChange={handleChangeInput}
-        placeholder={t('enter_price', 'Entrez le prix')}
-        min="0"
-        step="0.01"
-        dir={isRTL ? 'rtl' : 'ltr'}
-      />
-    </Form.Group>
-  ),
-  
-  'description': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>📝 {t('description', 'Description')}</Form.Label>
-      <Form.Control
-        as="textarea"
-        name="description"
-        value={postData.description || ''}
-        onChange={handleChangeInput}
-        placeholder={t('enter_description', 'Décrivez votre article...')}
-        rows={3}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      />
-    </Form.Group>
-  ),
-  
-  'etat': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>🔄 {t('condition', 'État')}</Form.Label>
-      <Form.Select
-        name="etat"
-        value={postData.etat || ''}
-        onChange={handleChangeInput}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      >
-        <option value="">{t('select_condition', 'Sélectionnez')}</option>
-        <option value="neuf">{t('new', 'Neuf')}</option>
-        <option value="tres_bon">{t('very_good', 'Très bon état')}</option>
-        <option value="bon">{t('good', 'Bon état')}</option>
-        <option value="moyen">{t('average', 'État moyen')}</option>
-        <option value="usage">{t('used', 'Usage visible')}</option>
-      </Form.Select>
-    </Form.Group>
-  ),
-  
-  'marque': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>🏷️ {t('brand', 'Marque')}</Form.Label>
-      <Form.Control
-        type="text"
-        name="marque"
-        value={postData.marque || ''}
-        onChange={handleChangeInput}
-        placeholder={t('enter_brand', 'Entrez la marque')}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      />
-    </Form.Group>
-  ),
-  
-  'couleur': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>🎨 {t('color', 'Couleur')}</Form.Label>
-      <Form.Control
-        type="text"
-        name="couleur"
-        value={postData.couleur || ''}
-        onChange={handleChangeInput}
-        placeholder={t('enter_color', 'Entrez la couleur')}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      />
-    </Form.Group>
-  ),
-  
-  'taille': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>📏 {t('size', 'Taille')}</Form.Label>
-      <Form.Control
-        type="text"
-        name="taille"
-        value={postData.taille || ''}
-        onChange={handleChangeInput}
-        placeholder={t('enter_size', 'Entrez la taille')}
-        dir={isRTL ? 'rtl' : 'ltr'}
-      />
-    </Form.Group>
-  ),
-  
-  'quantite': ({ postData, handleChangeInput, isRTL, t }) => (
-    <Form.Group>
-      <Form.Label>📦 {t('quantity', 'Quantité')}</Form.Label>
-      <Form.Control
-        type="number"
-        name="quantite"
-        value={postData.quantite || ''}
-        onChange={handleChangeInput}
-        placeholder={t('enter_quantity', 'Entrez la quantité')}
-        min="1"
-        dir={isRTL ? 'rtl' : 'ltr'}
-      />
-    </Form.Group>
-  )
+// 🔥 MAPEO DE COMPONENTES ESPECÍFICOS POR CATEGORÍA
+const CATEGORY_COMPONENTS = {
+  'immobilier': ImmobilierFields,
+  'automobiles': VehiculesFields,
+  'vetements': VetementsFields,
+  'telephones': TelephonesFields,
+  'informatique': InformatiqueFields,
+  'electromenager': ElectromenagerFields,
+  'sante_beaute': SanteBeauteFields,
+  'meubles': MeublesFields,
+  'loisirs': LoisirsFields,
+  'sport': SportFields,
+  'alimentaires': AlimentairesFields,
+  'materiaux': MateriauxFields,
+  'services': ServicesFields,
+  'voyages': VoyagesFields,
+  'emploi': EmploiFields,
+  'pieces_detachees': PiecesDetacheesFields,
 };
 
+// 🔥 SISTEMA CENTRAL DE VISIBILIDAD (SIMPLIFICADO)
+const useFieldVisibility = (fieldName, mainCategory, subCategory, articleType, postData) => {
+  return useMemo(() => {
+    console.log(`🔍 [Visibility] Verificando ${fieldName} para ${mainCategory}.${subCategory}`);
+    
+    // 📌 REGLAS PARA VOYAGES
+    if (mainCategory === 'voyages') {
+      if (subCategory === 'voyage_organise') {
+        if (fieldName === 'destinationWilaya' && postData.destinationType !== 'local') {
+          return false;
+        }
+        if (fieldName === 'destinationCountry' && postData.destinationType !== 'international') {
+          return false;
+        }
+      }
+      
+      if (subCategory === 'location_vacances') {
+        if (fieldName === 'communeLocation' && (!postData.wilayaLocation || postData.wilayaLocation === '')) {
+          return false;
+        }
+      }
+    }
+    
+    // 📌 REGLAS PARA IMMOBILIER
+    if (mainCategory === 'immobilier') {
+      const invalidCombinations = {
+        'villa': ['etage', 'nombreEtagesImmeuble'],
+        'terrain': ['etage', 'nombrePieces', 'ascenseur', 'parking', 'meuble', 'etages'],
+        'local': ['etage', 'nombrePieces', 'jardin', 'piscine'],
+        'terrain_agricole': ['etage', 'nombrePieces', 'ascenseur', 'parking'],
+        'immeuble': ['superficieJardin', 'piscine', 'jardin']
+      };
+      
+      if (invalidCombinations[subCategory]?.includes(fieldName)) {
+        return false;
+      }
+      
+      if (fieldName === 'superficieJardin' && postData.jardin !== 'oui') {
+        return false;
+      }
+      if (fieldName === 'nombrePlacesGarage' && postData.garage === 'non') {
+        return false;
+      }
+    }
+    
+    // Por defecto: mostrar el campo
+    return true;
+    
+  }, [fieldName, mainCategory, subCategory, articleType, postData]);
+};
+
+// 🔥 COMPONENTE PRINCIPAL FIELD RENDERER (CORREGIDO)
 const FieldRenderer = ({ 
   fieldName, 
   postData, 
@@ -142,97 +107,173 @@ const FieldRenderer = ({
 }) => {
   const { t } = useTranslation();
   
-  // 🎯 1. Verificar si es un campo compartido
-  const SharedFieldComponent = sharedFieldComponents[fieldName];
-  if (SharedFieldComponent) {
+  // 🔍 DEBUG: Ver qué props estamos recibiendo
+  useEffect(() => {
+    console.log('🎯 FieldRenderer recibió:', {
+      fieldName,
+      mainCategory,
+      subCategory,
+      articleType
+    });
+  }, [fieldName, mainCategory, subCategory, articleType]);
+  
+  // 🔥 PASO 1: Determinar si el campo debe mostrarse
+  const shouldShowField = useFieldVisibility(
+    fieldName, 
+    mainCategory, 
+    subCategory, 
+    articleType, 
+    postData
+  );
+  
+  if (!shouldShowField) {
+    console.log(`🚫 Campo ${fieldName} oculto por reglas de visibilidad`);
+    return null;
+  }
+  
+  // 🔥 PASO 2: Verificar si es un campo común (usando el mapa de CamposComun)
+  const commonFieldType = CamposComun.COMMON_FIELDS_MAP?.[fieldName];
+  
+  if (commonFieldType && CamposComun[commonFieldType]) {
+    const Component = CamposComun[commonFieldType];
+    console.log(`✅ Usando componente común: ${commonFieldType} para ${fieldName}`);
+    
+    // 🎯 PROPS BASE PARA TODOS LOS CAMPOS COMUNES
+    const baseProps = {
+      key: `${fieldName}-${mainCategory}-${subCategory}`,
+      postData,
+      handleChangeInput,
+      isRTL,
+      name: fieldName,
+      label: fieldName
+    };
+    
+    // 🎯 PROPS ESPECÍFICOS SEGÚN TIPO DE CAMPO
+    let specificProps = {};
+    
+    // Campos que necesitan categoría y subcategoría
+    if (['MarqueField', 'ModeleField', 'TailleField', 'EtatField', 'PrixField'].includes(commonFieldType)) {
+      specificProps.selectedCategory = mainCategory;
+      specificProps.selectedSubCategory = subCategory;
+    }
+    
+    // ModeleField necesita la marca seleccionada
+    if (commonFieldType === 'ModeleField') {
+      // Buscar la marca en varios campos posibles
+      const selectedBrand = postData.marque || postData.marqueauto || postData.marquemoto || '';
+      specificProps.selectedBrand = selectedBrand;
+      
+      console.log(`🔍 ModeleField - Marca seleccionada: ${selectedBrand}`);
+      
+      // Si no hay marca, mostrar mensaje
+      if (!selectedBrand) {
+        return (
+          <div className="alert alert-warning py-2 mb-0">
+            <small>
+              <i className="bi bi-info-circle me-2"></i>
+              {t('select_brand_first', 'Veuillez d\'abord sélectionner une marque')}
+            </small>
+          </div>
+        );
+      }
+    }
+    
+    // PrixField necesita moneda específica para algunas categorías
+    if (commonFieldType === 'PrixField') {
+      if (mainCategory === 'voyages') {
+        specificProps.currency = 'EURO';
+      } else {
+        specificProps.currency = 'DA';
+      }
+    }
+    
     return (
-      <div className="field-renderer">
-        <SharedFieldComponent
-          postData={postData}
-          handleChangeInput={handleChangeInput}
-          mainCategory={mainCategory}
-          subCategory={subCategory}
-          articleType={articleType}
-          isRTL={isRTL}
-          t={t}
-        />
+      <div className={`field-renderer common-field ${commonFieldType.toLowerCase()}`}>
+        <Component {...baseProps} {...specificProps} />
       </div>
     );
   }
   
-  // 🎯 2. Determinar qué componente de categoría usar
-  const getCategoryComponent = () => {
-    if (!mainCategory) return null;
-    
-    const categoryMap = {
-      'immobilier': ImmobilierFields,
-      'automobiles': VehiculesFields,
-      'vetements': VetementsFields,
-      'telephones': TelephonesFields,
-      'informatique': InformatiqueFields,
-      'electromenager': ElectromenagerFields,
-      'sante_beaute': SanteBeauteFields,
-      'meubles': MeublesFields,
-      'loisirs': LoisirsFields,
-      'sport': SportFields,
-      'alimentaires': AlimentairesFields,
-      'materiaux': MateriauxFields,
-      'services': ServicesFields,
-      'voyages': VoyagesFields,
-      'emploi': EmploiFields
-    };
-    
-    return categoryMap[mainCategory] || null;
-  };
+  // 🔥 PASO 3: Usar componente específico de categoría
+  const CategoryComponent = CATEGORY_COMPONENTS[mainCategory];
   
-  const CategoryComponent = getCategoryComponent();
-  
-  // 🎯 3. Si hay componente de categoría, usarlo
   if (CategoryComponent) {
     try {
-      const fieldComponent = (
-        <CategoryComponent
-        fieldName={fieldName}
-          postData={postData}
-          handleChangeInput={handleChangeInput}
-          subCategory={subCategory}
-          articleType={articleType}
-          isRTL={isRTL}
-        />
-      );
+      console.log(`🎯 Usando componente específico: ${mainCategory}Fields para ${fieldName}`);
       
-      // Si el componente devuelve algo, renderizarlo
-      if (fieldComponent) {
-        return (
-          <div className="field-renderer category-specific">
-            {fieldComponent}
-          </div>
-        );
-      }
+      return (
+        <div className="field-renderer category-specific">
+          <CategoryComponent
+            fieldName={fieldName}
+            mainCategory={mainCategory}        // ✅ ¡IMPORTANTE! Pasar categoría
+            subCategory={subCategory}
+            articleType={articleType}
+            postData={postData}
+            handleChangeInput={handleChangeInput}
+            isRTL={isRTL}
+          />
+        </div>
+      );
     } catch (error) {
-      console.error(`Error rendering field ${fieldName} for ${mainCategory}:`, error);
+      console.error(`❌ Error en ${mainCategory}Fields para '${fieldName}':`, error);
+      return (
+        <div className="alert alert-danger">
+          Error en componente de categoría: {error.message}
+        </div>
+      );
     }
   }
   
-  // 🎯 4. Campo genérico si no se encontró componente específico
+  // 🔥 PASO 4: Campo genérico como último recurso
+  console.warn(`⚠️ [FieldRenderer] Campo '${fieldName}' sin componente para ${mainCategory}`);
+  
+  // Determinar tipo de campo basado en el nombre
+  const getFieldType = () => {
+    if (fieldName.includes('date') || fieldName.includes('Date')) return 'date';
+    if (fieldName.includes('email')) return 'email';
+    if (fieldName.includes('phone') || fieldName.includes('Phone')) return 'tel';
+    if (fieldName.includes('prix') || fieldName.includes('price') || fieldName.includes('loyer')) return 'number';
+    if (fieldName.includes('quantite') || fieldName.includes('nombre') || fieldName.includes('capacite')) return 'number';
+    if (fieldName.includes('description') || fieldName.includes('content')) return 'textarea';
+    return 'text';
+  };
+  
+  const fieldType = getFieldType();
+  
   return (
     <div className="field-renderer generic-field">
       <Form.Group>
         <Form.Label className={`fw-bold ${isRTL ? 'text-end d-block' : ''}`}>
           {t(`fields.${fieldName}`, fieldName.replace(/_/g, ' '))}
         </Form.Label>
-        <Form.Control
-          type="text"
-          name={fieldName}
-          value={postData[fieldName] || ''}
-          onChange={handleChangeInput}
-          placeholder={t(`enter_${fieldName}`, `Entrez ${fieldName.replace(/_/g, ' ')}`)}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
+        
+        {fieldType === 'textarea' ? (
+          <Form.Control
+            as="textarea"
+            name={fieldName}
+            value={postData[fieldName] || ''}
+            onChange={handleChangeInput}
+            placeholder={t(`enter_${fieldName}`, `Entrez ${fieldName.replace(/_/g, ' ')}`)}
+            rows={3}
+            dir={isRTL ? 'rtl' : 'ltr'}
+          />
+        ) : (
+          <Form.Control
+            type={fieldType}
+            name={fieldName}
+            value={postData[fieldName] || ''}
+            onChange={handleChangeInput}
+            placeholder={t(`enter_${fieldName}`, `Entrez ${fieldName.replace(/_/g, ' ')}`)}
+            dir={isRTL ? 'rtl' : 'ltr'}
+            min={fieldType === 'number' ? '0' : undefined}
+            step={fieldType === 'number' ? '0.01' : undefined}
+          />
+        )}
+        
         <Form.Text className="text-muted">
           <small>
             <i className="fas fa-info-circle me-1"></i>
-            {t('generic_field', 'Champ générique')}
+            {t('generic_field', 'Champ générique')} • {fieldType}
           </small>
         </Form.Text>
       </Form.Group>
@@ -240,7 +281,7 @@ const FieldRenderer = ({
   );
 };
 
-// 🎯 Propiedades por defecto para seguridad
+// 🔥 PROPIEDADES POR DEFECTO
 FieldRenderer.defaultProps = {
   fieldName: '',
   postData: {},
@@ -251,4 +292,9 @@ FieldRenderer.defaultProps = {
   isRTL: false
 };
 
-export default FieldRenderer;
+// 🔥 FUNCIONES DE UTILIDAD
+export const getCommonFields = () => Object.keys(CamposComun.COMMON_FIELDS_MAP || {});
+export const getAvailableCategories = () => Object.keys(CATEGORY_COMPONENTS);
+export const isCommonField = (fieldName) => CamposComun.COMMON_FIELDS_MAP?.[fieldName] !== undefined;
+
+export default FieldRenderer

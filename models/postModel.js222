@@ -1,0 +1,39 @@
+const mongoose = require('mongoose')
+const postSchema = new mongoose.Schema({
+    // Campos base (siempre presentes)
+    title: { type: String, required: true, trim: true },
+    description: { type: String },
+    price: { type: Number },
+    wilaya: { type: String },
+    commune: { type: String },
+    numeroTelephone: { type: String },
+    
+    // Categorías
+    categorie: { type: String, required: true, index: true },
+    subCategory: { type: String, index: true },
+    articleType: { type: String }, // Para immobilier
+    
+    // Campos dinámicos organizados
+    specificData: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
+    
+    // Campos indexados para búsqueda rápida
+    searchKeywords: [{ type: String, index: true }],
+    
+    // Metadatos
+    images: [{ url: String, public_id: String }],
+    user: { type: mongoose.Types.ObjectId, ref: 'user' },
+    likes: [{ type: mongoose.Types.ObjectId, ref: 'user' }],
+    comments: [{ type: mongoose.Types.ObjectId, ref: 'comment' }],
+    
+  }, { timestamps: true });
+  
+  // Índices compuestos para búsqueda eficiente
+  postSchema.index({ categorie: 1, subCategory: 1 });
+  postSchema.index({ 'specificData.marque': 1 });
+  postSchema.index({ 'specificData.etat': 1 });
+  postSchema.index({ price: 1 });
+  postSchema.index({ wilaya: 1, commune: 1 });

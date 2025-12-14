@@ -2,8 +2,6 @@
 
 export const FieldConfig = {
 
-
-
   'electromenager': {
     'televiseurs': {
       baseFields: ['marque', 'modele', 'tailleEcran', 'resolution', 'typeEcran', 'etat', 'prix'],
@@ -32,65 +30,8 @@ export const FieldConfig = {
     'refrigerateurs_congelateurs': {
       baseFields: ['typeAppareil', 'marque', 'modele', 'capacite', 'classeEnergetique', 'dimensions', 'etat', 'prix'],
       conditional: {}
-    },
-    'machines_laver': {
-      baseFields: ['typeMachine', 'marque', 'modele', 'capacite', 'classeEnergetique', 'dimensions', 'etat', 'prix'],
-      conditional: {}
-    },
-    'lave_vaisselles': {
-      baseFields: ['marque', 'modele', 'capacite', 'classeEnergetique', 'dimensions', 'etat', 'prix'],
-      conditional: {}
-    },
-    'fours_cuisson': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'typeEnergie', 'capacite', 'dimensions', 'etat', 'prix'],
-      conditional: {}
-    },
-    'chauffage_climatisation': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'puissance', 'surfaceChauffe', 'etat', 'prix'],
-      conditional: {}
-    },
-    'appareils_cuisine': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'puissance', 'capacite', 'couleur', 'etat', 'prix'],
-      conditional: {}
-    },
-    'aspirateurs_nettoyeurs': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'puissance', 'capaciteReservoir', 'etat', 'prix'],
-      conditional: {}
-    },
-    'repassage': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'puissance', 'surfaceRepassage', 'etat', 'prix'],
-      conditional: {}
-    },
-    'beaute_hygiene': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'fonctions', 'couleur', 'etat', 'prix'],
-      conditional: {}
-    },
-    'machines_coudre': {
-      baseFields: ['marque', 'modele', 'typeMachine', 'programmes', 'etat', 'prix'],
-      conditional: {}
-    },
-    'telecommandes': {
-      baseFields: ['marque', 'modele', 'compatible', 'typeBatterie', 'etat', 'prix'],
-      conditional: {}
-    },
-    'securite_gps': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'fonctions', 'connectivite', 'etat', 'prix'],
-      conditional: {}
-    },
-    'composants_electroniques': {
-      baseFields: ['typeComposant', 'marque', 'modele', 'compatible', 'etat', 'prix'],
-      conditional: {}
-    },
-    'pieces_rechange': {
-      baseFields: ['typePiece', 'marque', 'modele', 'compatible', 'etat', 'prix'],
-      conditional: {}
-    },
-    'autre': {
-      baseFields: ['typeAppareil', 'marque', 'modele', 'description', 'etat', 'prix'],
-      conditional: {}
     }
-  },
-
+    },
   // ============ INFORMATIQUE ============
   'informatique': {
     'ordinateurs_portables': {
@@ -180,8 +121,8 @@ export const FieldConfig = {
   },
 
 
-  'automobiles': {
-    'voitures': {
+  'vehicules': {
+    'automobiles': {
       baseFields: ['marque', 'modele', 'annee', 'kilometrage', 'carburant', 'boiteVitesse', 'puissance', 'prix'],
       conditional: {}
     },
@@ -904,95 +845,98 @@ export const FieldConfig = {
   },
 
   // ============ VOYAGES & TOURISME ============
-  'voyages': {
-    'voyage_organise': {
-      baseFields: [
-        'typeVoyage',
-        'destinationType',
-        'destinationLocation',
-        'startDate',
-        'endDate',
-        'servicesIncluded',
-        'pricePerPerson',
-        'contactPhone'
-      ],
-      conditional: {
-        'destinationType': {
-          'local': ['destinationWilaya'],
-          'international': ['destinationCountry']
-        }
-      }
-    },
-    'location_vacances': {
-      baseFields: [
-        'typeHebergement',
-        'wilayaLocation',
-        'communeLocation',
-        'capacity',
-        'equipments',
-        'startDateLocation',
-        'endDateLocation',
-        'pricePerNight',
-        'contactPhone'
-      ],
-      conditional: {}
-    },
-    'hajj_omra': {
-      baseFields: [
-        'typeVoyageReligieux',
-        'hajjPeriod',
-        'packageType',
-        'servicesIncludedHajj',
-        'pricePerPersonHajj',
-        'contactPhone'
-      ],
-      conditional: {}
-    },
-    'reservations_visa': {
-      baseFields: [
-        'typeServiceVisa',
-        'destinationCountry',
-        'visaType',
-        'processingTime',
-        'urgentService',
-        'priceVisa',
-        'contactPhone'
-      ],
-      conditional: {}
-    },
-    'sejour': {
-      baseFields: [
-        'typeSejour',
-        'regionSejour',
-        'durationSejour',
-        'activities',
-        'priceSejour',
-        'contactPhone'
-      ],
-      conditional: {}
-    },
-    'croisiere': {
-      baseFields: [
-        'cruiseCompany',
-        'departurePort',
-        'destinationCruise',
-        'durationCruise',
-        'cabinType',
-        'priceCruise',
-        'contactPhone'
-      ],
-      conditional: {}
-    },
-    'autre': {
-      baseFields: [
-        'descriptionSpecifique',
-        'serviceType',
-        'price',
-        'contactPhone'
-      ],
-      conditional: {}
-    }
+ // ✅ SOLUCIÓN - FieldConfig.js CORREGIDO
+// En tu FieldConfig.js - COMPLETO PARA VOYAGES
+'voyages': {
+  'voyage_organise': {
+    baseFields: [
+      'typeVoyage',
+      'destinationType',  // ← Controla condicionales
+      'destinationLocation',
+      'startDate',
+      'endDate',
+      'servicesIncluded',
+      'pricePerPerson',
+      'contactPhone'
+    ],
+    conditional: {}  // Se maneja en FieldRenderer
+  },
+  
+  'location_vacances': {
+    baseFields: [
+      'typeHebergement',
+      'wilayaLocation',
+      'communeLocation',
+      'capacity',
+      'equipments',
+      'startDateLocation',
+      'endDateLocation',
+      'pricePerNight',
+      'contactPhone'
+    ],
+    conditional: {}
+  },
+  
+  'hajj_omra': {
+    baseFields: [
+      'typeVoyageReligieux',
+      'hajjPeriod',
+      'packageType',
+      'servicesIncludedHajj',
+      'pricePerPersonHajj',
+      'contactPhone'
+    ],
+    conditional: {}
+  },
+  
+  'reservations_visa': {
+    baseFields: [
+      'typeServiceVisa',
+      'destinationCountry',
+      'visaType',
+      'processingTime',
+      'urgentService',
+      'priceVisa',
+      'contactPhone'
+    ],
+    conditional: {}
+  },
+  
+  'sejour': {
+    baseFields: [
+      'typeSejour',
+      'regionSejour',
+      'durationSejour',
+      'activities',
+      'priceSejour',
+      'contactPhone'
+    ],
+    conditional: {}
+  },
+  
+  'croisiere': {
+    baseFields: [
+      'cruiseCompany',
+      'departurePort',
+      'destinationCruise',
+      'durationCruise',
+      'cabinType',
+      'priceCruise',
+      'contactPhone'
+    ],
+    conditional: {}
+  },
+  
+  'autre': {
+    baseFields: [
+      'descriptionSpecifique',
+      'serviceType',
+      'price',
+      'contactPhone'
+    ],
+    conditional: {}
   }
+}
 
 }
 

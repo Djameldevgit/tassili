@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -10,18 +10,19 @@ import { createPost, updatePost } from '../redux/actions/postAction';
 // 🔷 UTILS
 import { checkImage } from '../utils/imageUpload';
 
-// 🔷 COMPONENTES
+// 🔷 COMPONENTES QUE EL PADRE DEBE IMPORTAR DIRECTAMENTE
 import Categories from '../components/CATEGORIES/Categories';
 import SubCategories from '../components/CATEGORIES/Subcategories';
 import DynamicFieldManager from '../components/CATEGORIES/DynamicFieldManager';
 import ImageUploadField from '../components/CATEGORIES/FormFields/ImageUploadField';
-
-// 🔷 CAMPOS COMUNES
-import TitleField from '../components/CATEGORIES/FormFields/TitleField';
-import DescriptionField from '../components/CATEGORIES/FormFields/DescriptionField';
-import PriceField from '../components/CATEGORIES/FormFields/PriceField';
 import WilayaCommunesField from '../components/CATEGORIES/FormFields/WilayaCommunesField';
 import NumeroTelephoneField from '../components/CATEGORIES/FormFields/NumeroTelephoneField';
+
+// 🔷 CONSTANTES PARA CAMPOS BASE
+const BASE_FIELDS = [
+  'categorie', 'subCategory', 'articleType',
+  'wilaya', 'commune', 'numeroTelephone'
+];
 
 const CreateAnnoncePage = () => {
   // 🔷 REDUX Y HOOKS
@@ -35,119 +36,135 @@ const CreateAnnoncePage = () => {
   const isEdit = location.state?.isEdit || false;
   const postToEdit = location.state?.postData || null;
 
-  // 🔷 ESTADO PRINCIPAL
-  const [postData, setPostData] = useState({
+  // 🔷 ESTADOS PRINCIPALES
+  const [formData, setFormData] = useState({
+    // Campos base (siempre importados por el padre)
     categorie: '',
     articleType: '',
     subCategory: '',
-    title: '',
-    description: '',
-    price: '',
     wilaya: '',
     commune: '',
     numeroTelephone: '',
   });
 
+  const [specificData, setSpecificData] = useState({}); // Campos dinámicos
   const [images, setImages] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertVariant, setAlertVariant] = useState('info');
-  const [categorySpecificData, setCategorySpecificData] = useState({});
+  const [renderCount, setRenderCount] = useState(0);
 
-  // 🔷 DEBUG: Ver estado actual
-  useEffect(() => {
-    console.log('📊 Estado actual:', {
-      categorie: postData.categorie,
-      subCategory: postData.subCategory,
-      articleType: postData.articleType,
-      tieneTitle: !!postData.title,
-      tieneWilaya: !!postData.wilaya,
-      tieneCommune: !!postData.commune
-    });
-  }, [postData]);
+  // 🔷 USEMEMO PARA POSTDATA COMPLETO (EVITA RERENDERS INNECESARIOS)
+  const completePostData = useMemo(() => {
+    return { ...formData, ...specificData };
+  }, [formData, specificData]);
 
-  // 🔷 SIMPLIFICADO: Carga de datos para edición
+  // 🔷 DEBUG: Contador de renders (para diagnóstico)
+  
+
+  // 🔷 CARGA DE DATOS PARA EDICIÓN (SIMPLIFICADA Y OPTIMIZADA)
   useEffect(() => {
     if (isEdit && postToEdit) {
-      console.log('🔄 Cargando post para edición:', {
-        id: postToEdit._id,
-        tieneSubCategory: !!postToEdit.subCategory,
-        tieneCategorie: !!postToEdit.categorie,
-        tieneImages: postToEdit.images?.length || 0
-      });
+      console.log('📥 Iniciando carga para edición del post:', postToEdit._id);
 
-      // 🎯 ESTRATEGIA SIMPLE: Tomar datos directamente del post
-      const loadedData = {
-        categorie: postToEdit.categorie  || '',
+      // 1. CARGAR CAMPOS BASE
+      const loadedBaseData = {
+        categorie: postToEdit.categorie || '',
         subCategory: postToEdit.subCategory || '',
         articleType: postToEdit.articleType || '',
-        title: postToEdit.title || '',
-        description: postToEdit.description || postToEdit.content || '',
-        price: postToEdit.price || 0,
         wilaya: postToEdit.wilaya || '',
         commune: postToEdit.commune || '',
         numeroTelephone: postToEdit.numeroTelephone || ''
       };
 
-      // 🎯 Extraer campos específicos de data/specificData si existen
-      const specificData = {};
-      const dataSources = [postToEdit.data, postToEdit.specificData];
-      
-      dataSources.forEach(source => {
-        if (source && typeof source === 'object') {
-          Object.keys(source).forEach(key => {
-            if (source[key] !== undefined && source[key] !== null) {
-              specificData[key] = source[key];
-            }
-          });
+      // 2. CARGAR CAMPOS DINÁMICOS
+      const loadedSpecificData = {};
+
+      // Campos que ahora son dinámicos
+     
+     
+      // Campos de categorySpecificData (si existe)
+      if (postToEdit.categorySpecificData) {
+        try {
+          // Convertir Map a objeto si es necesario
+          if (postToEdit.categorySpecificData instanceof Map) {
+            postToEdit.categorySpecificData.forEach((value, key) => {
+              if (value !== undefined && value !== null && value !== '') {
+                loadedSpecificData[key] = value;
+              }
+            });
+          } else if (typeof postToEdit.categorySpecificData === 'object') {
+            Object.entries(postToEdit.categorySpecificData).forEach(([key, value]) => {
+              if (value !== undefined && value !== null && value !== '') {
+                loadedSpecificData[key] = value;
+              }
+            });
+          }
+        } catch (err) {
+          console.warn('⚠️ Error al procesar categorySpecificData:', err);
         }
+      }
+
+      console.log('✅ Datos cargados exitosamente:', {
+        base: Object.keys(loadedBaseData).filter(k => loadedBaseData[k]).length,
+        dinamicos: Object.keys(loadedSpecificData).length,
+        
       });
 
-      setPostData(loadedData);
-      setCategorySpecificData(specificData);
+      setFormData(loadedBaseData);
+      setSpecificData(loadedSpecificData);
 
-      // 🎯 Cargar imágenes
-      if (postToEdit.images && Array.isArray(postToEdit.images)) {
+      // 3. CARGAR IMÁGENES
+      if (postToEdit.images?.length > 0) {
         const loadedImages = postToEdit.images.map(img => ({
-          url: typeof img === 'string' ? img : img?.url,
+          url: img.url || img,
+          public_id: img.public_id || '',
           isExisting: true
         }));
         setImages(loadedImages);
-        console.log(`🖼️ ${loadedImages.length} imágenes cargadas`);
       }
     }
   }, [isEdit, postToEdit]);
 
-  const handleCategoryDataChange = useCallback((specificData) => {
-    console.log('📦 Datos específicos actualizados:', specificData);
-    setCategorySpecificData(specificData);
-  }, []);
-
-  // 🔷 Alertas
-  const showAlertMessage = useCallback((message, variant = 'info') => {
-    setAlertMessage(message);
-    setAlertVariant(variant);
-    setShowAlert(true);
-    setTimeout(() => setShowAlert(false), 5000);
-  }, []);
-
-  // 🔷 Handlers
-  const handleChangeInput = useCallback((e) => {
+  // 🔷 HANDLER UNIFICADO PARA TODOS LOS CAMPOS (¡SOLUCIÓN AL BUCLE!)
+  const handleInputChange = useCallback((e) => {
     const { name, value, type, checked } = e.target;
-    setPostData(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value
-    }));
+    const val = type === 'checkbox' ? checked : value;
+    
+    console.log(`✏️ Campo cambiado: ${name} = ${val}`);
+
+    // ¿Es un campo base?
+    if (BASE_FIELDS.includes(name)) {
+      setFormData(prev => ({ ...prev, [name]: val }));
+    } 
+    // ¿Es un campo dinámico?
+    else {
+      setSpecificData(prev => {
+        // Si el valor está vacío, eliminar el campo
+        if (val === '' || val === undefined || val === null) {
+          const { [name]: removed, ...rest } = prev;
+          return rest;
+        }
+        // Si tiene valor, actualizar
+        return { ...prev, [name]: val };
+      });
+    }
   }, []);
 
+  // 🔷 HANDLER ESPECIAL PARA TELÉFONO (si NumeroTelephoneField devuelve objeto)
   const handlePhoneChange = useCallback((phoneValue) => {
-    setPostData(prev => ({
-      ...prev,
-      numeroTelephone: phoneValue
-    }));
-  }, []);
+    // Si es un evento, usar handleInputChange normal
+    if (phoneValue && phoneValue.target) {
+      handleInputChange(phoneValue);
+    } 
+    // Si es solo el valor (string)
+    else {
+      setFormData(prev => ({ ...prev, numeroTelephone: phoneValue }));
+    }
+  }, [handleInputChange]);
 
+  // 🔷 HANDLERS PARA IMÁGENES
   const handleChangeImages = useCallback((e) => {
     const files = [...e.target.files];
     if (files.length === 0) return;
@@ -161,11 +178,12 @@ const CreateAnnoncePage = () => {
     const newImages = files.map(file => ({
       file,
       url: URL.createObjectURL(file),
-      isExisting: false
+      isExisting: false,
+      public_id: ''
     }));
 
     setImages(prev => [...prev, ...newImages]);
-  }, [images.length, showAlertMessage]);
+  }, [images.length]);
 
   const deleteImages = useCallback((index) => {
     setImages(prev => {
@@ -178,75 +196,71 @@ const CreateAnnoncePage = () => {
     });
   }, []);
 
-  // 🔷 HANDLE SUBMIT CORREGIDO
+  // 🔷 ALERTAS
+  const showAlertMessage = useCallback((message, variant = 'info') => {
+    setAlertMessage(message);
+    setAlertVariant(variant);
+    setShowAlert(true);
+    setTimeout(() => setShowAlert(false), 5000);
+  }, []);
+
+  // 🔷 HANDLE SUBMIT (OPTIMIZADO)
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // ✅ Validaciones básicas
+    console.log('🚀 Iniciando envío del formulario...');
+
+    // ✅ VALIDACIONES
     if (images.length === 0) {
       showAlertMessage("Ajoutez au moins une photo.", "danger");
       setIsSubmitting(false);
       return;
     }
+ 
 
-    if (!postData.title) {
-      showAlertMessage("Le titre est requis.", "danger");
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!postData.subCategory) {
+    if (!formData.subCategory) {
       showAlertMessage("Sélectionnez une sous-catégorie.", "danger");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      // 🎯 PREPARAR DATOS PARA BACKEND (VERSIÓN SIMPLE)
-      const finalPostData = {
-        // Campos que el backend espera
-        categorie: postData.categorie, // ← Backend espera 'category'
-        subCategory: postData.subCategory,
-        articleType: postData.articleType || undefined,
-        
-        // Campos básicos
-        title: postData.title,
-        description: postData.description || '',
-        content: postData.description || '',
-        price: postData.price || 0,
-        wilaya: postData.wilaya || '',
-        commune: postData.commune || '', // ← Backend espera 'vile'
-        numeroTelephone: postData.numeroTelephone || '',
-        
-        // Campos específicos
-        ...categorySpecificData
-      };
-
-      // 🎯 LIMPIAR undefined/null
-      Object.keys(finalPostData).forEach(key => {
-        if (finalPostData[key] === undefined || finalPostData[key] === null) {
-          delete finalPostData[key];
+      // 🎯 PREPARAR DATOS COMBINADOS PARA BACKEND
+      const postDataForBackend = {};
+      
+      // 1. Campos base
+      BASE_FIELDS.forEach(field => {
+        const value = formData[field];
+        if (value !== undefined && value !== null && value !== '') {
+          postDataForBackend[field] = value;
         }
       });
 
-      console.log('📤 Envoi au backend:', {
-        isEdit,
-        postId: isEdit ? postToEdit._id : 'Nouveau',
-        data: finalPostData,
-        images: images.length
+      // 2. Campos dinámicos (incluyendo title, description, price)
+      Object.entries(specificData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          postDataForBackend[key] = value;
+        }
       });
+
+    
+      // 🎯 PREPARAR IMÁGENES
+      const imagesForBackend = images.map(img => ({
+        url: img.url,
+        public_id: img.public_id || '',
+        isExisting: img.isExisting || false
+      }));
 
       // 🎯 PREPARAR ACTION DATA
       const actionData = {
-        postData: finalPostData,
-        images: images,
+        postData: postDataForBackend,
+        images: imagesForBackend,
         auth
       };
 
-      // 🎯 AGREGAR DATOS ESPECÍFICOS PARA EDICIÓN
       if (isEdit && postToEdit) {
         actionData.id = postToEdit._id;
         actionData.status = postToEdit;
@@ -254,12 +268,9 @@ const CreateAnnoncePage = () => {
         actionData.socket = socket;
       }
 
-      // 🎯 EJECUTAR
-      if (isEdit) {
-        await dispatch(updatePost(actionData));
-      } else {
-        await dispatch(createPost(actionData));
-      }
+      // 🎯 EJECUTAR ACCIÓN
+      const action = isEdit ? updatePost : createPost;
+      await dispatch(action(actionData));
 
       // 🎯 ÉXITO
       showAlertMessage(
@@ -271,51 +282,32 @@ const CreateAnnoncePage = () => {
       setTimeout(() => history.push('/'), 1500);
 
     } catch (error) {
-      console.error('❌ Erreur:', error);
-      
-      let errorMsg = 'Erreur lors de l\'opération';
-      if (error.response?.data?.msg) {
-        errorMsg = error.response.data.msg;
-      } else if (error.message) {
-        errorMsg = error.message;
-      }
-      
-      showAlertMessage(`❌ ${errorMsg}`, "danger");
-      
+      console.error('❌ Error en submit:', error);
+      showAlertMessage(
+        `❌ ${error.response?.data?.msg || error.message || 'Erreur serveur'}`,
+        "danger"
+      );
     } finally {
       setIsSubmitting(false);
     }
   }, [
-    postData, 
-    images, 
-    auth, 
-    isEdit, 
-    postToEdit, 
-    socket, 
-    dispatch, 
-    history, 
-    isSubmitting, 
-    showAlertMessage,
-    categorySpecificData
+    formData, specificData, images, auth, isEdit, postToEdit, 
+    socket, dispatch, history, isSubmitting, showAlertMessage
   ]);
 
-  // 🔷 RENDER
+  // 🔷 RENDER OPTIMIZADO
   return (
     <Container className="py-4" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* TITRE */}
+      {/* TITULO */}
       <div className="mb-4">
         <h3 className="fw-bold">
           {isEdit ? '✏️ ' : '➕ '}
           {isEdit ? t('edit_ad', 'Modifier') : t('create_ad', 'Créer une annonce')}
         </h3>
-        {isEdit && (
-          <p className="text-muted">
-            Modification de: <strong>{postData.title || 'Sans titre'}</strong>
-          </p>
-        )}
+      
       </div>
 
-      {/* ALERTE */}
+      {/* ALERTA */}
       {showAlert && (
         <Alert 
           variant={alertVariant} 
@@ -328,108 +320,80 @@ const CreateAnnoncePage = () => {
       )}
 
       <form onSubmit={handleSubmit}>
-        {/* SECTION 1: CATÉGORIES */}
+        {/* SECCIÓN 1: CATEGORÍAS */}
         <Card className="mb-3 border-0 shadow-sm">
-         
+          <Card.Header className="bg-light">
+            <h5 className="mb-0">🏷️ {t('categories', 'Catégories')}</h5>
+          </Card.Header>
+          <Card.Body>
             <Categories
-              postData={postData}
-              handleChangeInput={handleChangeInput}
+              postData={formData}
+              handleChangeInput={handleInputChange}
             />
             
-            {postData.categorie && (
-              <div className="mt-2">
+            {formData.categorie && (
+              <div className="mt-3">
                 <SubCategories
-                  postData={postData}
-                  handleChangeInput={handleChangeInput}
+                  postData={formData}
+                  handleChangeInput={handleInputChange}
                 />
               </div>
             )}
-      
+          </Card.Body>
         </Card>
 
-        {/* SECTION 2: CHAMPS DYNAMIQUES */}
-        {postData.subCategory && (
+        {/* SECCIÓN 2: TODOS LOS CAMPOS DINÁMICOS */}
+        {formData.subCategory && (
           <Card className="mb-3 border-0 shadow-sm">
-            <Card.Header>
-              <h5 className="mb-0">🔧 {t('specific_fields', 'Champs spécifiques')}</h5>
-            </Card.Header>
-            
-              <DynamicFieldManager
-                postData={postData}
-                handleChangeInput={handleChangeInput}
-                mainCategory={postData.categorie}
-                subCategory={postData.subCategory}
-                articleType={postData.articleType}
-                isRTL={isRTL}
-                onCategoryDataChange={handleCategoryDataChange}
-              />
            
+            <Card.Body>
+              <DynamicFieldManager
+                mainCategory={formData.categorie}
+                subCategory={formData.subCategory}
+                articleType={formData.articleType}
+                postData={completePostData}  // ← useMemo optimizado
+                handleChangeInput={handleInputChange} // ← Handler unificado
+                isRTL={isRTL}
+                // ❌ NO pasar onCategoryDataChange (causaba el bucle)
+              />
+            </Card.Body>
           </Card>
         )}
 
-        {/* SECTION 3: INFORMATIONS DE BASE */}
+        {/* SECCIÓN 3: LOCALIZACIÓN Y CONTACTO */}
         <Card className="mb-3 border-0 shadow-sm">
-          <Card.Header>
-            <h5 className="mb-0">📝 {t('basic_info', 'Informations de base')}</h5>
-          </Card.Header>
-        
-            <div className="row g-3">
-              <div className="col-12">
-                <TitleField
-                  postData={postData}
-                  handleChangeInput={handleChangeInput}
-                  isRTL={isRTL}
-                />
-              </div>
-              <div className="col-12">
-                <DescriptionField
-                  postData={postData}
-                  handleChangeInput={handleChangeInput}
-                  isRTL={isRTL}
-                />
-              </div>
-              <div className="col-md-6">
-                <PriceField
-                  postData={postData}
-                  handleChangeInput={handleChangeInput}
-                  isRTL={isRTL}
-                />
-              </div>
-            </div>
-          
-        </Card>
-
-        {/* SECTION 4: LOCALISATION & CONTACT */}
-        <Card className="mb-3 border-0 shadow-sm">
-          <Card.Header>
+          <Card.Header className="bg-light">
             <h5 className="mb-0">📍 {t('location_contact', 'Localisation & Contact')}</h5>
           </Card.Header>
-         
+          <Card.Body>
             <div className="row g-3">
               <div className="col-md-6">
                 <WilayaCommunesField
-                  postData={postData}
-                  handleChangeInput={handleChangeInput}
+                  postData={formData}
+                  handleChangeInput={handleInputChange}
                   isRTL={isRTL}
                 />
               </div>
               <div className="col-md-6">
                 <NumeroTelephoneField
-                  postData={postData}
+                  postData={formData}
                   handleChangeInput={handlePhoneChange}
                   isRTL={isRTL}
                 />
               </div>
             </div>
-        
+          </Card.Body>
         </Card>
 
-        {/* SECTION 5: IMAGES */}
+        {/* SECCIÓN 4: IMÁGENES */}
         <Card className="mb-4 border-0 shadow-sm">
-          <Card.Header>
+          <Card.Header className="bg-light">
             <h5 className="mb-0">🖼️ {t('images', 'Photos')} *</h5>
+            <small className="text-muted">
+              {images.length} photo(s) | Max: 10
+            </small>
           </Card.Header>
-          
+          <Card.Body>
             <ImageUploadField
               images={images}
               handleChangeImages={handleChangeImages}
@@ -437,13 +401,13 @@ const CreateAnnoncePage = () => {
               isRTL={isRTL}
               maxImages={10}
             />
-            <small className="text-muted">
+            <small className="text-muted d-block mt-2">
               * {t('required_field', 'Champ obligatoire')}
             </small>
-         
+          </Card.Body>
         </Card>
 
-        {/* BOUTONS */}
+        {/* BOTONES */}
         <div className="text-center">
           <Button
             variant={isEdit ? "warning" : "primary"}
@@ -469,13 +433,17 @@ const CreateAnnoncePage = () => {
             variant="outline-secondary"
             className="ms-2"
             onClick={() => history.goBack()}
+            disabled={isSubmitting}
           >
             {t('cancel', 'Annuler')}
           </Button>
         </div>
       </form>
+
+      
     </Container>
   );
 };
 
-export default CreateAnnoncePage;
+// 🔷 MEMO PARA OPTIMIZAR RENDERS
+export default React.memo(CreateAnnoncePage);

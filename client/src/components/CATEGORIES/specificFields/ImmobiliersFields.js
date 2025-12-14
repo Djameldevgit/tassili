@@ -1,6 +1,7 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import TitleField from '../camposComun/TitleFiled';
 
 const ImmobilierFields = ({ 
   fieldName, 
@@ -89,6 +90,9 @@ const ImmobilierFields = ({
   
   // 🔥 TODOS los campos definidos (igual que VehiculesFields)
   const fields = {
+
+     
+
     'superficie': (
       <Form.Group key="superficie">
         <Form.Label>📏 {t('surface', 'Superficie')} (m²)</Form.Label>

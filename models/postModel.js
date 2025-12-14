@@ -1,68 +1,39 @@
 const mongoose = require('mongoose')
 
 const postSchema = new mongoose.Schema({
-    // ==================== CAMPOS DEL SISTEMA ====================
-    categorie: {
-        type: String,
-        required: [true, 'La catégorie est obligatoire']
-    },
-    subCategory: {
-        type: String,
-        required: [true, 'La sous-catégorie est obligatoire']
-    },
-    
-    articleType: '',
-    user: {
-        type: mongoose.Types.ObjectId,
-        ref: 'user',
-        required: true
-    },
-    
-    images: [], // Mantén igual que antes
-    
-    // ==================== CAMPOS PARA FRONTEND (COMPATIBILIDAD) ====================
-    // Estos campos deben existir para que tu UI funcione
-    title: String,
-    description: String,
-  
-    price: Number,
-    wilaya: String,
-    commune: String,
-    telefono: String,  // ← Usa el nombre que espera tu frontend
-    
-    // ==================== CAMPOS DINÁMICOS (2 FORMAS) ====================
-    // Opción A: Campo estructurado (recomendado a largo plazo)
-    specificData: {
-        type: mongoose.Schema.Types.Mixed,
-        default: {}
-    },
-    
-    // Opción B: Campo plano para compatibilidad inmediata
-    data: {
-        type: mongoose.Schema.Types.Mixed,
-        default: {}
-    },
-    
-    // ==================== METADATOS ====================
-    estado: {
-        type: String,
-        default: 'aprobado',
-        enum: ['aprobado',  'pendiente']
-    },
+    // Campos base (siempre presentes)
  
-    likes: [{ type: mongoose.Types.ObjectId, ref: 'user' }],
-  
+    wilaya: { type: String },
+    commune: { type: String },
+    telefono: { type: String },
     
-}, {
-    timestamps: true,
-    strict: false  // ← 🔥 MANTÉN ESTO PARA COMPATIBILIDAD
-})
-
-// Índices
-postSchema.index({ categorie: 1, subCategory: 1, status: 1 })
-postSchema.index({ user: 1, createdAt: -1 })
-postSchema.index({ 'data.wilaya': 1 })
-postSchema.index({ 'data.price': 1 })
-postSchema.index({ price: 1 })
+    // Categorías
+    categorie: { type: String, required: true, index: true },
+    subCategory: { type: String, index: true },
+    articleType: { type: String }, // Para immobilier
+    
+    // Campos dinámicos organizados
+    categorySpecificData: {
+      type: Map,
+      of: mongoose.Schema.Types.Mixed,
+      default: {}
+    },
+    // Campos indexados para búsqueda rápida
+    searchKeywords: [{ type: String, index: true }],
+    
+    // Metadatos
+    images: [{ url: String, public_id: String }],
+    user: { type: mongoose.Types.ObjectId, ref: 'user' },
+    likes: [{ type: mongoose.Types.ObjectId, ref: 'user' }],
+   
+    
+  }, { timestamps: true });
+  
+  // Índices compuestos para búsqueda eficiente
+  postSchema.index({ categorie: 1, subCategory: 1 });
+  postSchema.index({ 'specificData.marque': 1 });
+  postSchema.index({ 'specificData.etat': 1 });
+  postSchema.index({ price: 1 });
+  postSchema.index({ wilaya: 1, commune: 1 });
 
 module.exports = mongoose.model('post', postSchema)

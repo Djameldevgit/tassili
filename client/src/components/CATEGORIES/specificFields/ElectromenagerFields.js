@@ -1,28 +1,31 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-
-const ElectromenagerFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
+import MarqueField from '../camposComun/MarqueField';
+import ModeleField from '../camposComun/ModeleField';
+ 
+const ElectromenagerFields = ({ fieldName, postData, handleChangeInput, subCategory,mainCategory, isRTL }) => {
   const { t } = useTranslation();
   
   // ✅ FUNCIÓN ACTUALIZADA CON TUS SUBCATEGORÍAS DE ELECTROMÉNAGER
   const getSubCategorySpecificFields = () => {
     const specificFields = {
-      'televiseurs': {
-        'marque': 'marque',
-        'modele': 'modele',
-        'tailleEcran': 'tailleEcran',
-        'resolution': 'resolution',
-        'typeEcran': 'typeEcran',
-        'smartTv': 'smartTv',
-        'connectivite': 'connectivite',
-        'anneeFabrication': 'anneeFabrication',
-        'garantie': 'garantie',
-        'etat': 'etat'
-      },
+      
+        'televiseurs': {
+          'marque': 'marque', // ✅ CAMBIO: 'marquetv' → 'marque'
+          'modele': 'modele',
+          'tailleEcran': 'tailleEcran',
+          'resolution': 'resolution',
+          'typeEcran': 'typeEcran',
+          'smartTv': 'smartTv',
+          'connectivite': 'connectivite',
+          'anneeFabrication': 'anneeFabrication',
+          'garantie': 'garantie',
+          'etat': 'etat'
+        },
       'demodulateurs_box_tv': {
         'typeAppareil': 'typeAppareil',
-        'marque': 'marque',
+        'marque': 'marque', // ✅ CAMBIO: 'marquedemodulateurs' → 'marque'
         'modele': 'modele',
         'compatible': 'compatible',
         'connectivite': 'connectivite',
@@ -234,72 +237,36 @@ const ElectromenagerFields = ({ fieldName, postData, handleChangeInput, subCateg
   
   // Tu objeto de fields existente (pero necesitarás AGREGAR campos nuevos)
   const fields = {
-    'marque': (
-      <Form.Group>
-        <Form.Label>🏷️ {t('brand', 'Marque')}</Form.Label>
-        <Form.Select
+
+ 
+      'marque': (
+        <MarqueField
+          key={`marque_${subCategory}`}
+          selectedCategory={mainCategory}        // ✅ Usar la categoría que viene del padre
+          selectedSubCategory={subCategory}      // ✅ La subcategoría actual
+          postData={postData}
+          handleChangeInput={handleChangeInput}
+          isRTL={isRTL}
+          t={t}
           name="marque"
-          value={postData.marque || ''}
-          onChange={handleChangeInput}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        >
-          <option value="">{t('select_brand', 'Sélectionnez la marque')}</option>
-          {/* GRUPO TV y Audio */}
-          <optgroup label={t('tv_audio_brands', 'TV & Audio')}>
-            <option value="samsung">📺 Samsung</option>
-            <option value="lg">📺 LG</option>
-            <option value="sony">📺 Sony</option>
-            <option value="panasonic">📺 Panasonic</option>
-            <option value="philips">📺 Philips</option>
-            <option value="sharp">📺 Sharp</option>
-            <option value="tcl">📺 TCL</option>
-            <option value="hisense">📺 Hisense</option>
-          </optgroup>
-          
-          {/* GRUPO Electrodomésticos */}
-          <optgroup label={t('appliance_brands', 'Electrodoméstiques')}>
-            <option value="whirlpool">🧼 Whirlpool</option>
-            <option value="bosch">🧼 Bosch</option>
-            <option value="siemens">🧼 Siemens</option>
-            <option value="electrolux">🧼 Electrolux</option>
-            <option value="miele">🧼 Miele</option>
-            <option value="hotpoint">🧼 Hotpoint</option>
-            <option value="candy">🧼 Candy</option>
-            <option value="indesit">🧼 Indesit</option>
-            <option value="beko">🧼 Beko</option>
-            <option value="daewoo">🧼 Daewoo</option>
-          </optgroup>
-          
-          {/* GRUPO Cocina */}
-          <optgroup label={t('kitchen_brands', 'Cuisine')}>
-            <option value="kenwood">🍳 Kenwood</option>
-            <option value="moulinex">🍳 Moulinex</option>
-            <option value="severin">🍳 Severin</option>
-            <option value="braun">🍳 Braun</option>
-            <option value="krups">🍳 Krups</option>
-            <option value="tefal">🍳 Tefal</option>
-            <option value="rowenta">🍳 Rowenta</option>
-            <option value="philips">🍳 Philips</option>
-          </optgroup>
-          
-          <option value="autre">{t('other', 'Autre')}</option>
-        </Form.Select>
-      </Form.Group>
-    ),
-    
-    'modele': (
-      <Form.Group>
-        <Form.Label>📦 {t('model', 'Modèle')}</Form.Label>
-        <Form.Control
-          type="text"
-          name="modele"
-          value={postData.modele || ''}
-          onChange={handleChangeInput}
-          placeholder={t('enter_model', 'Ex: UE43TU7025, WM14F5Q2A, KGN39VI30P...')}
-          dir={isRTL ? 'rtl' : 'ltr'}
+          label="Marque"
         />
-      </Form.Group>
-    ),
+      ),
+      
+      'modele': (
+        <Form.Group key="modele">
+          <Form.Label>📦 {t('model', 'Modèle')}</Form.Label>
+          <Form.Control
+            type="text"
+            name="modele"
+            value={postData.modele || ''}
+            onChange={handleChangeInput}
+            placeholder={t('enter_model', 'Ex: UE43TU7025, WM14F5Q2A...')}
+            dir={isRTL ? 'rtl' : 'ltr'}
+          />
+        </Form.Group>
+      ),
+      
     
     'tailleEcran': (
       <Form.Group>

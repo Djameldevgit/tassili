@@ -6,23 +6,13 @@ const Subcategories = ({ postData, handleChangeInput }) => {
   const { t, i18n } = useTranslation('subcategories');
   const isRTL = i18n.language === 'ar';
   const mainCategory = postData.categorie;
+  const [availableSubcategories, setAvailableSubcategories] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   // Reset al cambiar categoría principal
-  useEffect(() => {
-    if (mainCategory) {
-      handleChangeInput({
-        target: { name: 'subCategory', value: '' }
-      });
-      
-      if (mainCategory === 'immobilier') {
-        handleChangeInput({
-          target: { name: 'articleType', value: '' }
-        });
-      }
-    }
-  }, [mainCategory]);
+ 
   const vehiculesCategories = [
-    { id: 'voitures', name: t('vehicules.categories.voitures'), icon: <span style={{ fontSize: '24px' }}>🚗</span>, color: 'primary' },
+    { id: 'automobiles', name: t('vehicules.categories.voitures'), icon: <span style={{ fontSize: '24px' }}>🚗</span>, color: 'primary' },
     { id: 'utilitaires', name: t('vehicules.categories.utilitaire'), icon: <span style={{ fontSize: '24px' }}>🚐</span>, color: 'secondary' },
     { id: 'motos', name: t('vehicules.categories.motos'), icon: <span style={{ fontSize: '24px' }}>🏍️</span>, color: 'success' },
     { id: 'quads', name: t('vehicules.categories.quads'), icon: <span style={{ fontSize: '24px' }}>🛵</span>, color: 'warning' },
@@ -280,7 +270,46 @@ const Subcategories = ({ postData, handleChangeInput }) => {
     { id: 'bungalow', name: t('immobilier.property.bungalow') },
     { id: 'terrain_agricole', name: t('immobilier.property.terrain_agricole') }
   ];
+  useEffect(() => {
+    console.log('🔄 Subcategories useEffect - Categoría:', postData.categorie);
+    
+    if (!postData.categorie) {
+      setAvailableSubcategories([]);
+      return;
+    }
 
+    setIsLoading(true);
+    
+    try {
+      const subcats = getSubcategoriesByCategory(postData.categorie);
+      console.log('✅ Subcategorías cargadas:', subcats);
+      setAvailableSubcategories(subcats);
+    } catch (error) {
+      console.error('❌ Error cargando subcategorías:', error);
+      setAvailableSubcategories([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [postData.categorie, postData.articleType]); // Dependencias
+
+  // 🔄 Validar subcategoría actual cuando se cargan las opciones
+  useEffect(() => {
+    if (postData.subCategory && availableSubcategories.length > 0) {
+      const isValid = availableSubcategories.includes(postData.subCategory);
+      
+      if (!isValid && postData.subCategory !== '') {
+        console.warn(`⚠️ Subcategoría "${postData.subCategory}" no es válida para ${postData.categorie}`);
+        
+        // Opcional: Si estás en modo edición, puedes mantenerla
+        // pero para creación nueva, limpiar
+        if (!postData._id) { // Si no es un post existente
+          handleChangeInput({
+            target: { name: 'subCategory', value: '' }
+          });
+        }
+      }
+    }
+  }, [postData.subCategory, availableSubcategories, postData.categorie, handleChangeInput, postData._id]);
   // Handlers para cada select
   const handleOperationChange = (e) => {
     const value = e.target.value;
@@ -390,7 +419,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
     switch(mainCategory) {
       case 'voyages':
         return voyagesCategories;
-      case 'automobiles':
+      case 'vehicules':
         return vehiculesCategories;
       case 'vetements':
         return vetementsCategories;
@@ -425,7 +454,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
 
   // 🎯 Títulos para otras categorías
   const titles = {
-    'automobiles': t('type_vehicle', 'Type de véhicule'),
+    'vehicules': t('type_vehicle', 'Type de véhicule'),
     'vetements': t('type_clothing', 'Type de vêtement'),
     'telephones': t('type_phone', 'Type de téléphone'),
     'informatique': t('type_computer', 'Type d\'équipement informatique'),
@@ -502,23 +531,67 @@ const Subcategories = ({ postData, handleChangeInput }) => {
   return (
     <div className={`${isRTL ? 'rtl' : 'ltr'}`}>
       <div className="mt-4">
-        <Form.Group>
-          <Form.Label className={`fw-bold ${isRTL ? 'text-end d-block' : ''}`}>
-            {t('custom_subcategory', 'Sous-catégorie personnalisée')}
-          </Form.Label>
-          <Form.Control
-            type="text"
+      <Form.Group className="mb-3">
+      <Form.Label>
+        <strong>📂 {t('subcategory', 'Sous-catégorie')}</strong>
+        {postData.subCategory && (
+          <span className="ms-2 text-success">
+            <small>
+              <i className="bi bi-check-circle me-1"></i>
+              {postData.subCategory}
+            </small>
+          </span>
+        )}
+      </Form.Label>
+      
+      {isLoading ? (
+        <div className="text-center py-2">
+          <div className="spinner-border spinner-border-sm" role="status">
+            <span className="visually-hidden">Chargement...</span>
+          </div>
+          <small className="ms-2 text-muted">Chargement des sous-catégories...</small>
+        </div>
+      ) : availableSubcategories.length > 0 ? (
+        <>
+          <Form.Select
             name="subCategory"
             value={postData.subCategory || ''}
             onChange={handleChangeInput}
-            placeholder={t('enter_subcategory_placeholder', 'Entrez votre sous-catégorie...')}
-            className="form-control-lg"
-            dir={isRTL ? 'rtl' : 'ltr'}
-          />
-          <Form.Text className={`text-muted ${isRTL ? 'text-end d-block' : ''}`}>
-            💡 {t('custom_subcategory_tip', 'Cette catégorie n\'a pas de sous-catégories prédéfinies')}
+            required
+            disabled={isLoading}
+          >
+            <option value="">
+              {t('select_subcategory', 'Sélectionnez une sous-catégorie')}
+            </option>
+            {availableSubcategories.map((subCat) => (
+              <option key={subCat} value={subCat}>
+                {t(subCat, subCat)}
+              </option>
+            ))}
+          </Form.Select>
+          
+          <Form.Text className="text-muted">
+            <small>
+              {availableSubcategories.length} sous-catégorie(s) disponible(s)
+              {postData.categorie === 'immobilier' && postData.articleType && 
+                ` pour ${postData.articleType}`}
+            </small>
           </Form.Text>
-        </Form.Group>
+        </>
+      ) : (
+        <Form.Control
+          type="text"
+          name="subCategory"
+          value={postData.subCategory || ''}
+          onChange={handleChangeInput}
+          placeholder={t('enter_subcategory', 'Entrez la sous-catégorie manuellement')}
+          required
+          disabled={isLoading}
+        />
+      )}
+      
+   
+    </Form.Group>
       </div>
     </div>
   );

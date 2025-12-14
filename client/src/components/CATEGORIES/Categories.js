@@ -14,7 +14,7 @@ const Categories = ({ postData, handleChangeInput }) => {
       name: t('immobilier', 'Immobilier')
     },
     { 
-      id: 'automobiles', 
+      id: 'vehicules', 
       name: t('automobiles', 'Automobiles & Véhicules')
     },
   
@@ -104,9 +104,9 @@ const Categories = ({ postData, handleChangeInput }) => {
         >
           <option value="">{t('select_category', 'Choisissez une catégorie')}</option>
           {filteredCategories.map((category) => (
-            <option key={category.id} value={category.id}>
-              {category.name}
-            </option>
+             <option key={category.id} value={category.id}>
+            {category.name}
+            </option> 
           ))}
         </Form.Select>
       </Form.Group>
