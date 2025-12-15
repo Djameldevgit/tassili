@@ -44,7 +44,7 @@ const CreateAnnoncePage = () => {
     subCategory: '',
     wilaya: '',
     commune: '',
-    numeroTelephone: '',
+    telefono: '',
   });
 
   const [specificData, setSpecificData] = useState({}); // Campos dinámicos
@@ -75,7 +75,7 @@ const CreateAnnoncePage = () => {
         articleType: postToEdit.articleType || '',
         wilaya: postToEdit.wilaya || '',
         commune: postToEdit.commune || '',
-        numeroTelephone: postToEdit.numeroTelephone || ''
+        telefono: postToEdit.telefono || ''
       };
 
       // 2. CARGAR CAMPOS DINÁMICOS
