@@ -27,7 +27,19 @@
         "bungalow": "Bungalow"
       }
     },
+    "pieces_detachees": {
+      "categories": {
+        "pieces_automobiles": "Pièces automobiles",
+        "pieces_vehicules": "Pièces véhicules lourds",
+        "pieces_moto": "Pièces moto",
+        "pieces_bateaux": "Pièces bateaux",
+        "alarme_securite": "Alarme & sécurité",
+        "nettoyage_entretien": "Nettoyage & entretien",
+        "outils_diagnostics": "Outils & diagnostics",
+        "lubrifiants": "Lubrifiants"
+      }
     
+  },
     "vehicules": {
       "categories": {
         "voitures": "Voitures",

@@ -3,156 +3,87 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCookies } from 'react-cookie';
 import { useTranslation } from 'react-i18next';
 import * as languageActions from '../redux/actions/languageAction';
-import { Dropdown } from 'react-bootstrap';
-import { FaGlobe, FaCheck } from 'react-icons/fa';
+import { ButtonGroup, Button } from 'react-bootstrap';
 
-const LanguageSelectorandroid = ({ isMobile, inDropdown = false }) => {
+const LanguageSelectorandroid = ({ isMobile = false }) => {
   const dispatch = useDispatch();
   const { languageReducer } = useSelector(state => state);
-  const { t, i18n } = useTranslation('language');
+  const { t } = useTranslation('language');
   const [cookies, setCookie] = useCookies(['language']);
   const lang = languageReducer?.language || 'fr';
 
   const handleLanguageChange = useCallback((language) => {
     if (language === lang) return;
-
     dispatch(languageActions.changeLanguage(language));
     setCookie('language', language, { path: '/' });
-    i18n.changeLanguage(language);
-    
-    setTimeout(() => {
-      window.location.reload();
-    }, 300);
-  }, [dispatch, setCookie, lang, i18n]);
+  }, [dispatch, setCookie, lang]);
 
   useEffect(() => {
     const defaultLanguage = cookies.language || 'fr';
     if (defaultLanguage !== languageReducer?.language) {
-      dispatch(languageActions.changeLanguage(defaultLanguage));
-      i18n.changeLanguage(defaultLanguage);
+      handleLanguageChange(defaultLanguage);
     }
-  }, [cookies.language, languageReducer?.language, dispatch, i18n]);
+  }, [cookies.language, languageReducer?.language, handleLanguageChange]);
 
   const flagPath = (lang) => `/flags/${lang}.png`;
 
-  const languageNames = {
-    fr: 'Français',
-    ar: 'العربية',
+  const flagStyle = {
+    width: '20px',
+    height: '14px',
+    objectFit: 'cover',
+    borderRadius: '2px'
   };
 
-  // 🔥 VERSIÓN SOLO PARA DROPDOWN - ELIMINADA VERSIÓN MÓVIL
-  if (inDropdown) {
-    return (
-      <div style={{
-        padding: '7px 10px',
-        borderBottom: '1px solid rgba(255,255,255,0.15)',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px solid rgba(255,255,255,0.2)', // 🔥 BORDE AGREGADO AL CONTENEDOR PADRE
-        borderRadius: '8px', // 🔥 ESQUINAS REDONDEADAS
-        margin: '8px', // 🔥 MARGEN PARA SEPARACIÓN
-        marginBottom: '12px' // 🔥 MÁS MARGEN ABAJO
-      }}>
-      
-        
-        {/* SELECTOR DE IDIOMA */}
-        <Dropdown style={{ width: '100%' }}>
-          <Dropdown.Toggle 
-            variant="outline-light"
-            id="dropdown-language-compact"
+  const languageNames = {
+    fr: t('language.fr', { lng: lang }),
+    ar: t('language.ar', { lng: lang }),
+  };
+
+  // 🔥 VERSIÓN CON REACT BOOTSTRAP - MEJOR ESTILADO
+  return (
+    <ButtonGroup size="sm" style={{ 
+      width: '100%',
+      display: 'flex',
+      gap: '0'
+    }}>
+      {['fr', 'ar'].map((langCode, index) => (
+        <Button
+          key={langCode}
+          variant={lang === langCode ? "primary" : "outline-primary"}
+          onClick={() => handleLanguageChange(langCode)}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '6px',
+            padding: '6px 8px',
+            fontSize: '0.8rem',
+            fontWeight: lang === langCode ? '600' : '400',
+            // Estilos para bordes redondeados solo en los extremos
+            borderTopLeftRadius: index === 0 ? '6px' : '0',
+            borderBottomLeftRadius: index === 0 ? '6px' : '0',
+            borderTopRightRadius: index === 1 ? '6px' : '0',
+            borderBottomRightRadius: index === 1 ? '6px' : '0',
+            // Eliminar el borde doble entre botones
+            marginLeft: index > 0 ? '-1px' : '0',
+            border: '1px solid #007bff',
+            minWidth: 'auto'
+          }}
+        >
+          <img 
+            src={flagPath(langCode)} 
+            alt={`${langCode} flag`} 
             style={{
-              width: '100%',
-              padding: '8px 12px',
-              fontSize: '0.85rem',
-              border: '1px solid rgba(255,255,255,0.3)',
-              borderRadius: '6px',
-              background: 'rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.9)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              margin: 0,
-              fontWeight: '500'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <img 
-                src={flagPath(lang)} 
-                alt="flag" 
-                style={{
-                  width: '18px',
-                  height: '13px',
-                  objectFit: 'cover',
-                  marginRight: '8px',
-                  borderRadius: '2px'
-                }} 
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-              <span>{languageNames[lang]}</span>
-            </div>
-          </Dropdown.Toggle>
-
-          <Dropdown.Menu style={{
-            minWidth: '100%',
-            background: '#2d3748',
-            border: '1px solid rgba(255,255,255,0.2)',
-            borderRadius: '6px',
-            marginTop: '4px',
-            padding: '4px'
-          }}>
-            {['fr', 'ar'].map((langCode) => (
-              <Dropdown.Item 
-                key={langCode} 
-                onClick={() => handleLanguageChange(langCode)}
-                style={{ 
-                  fontSize: '0.85rem',
-                  padding: '8px 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  color: langCode === lang ? '#667eea' : 'rgba(255,255,255,0.9)',
-                  background: langCode === lang ? 'rgba(102, 126, 234, 0.15)' : 'transparent',
-                  border: 'none',
-                  margin: '2px 0',
-                  borderRadius: '4px'
-                }}
-              >
-                <img 
-                  src={flagPath(langCode)} 
-                  alt={`${langCode} flag`} 
-                  style={{
-                    width: '18px',
-                    height: '13px',
-                    objectFit: 'cover',
-                    marginRight: '10px',
-                    borderRadius: '2px'
-                  }}
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                  }}
-                />
-                <span style={{ 
-                  flex: 1,
-                  fontWeight: langCode === lang ? '600' : '400'
-                }}>
-                  {languageNames[langCode]}
-                </span>
-                {langCode === lang && (
-                  <FaCheck size={12} style={{ 
-                    color: '#667eea', 
-                    marginLeft: '8px'
-                  }} />
-                )}
-              </Dropdown.Item>
-            ))}
-          </Dropdown.Menu>
-        </Dropdown>
-      </div>
-    );
-  }
-
-  // 🔥 ELIMINADA COMPLETAMENTE LA VERSIÓN MÓVIL - SOLO RETORNA NULL
-  return null;
-}
+              ...flagStyle,
+              filter: lang === langCode ? 'brightness(0) invert(1)' : 'none'
+            }} 
+          />
+          <span>{languageNames[langCode]}</span>
+        </Button>
+      ))}
+    </ButtonGroup>
+  );
+};
 
 export default LanguageSelectorandroid;

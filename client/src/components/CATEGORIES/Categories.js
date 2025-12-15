@@ -74,9 +74,7 @@ const Categories = ({ postData, handleChangeInput }) => {
   return (
     <div className={`${isRTL ? 'rtl' : 'ltr'}`}>
       <Form.Group>
-        <Form.Label className={`fw-bold ${isRTL ? 'text-end d-block' : ''}`}>
-          {t('main_category', 'Catégorie principale')}
-        </Form.Label>
+    
         <Form.Select
           name="categorie"
           value={postData.categorie || ''}

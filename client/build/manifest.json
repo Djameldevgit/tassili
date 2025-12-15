@@ -1,32 +1,30 @@
 {
-  "short_name": "Vetements",
-  "name": "Vetements - Boutique de Mode en Ligne | Vêtements Tendance",
+  "short_name": "Tassili Vêtements",
+  "name": "Tassili Vêtements - Votre boutique de mode en ligne",
   "icons": [
     {
-      "src": "https://djamelvetements.onrender.com/logo192.png",
-      "sizes": "192x192",
-      "type": "image/png"
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
     },
     {
-      "src": "https://djamelvetements.onrender.com/logo512.png", 
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
     }
   ],
-  "start_url": "https://djamelvetements.onrender.com/",
-  "scope": "https://djamelvetements.onrender.com/",
+  "start_url": ".",
   "display": "standalone",
-  "theme_color": "#d63384",
+  "theme_color": "#2c5aa0",
   "background_color": "#ffffff",
+  "scope": "/",
   "orientation": "portrait-primary",
-  "categories": ["shopping", "fashion", "clothing"],
-  "description": "Boutique en ligne de vêtements tendance. Découvrez notre collection de vêtements et accessoires de mode.",
-  "lang": "fr",
-  "screenshots": [
-    {
-      "src": "https://djamelvetements.onrender.com/screenshot1.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    }
-  ]
+  "categories": ["shopping", "fashion"],
+  "description": "Votre boutique de vêtements en ligne pour un style unique et tendance",
+  "lang": "fr"
 }

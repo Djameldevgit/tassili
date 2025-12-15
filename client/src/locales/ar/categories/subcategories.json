@@ -43,6 +43,19 @@
         "bateaux": "قوارب ومراكب"
       }
     },
+    "pieces_detachees": {
+      "title": "قطع الغيار",
+      "categories": {
+        "pieces_automobiles": "قطع غيار السيارات",
+        "pieces_vehicules": "قطع غيار المركبات الثقيلة",
+        "pieces_moto": "قطع غيار الدراجات النارية",
+        "pieces_bateaux": "قطع غيار القوارب",
+        "alarme_securite": "أنظمة الإنذار والأمن",
+        "nettoyage_entretien": "مواد التنظيف والصيانة",
+        "outils_diagnostics": "أدوات التشخيص",
+        "lubrifiants": "مواد التشحيم"
+      }
+    },
     
     "vetements": {
       "categories": {
