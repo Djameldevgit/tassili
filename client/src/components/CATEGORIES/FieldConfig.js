@@ -847,99 +847,179 @@ export const FieldConfig = {
   // ============ VOYAGES & TOURISME ============
  // ✅ SOLUCIÓN - FieldConfig.js CORREGIDO
 // En tu FieldConfig.js - COMPLETO PARA VOYAGES
+// FieldConfig.js - ACTUALIZADO para que coincida con los nombres REALES
 'voyages': {
   'voyage_organise': {
     baseFields: [
       'typeVoyage',
-      'destinationType',  // ← Controla condicionales
-      'destinationLocation',
-      'startDate',
-      'endDate',
-      'servicesIncluded',
-      'pricePerPerson',
-      'contactPhone'
+      'destination',          // ← Cambié: destinationType → destination
+      'dureeVoyage',         // ← Agregué
+      'dateDepart',          // ← Cambié: startDate → dateDepart
+      'transportVoyage',     // ← Agregué
+      'hebergementVoyage',   // ← Agregué
+      'pricePerPerson',      // ← Mantengo (debería ser campo común)
+      'contactPhone'         // ← Mantengo (debería ser campo común)
     ],
-    conditional: {}  // Se maneja en FieldRenderer
+    conditional: {}
   },
   
   'location_vacances': {
     baseFields: [
-      'typeHebergement',
-      'wilayaLocation',
-      'communeLocation',
-      'capacity',
-      'equipments',
-      'startDateLocation',
-      'endDateLocation',
-      'pricePerNight',
-      'contactPhone'
+      'typeHebergement',         // ← SÍ existe
+      'capaciteHebergement',     // ← Cambié: capacity → capaciteHebergement
+      'equipementsHebergement',  // ← Cambié: equipments → equipementsHebergement
+      'localisationHebergement', // ← Cambié: wilayaLocation → localisationHebergement
+      'periodeLocation',         // ← Cambié: startDateLocation/endDateLocation → periodeLocation
+      'pricePerNight',           // ← Mantengo (debería ser campo común)
+      'contactPhone'             // ← Mantengo (debería ser campo común)
     ],
     conditional: {}
   },
   
   'hajj_omra': {
     baseFields: [
-      'typeVoyageReligieux',
-      'hajjPeriod',
-      'packageType',
-      'servicesIncludedHajj',
-      'pricePerPersonHajj',
-      'contactPhone'
+      'typeVoyageReligieux',     // ← SÍ existe
+      'periodeVoyage',           // ← Cambié: hajjPeriod → periodeVoyage
+      'servicesInclus',          // ← Cambié: servicesIncludedHajj → servicesInclus
+      'guideReligieux',          // ← Agregué
+      'logementProche',          // ← Agregué
+      'pricePerPersonHajj',      // ← Mantengo (debería ser campo común)
+      'contactPhone'             // ← Mantengo (debería ser campo común)
     ],
     conditional: {}
   },
   
   'reservations_visa': {
     baseFields: [
-      'typeServiceVisa',
-      'destinationCountry',
-      'visaType',
-      'processingTime',
-      'urgentService',
-      'priceVisa',
-      'contactPhone'
+      'typeServiceVisa',         // ← SÍ existe
+      'paysVisa',                // ← Cambié: destinationCountry → paysVisa
+      'typeVisa',                // ← Cambié: visaType → typeVisa
+      'delaiVisa',               // ← Cambié: processingTime → delaiVisa
+      'suiviDossier',            // ← Cambié: urgentService → suiviDossier
+      'priceVisa',               // ← Mantengo (debería ser campo común)
+      'contactPhone'             // ← Mantengo (debería ser campo común)
     ],
     conditional: {}
   },
   
   'sejour': {
     baseFields: [
-      'typeSejour',
-      'regionSejour',
-      'durationSejour',
-      'activities',
-      'priceSejour',
-      'contactPhone'
+      'typeSejour',              // ← SÍ existe
+      'dureeSejour',             // ← Cambié: durationSejour → dureeSejour
+      'activitesSejour',         // ← Cambié: activities → activitesSejour
+      'formuleSejour',           // ← Agregué
+      'publicCible',             // ← Agregué
+      'priceSejour',             // ← Mantengo (debería ser campo común)
+      'contactPhone'             // ← Mantengo (debería ser campo común)
     ],
     conditional: {}
   },
   
   'croisiere': {
     baseFields: [
-      'cruiseCompany',
-      'departurePort',
-      'destinationCruise',
-      'durationCruise',
-      'cabinType',
-      'priceCruise',
-      'contactPhone'
+      'compagnieCroisiere',      // ← Cambié: cruiseCompany → compagnieCroisiere
+      'dureeCroisiere',          // ← Cambié: durationCruise → dureeCroisiere
+      'escalesCroisiere',        // ← Cambié: destinationCruise → escalesCroisiere
+      'typeCabine',              // ← Cambié: cabinType → typeCabine
+      'priceCruise',             // ← Mantengo (debería ser campo común)
+      'contactPhone'             // ← Mantengo (debería ser campo común)
     ],
     conditional: {}
   },
   
   'autre': {
     baseFields: [
-      'descriptionSpecifique',
-      'serviceType',
-      'price',
-      'contactPhone'
+      'descriptionSpecifique',   // ← SÍ existe
+      'serviceType',             // ← ¿Existe? NO en tu VoyagesFields actual
+      'price',                   // ← Mantengo (debería ser campo común)
+      'contactPhone'             // ← Mantengo (debería ser campo común)
     ],
     conditional: {}
   }
 }
 
 }
+// FieldConfig.js - AGREGAR ESTAS FUNCIONES AL FINAL
 
+// 🔥 NUEVA: Función para verificar visibilidad de campo
+export const shouldShowField = (fieldName, mainCategory, subCategory, articleType, postData = {}) => {
+  // Reglas para VOYAGES
+  if (mainCategory === 'voyages') {
+    if (subCategory === 'voyage_organise') {
+      if (fieldName === 'destinationWilaya' && postData.destinationType !== 'local') {
+        return false;
+      }
+      if (fieldName === 'destinationCountry' && postData.destinationType !== 'international') {
+        return false;
+      }
+    }
+  }
+
+  // Reglas para IMMOBILIER
+  if (mainCategory === 'immobilier') {
+    const invalidFields = {
+      'villa': ['etage', 'nombreEtagesImmeuble'],
+      'terrain': ['etage', 'nombrePieces', 'ascenseur', 'parking', 'meuble', 'etages'],
+      'local': ['etage', 'nombrePieces', 'jardin', 'piscine'],
+      'terrain_agricole': ['etage', 'nombrePieces', 'ascenseur', 'parking'],
+      'immeuble': ['superficieJardin', 'piscine', 'jardin']
+    };
+
+    if (invalidFields[subCategory]?.includes(fieldName)) {
+      return false;
+    }
+
+    if (fieldName === 'superficieJardin' && postData.jardin !== 'oui') {
+      return false;
+    }
+    if (fieldName === 'nombrePlacesGarage' && postData.garage === 'non') {
+      return false;
+    }
+  }
+
+  return true;
+};
+
+// 🔥 NUEVA: Función para obtener configuración de campo
+export const getFieldConfig = (mainCategory, subCategory, articleType) => {
+  if (!mainCategory) return null;
+
+  // Para immobilier, articleType es clave
+  if (mainCategory === 'immobilier') {
+    const config = FieldConfig[mainCategory]?.[articleType];
+    if (!config) return null;
+
+    const baseFields = config.baseFields || [];
+    let conditionalFields = [];
+
+    if (subCategory && config.conditional && config.conditional[subCategory]) {
+      conditionalFields = config.conditional[subCategory];
+    }
+
+    return {
+      baseFields,
+      conditionalFields,
+      allFields: [...new Set([...baseFields, ...conditionalFields])]
+    };
+  }
+
+  // Para otras categorías
+  const config = FieldConfig[mainCategory]?.[subCategory];
+  if (!config) return null;
+
+  const baseFields = config.baseFields || [];
+  let conditionalFields = [];
+
+  if (articleType && config.conditional && config.conditional[articleType]) {
+    conditionalFields = config.conditional[articleType];
+  }
+
+  return {
+    baseFields,
+    conditionalFields,
+    allFields: [...new Set([...baseFields, ...conditionalFields])]
+  };
+};
 
 // Función para obtener campos visibles
 export const getVisibleFields = (mainCategory, subCategory, articleType) => {

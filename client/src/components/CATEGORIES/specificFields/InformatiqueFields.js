@@ -1,8 +1,8 @@
 import React from 'react';
 import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import MarquePCPortableField from '../camposComun/marques/MarquePCPortableField';
- 
+import MarqueField from '../camposComun/MarqueField';
+import ModeleField from '../camposComun/ModeleField';
 const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategory, isRTL }) => {
   const { t } = useTranslation();
   
@@ -60,7 +60,7 @@ const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategor
     ),
     
     'marque': (
-      <MarquePCPortableField
+      <MarqueField
         key="marque"
         postData={postData}
         handleChangeInput={handleChangeInput}
@@ -73,17 +73,15 @@ const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategor
 
 
     'modele': (
-      <Form.Group key="modele">
-        <Form.Label>📋 {t('model', 'Modèle')}</Form.Label>
-        <Form.Control
-          type="text"
-          name="modele"
-          value={postData.modele || ''}
-          onChange={handleChangeInput}
-          placeholder={t('enter_model', 'Ex: MacBook Pro, ThinkPad X1, Inspiron 15...')}
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
-      </Form.Group>
+      <ModeleField
+        key="modele"
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+        name="modele"
+        label="stay_Modele"
+      />
     ),
     
     'processeur': (
@@ -348,33 +346,56 @@ const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategor
     'connectivite': (
       <Form.Group key="connectivite">
         <Form.Label>🔌 {t('connectivity', 'Connectivité')}</Form.Label>
-        <div className="d-flex flex-wrap gap-2">
-          {['usb_c', 'usb_a', 'hdmi', 'displayport', 'thunderbolt', 'ethernet', 'wifi6', 'bluetooth', 'audio'].map(conn => (
+        <div className="border rounded p-3 bg-light">
+          {[
+            { id: 'usb_c', name: 'connectivite_usb_c', label: 'USB-C' },
+            { id: 'usb_a', name: 'connectivite_usb_a', label: 'USB-A' },
+            { id: 'hdmi', name: 'connectivite_hdmi', label: 'HDMI' },
+            { id: 'displayport', name: 'connectivite_displayport', label: 'DisplayPort' },
+            { id: 'thunderbolt', name: 'connectivite_thunderbolt', label: 'Thunderbolt' },
+            { id: 'ethernet', name: 'connectivite_ethernet', label: 'Ethernet' },
+            { id: 'wifi6', name: 'connectivite_wifi6', label: 'Wi-Fi 6' },
+            { id: 'bluetooth', name: 'connectivite_bluetooth', label: 'Bluetooth 5.0+' },
+            { id: 'audio', name: 'connectivite_audio', label: 'Audio jack 3.5mm' },
+            { id: 'vga', name: 'connectivite_vga', label: 'VGA' },
+            { id: 'dvi', name: 'connectivite_dvi', label: 'DVI' },
+            { id: 'sd_card', name: 'connectivite_sd_card', label: 'Lecteur SD Card' },
+            { id: 'mini_displayport', name: 'connectivite_mini_displayport', label: 'Mini DisplayPort' },
+            { id: 'usb_3', name: 'connectivite_usb_3', label: 'USB 3.0+' },
+            { id: 'type_c', name: 'connectivite_type_c', label: 'Type-C' },
+            { id: 'rj45', name: 'connectivite_rj45', label: 'RJ45' },
+            { id: 'kensington', name: 'connectivite_kensington', label: 'Kensington Lock' },
+          ].map(conn => (
             <Form.Check
-              key={conn}
+              key={conn.id}
               type="checkbox"
-              name="connectivite"
-              value={conn}
-              checked={postData.connectivite?.includes(conn) || false}
+              id={`connectivite_${conn.id}`}
+              name={conn.name}
+              label={conn.label}
+              checked={postData[conn.name] || false}
               onChange={handleChangeInput}
-              label={
-                conn === 'usb_c' ? 'USB-C' :
-                conn === 'usb_a' ? 'USB-A' :
-                conn === 'hdmi' ? 'HDMI' :
-                conn === 'displayport' ? 'DisplayPort' :
-                conn === 'thunderbolt' ? 'Thunderbolt' :
-                conn === 'ethernet' ? 'Ethernet' :
-                conn === 'wifi6' ? 'Wi-Fi 6' :
-                conn === 'bluetooth' ? 'Bluetooth' :
-                'Audio jack'
-              }
-              className="mb-1"
+              className="mb-2"
             />
           ))}
         </div>
+        
+        {/* Campo adicional para otras conexiones */}
+        <div className="mt-3">
+          <Form.Label className="small">
+            <i className="fas fa-plus-circle me-1"></i>
+            {t('other_connections', 'Autres connectivités')}
+          </Form.Label>
+          <Form.Control
+            type="text"
+            name="connectivite_autres"
+            value={postData.connectivite_autres || ''}
+            onChange={handleChangeInput}
+            placeholder={t('enter_other_connections', 'Ex: eSATA, FireWire, etc.')}
+            className="small"
+          />
+        </div>
       </Form.Group>
     ),
-    
     'anneeFabrication': (
       <Form.Group key="anneeFabrication">
         <Form.Label>📅 {t('manufacturing_year', 'Année de fabrication')}</Form.Label>
@@ -760,12 +781,7 @@ const InformatiqueFields = ({ fieldName, postData, handleChangeInput, subCategor
   // Lógica de renderizado CORREGIDA
   const subCategoryFields = getSubCategorySpecificFields();
   
-  console.log('💻 InformatiqueFields - Renderizando:', {
-    subCategory,
-    fieldName,
-    fieldsCount: subCategoryFields.length,
-    fields: subCategoryFields
-  });
+ 
   
   // Si se solicita un campo específico
   if (fieldName) {

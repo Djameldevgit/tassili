@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
-import { Card, ListGroup, Modal, Button } from 'react-bootstrap';
-import { FaComment, FaPhone, FaVideo, FaTimes } from 'react-icons/fa';
+import React from 'react';
+import { Card, ListGroup } from 'react-bootstrap';
+import { FaComment, FaPhone } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { useHistory } from 'react-router-dom';
 import { MESS_TYPES } from '../../../redux/actions/messageAction';
@@ -10,15 +10,142 @@ const CardFooter = ({ post }) => {
     const { auth, message } = useSelector(state => state);
     const dispatch = useDispatch();
     const history = useHistory();
-    
-    // Referencias y estados para el streaming
-    const videoRef = useRef(null);
-    const [showVideoModal, setShowVideoModal] = useState(false);
-    const [stream, setStream] = useState(null);
-    const [isCameraActive, setIsCameraActive] = useState(false);
 
-    // 🎯 FUNCIONES DE COMUNICACIÓN MEJORADAS
+    // 🔥 COMBINAR DATOS DEL POST
+    const getAllPostData = () => {
+        if (!post) return {};
+        
+        const combinedData = { ...post };
+        
+        const dataSources = [
+            post.specificData,
+            post.data,
+            post.categorySpecificData
+        ];
+        
+        dataSources.forEach(source => {
+            if (source && typeof source === 'object') {
+                Object.keys(source).forEach(key => {
+                    if (source[key] !== undefined && source[key] !== null) {
+                        if (combinedData[key] === undefined || combinedData[key] === null) {
+                            combinedData[key] = source[key];
+                        }
+                    }
+                });
+            }
+        });
+        
+        return combinedData;
+    };
 
+    const postData = getAllPostData();
+
+    // 🏷️ GENERAR TÍTULO COMBINADO (FILA 1)
+    const generateCombinedTitle = () => {
+        // Elementos para construir el título
+        const titleParts = [];
+
+        // 1. Marca/Modelo (si existe)
+        if (postData.brand || postData.marque) {
+            titleParts.push(postData.brand || postData.marque);
+        }
+
+        // 2. Modelo (si existe)
+        if (postData.model || postData.modele) {
+            titleParts.push(postData.model || postData.modele);
+        }
+
+        // 3. Año (para vehículos)
+        if (postData.annee) {
+            titleParts.push(`(${postData.annee})`);
+        }
+
+        // 4. Tipo de propiedad (para inmuebles)
+        if (postData.articleType && postData.subCategory) {
+            const articleTypeMap = {
+                'vente': 'Vente',
+                'location': 'Location',
+                'location_vacances': 'Location vacances'
+            };
+            
+            const subCategoryMap = {
+                'appartement': 'Appartement',
+                'villa': 'Villa',
+                'maison': 'Maison',
+                'terrain': 'Terrain',
+                'local': 'Local',
+                'ferme': 'Ferme'
+            };
+            
+            const type = articleTypeMap[postData.articleType] || postData.articleType;
+            const category = subCategoryMap[postData.subCategory] || postData.subCategory;
+            
+            if (type && category) {
+                titleParts.push(`${type} ${category}`);
+            }
+        }
+
+        // 5. Tamaño/Talle (para ropa)
+        if (postData.size || postData.taille) {
+            titleParts.push(`Taille ${postData.size || postData.taille}`);
+        }
+
+        // 6. Estado/condición
+        if (postData.etat || postData.condition) {
+            const etatMap = {
+                'neuf': 'Neuf',
+                'occasion': 'Occasion',
+                'tres_bon_etat': 'Très bon état',
+                'bon_etat': 'Bon état',
+                'etat_moyen': 'État moyen'
+            };
+            
+            const etat = etatMap[postData.etat || postData.condition];
+            if (etat) titleParts.push(etat);
+        }
+
+        // 7. Ubicación (wilaya)
+        if (postData.wilaya) {
+            titleParts.push(`à ${postData.wilaya}`);
+        }
+
+        // Si no hay partes, usar el título por defecto
+        if (titleParts.length === 0) {
+            return postData.title || 'Article sans titre';
+        }
+
+        // Combinar todas las partes
+        return titleParts.join(' • ');
+    };
+
+    // 💰 FORMATO DE PRECIO (FILA 2)
+    const formatPrice = () => {
+        const price = postData.price || postData.prix || postData.loyer;
+        if (!price && price !== 0) return null;
+
+        const formattedPrice = new Intl.NumberFormat('fr-FR').format(price);
+        const currency = postData.currency || 'DA';
+        
+        return `${formattedPrice} ${currency}`;
+    };
+
+    // 📞 FUNCIÓN DE LLAMADA
+    const handleCallOwner = () => {
+        const phoneNumber = postData.telefono || postData.contactPhone || 
+                           postData.numeroTelephone || post.user?.phone;
+        
+        if (!phoneNumber) {
+            dispatch({ 
+                type: GLOBALTYPES.ALERT, 
+                payload: { error: 'Numéro de téléphone non disponible' } 
+            });
+            return;
+        }
+        
+        window.location.href = `tel:${phoneNumber}`;
+    };
+
+    // 💬 FUNCIÓN DE CHAT
     const handleChatWithOwner = () => {
         if (!auth.user) {
             dispatch({ 
@@ -37,7 +164,7 @@ const CardFooter = ({ post }) => {
         }
 
         try {
-            const existingConversation = message.data.find(item => item._id === post.user._id);
+            const existingConversation = message.data?.find(item => item._id === post.user._id);
             
             if (existingConversation) {
                 history.push(`/message/${post.user._id}`);
@@ -50,17 +177,12 @@ const CardFooter = ({ post }) => {
                     ...post.user, 
                     text: '', 
                     media: [],
-                    postTitle: post.title || 'Produit de mode',
+                    postTitle: postData.title || 'Article',
                     postId: post._id
                 }
             });
 
             history.push(`/message/${post.user._id}`);
-
-            dispatch({
-                type: GLOBALTYPES.ALERT,
-                payload: { success: 'Conversation démarrée avec le vendeur' }
-            });
 
         } catch (error) {
             console.error('Erreur lors du démarrage de la conversation:', error);
@@ -71,348 +193,117 @@ const CardFooter = ({ post }) => {
         }
     };
 
-    const handleCallOwner = () => {
-        // 🎯 BUSCAR TELÉFONO EN MÚLTIPLES UBICACIONES
-        const phoneNumber = post.telefono || post.user?.mobile || post.phone;
-        
-        if (!phoneNumber) {
-            dispatch({ 
-                type: GLOBALTYPES.ALERT, 
-                payload: { error: 'Numéro de téléphone non disponible' } 
-            });
-            return;
-        }
-        
-        // 🎯 LLAMADA DIRECTA MEJORADA
-        const telUrl = `tel:${phoneNumber}`;
-        
-        // Intentar abrir el dialer nativo
-        window.location.href = telUrl;
-        
-        // Feedback inmediato al usuario
-        dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: { 
-                success: `Appel en cours vers ${phoneNumber}`,
-                duration: 3000
-            }
-        });
-    };
-
-    // 🎯 NUEVA FUNCIÓN SIMPLIFICADA: VIDEO LLAMADA DIRECTA
-    const handleVideoCall = () => {
-        // 🎯 BUSCAR TELÉFONO EN MÚLTIPLES UBICACIONES
-        const phoneNumber = post.telefono || post.user?.mobile || post.phone;
-        
-        if (!phoneNumber) {
-            dispatch({ 
-                type: GLOBALTYPES.ALERT, 
-                payload: { error: 'Numéro de téléphone non disponible pour la visioconférence' } 
-            });
-            return;
-        }
-
-        // 🎯 VIDEO LLAMADA DIRECTA USANDO PROTOCOLO NATIVO
-        const videoCallUrl = `tel:${phoneNumber}`;
-        
-        // Intentar iniciar video llamada nativa
-        window.location.href = videoCallUrl;
-        
-        // Feedback al usuario
-        dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: { 
-                success: `Lancement de la visioconférence vers ${phoneNumber}`,
-                duration: 3000
-            }
-        });
-
-        // 🎯 FALLBACK: Si no funciona después de 2 segundos, mostrar opción alternativa
-        setTimeout(() => {
-            // Verificar si estamos aún en la misma página (la llamada no se inició)
-            if (!document.hidden) {
-                dispatch({
-                    type: GLOBALTYPES.ALERT,
-                    payload: { 
-                        info: 'Utilisez votre app de visioconférence habituelle pour appeler ce numéro',
-                        duration: 5000
-                    }
-                });
-            }
-        }, 2000);
-    };
-
-    const startCamera = async () => {
-        try {
-            // Solicitar acceso a la cámara
-            const mediaStream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    width: { ideal: 1280 },
-                    height: { ideal: 720 },
-                    facingMode: "user"
-                }, 
-                audio: true
-            });
-            
-            setStream(mediaStream);
-            
-            if (videoRef.current) {
-                videoRef.current.srcObject = mediaStream;
-                videoRef.current.play().catch(e => console.log('Video play error:', e));
-            }
-            
-            setIsCameraActive(true);
-            
-        } catch (error) {
-            console.error('Erreur d\'accès à la caméra:', error);
-            dispatch({
-                type: GLOBALTYPES.ALERT,
-                payload: { error: 'Impossible d\'accéder à la caméra' }
-            });
-        }
-    };
-
-    const stopCamera = () => {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            setStream(null);
-        }
-        
-        if (videoRef.current) {
-            videoRef.current.srcObject = null;
-        }
-        
-        setIsCameraActive(false);
-    };
-
-    const closeVideoModal = () => {
-        stopCamera();
-        setShowVideoModal(false);
-    };
-
-    const toggleCamera = () => {
-        if (isCameraActive) {
-            stopCamera();
-        } else {
-            startCamera();
-        }
-    };
-
-    // 🎯 DETECTAR DISPONIBILIDAD DE FUNCIONES
-    const canMakeCall = post.telefono || post.user?.mobile || post.phone;
-    const canVideoCall = post.telefono || post.user?.mobile || post.phone;
+    // 🔍 VERIFICAR DISPONIBILIDAD
+    const canMakeCall = postData.telefono || postData.contactPhone || 
+                      postData.numeroTelephone || post.user?.phone;
     const canChat = auth.user && post.user && post.user._id;
 
     return (
-        <>
-            <Card.Footer className="border-0 p-0 bg-white">
-                <ListGroup variant="flush">
-                    
-                    {/* FILA 1: TÍTULO */}
-                    <ListGroup.Item className="border-0 px-1 py-1">
-                        <h6 
-                            className="mb-0 fw-bold text-truncate"
-                            style={{ fontSize: '15px' }}
-                            title={post.title}
-                        >
-                            {post.title}
-                        </h6>
-                    </ListGroup.Item>
+        <Card.Footer className="border-0 p-0 bg-white">
+            <ListGroup variant="flush">
+                
+                {/* FILA 1: TÍTULO COMBINADO */}
+                <ListGroup.Item className="border-0 px-1 py-1">
+                    <h6 
+                        className="mb-0 fw-bold text-truncate"
+                        style={{ 
+                            fontSize: '14px',
+                            lineHeight: '1.3',
+                            color: '#1f2937'
+                        }}
+                        title={generateCombinedTitle()}
+                    >
+                        {generateCombinedTitle()}
+                    </h6>
+                </ListGroup.Item>
 
-                    {/* FILA 2: PRECIO - NÚMERO ROJO A LA IZQUIERDA, "DA" A LA DERECHA */}
-                    <ListGroup.Item className="border-0 px-1 py-1">
+                {/* FILA 2: PRECIO */}
+                <ListGroup.Item className="border-0 px-1 py-1">
+                    {formatPrice() ? (
                         <div className="d-flex justify-content-between align-items-center">
-                            {/* Número en rojo */}
-                            {post.categorySpecificData.subCategory && (
+                            <span 
+                                className="fw-bold"
+                                style={{ 
+                                    fontSize: '16px', 
+                                    color: '#dc3545'
+                                }}
+                            >
+                                {formatPrice()}
+                            </span>
+                            
+                            {/* Indicador de negociable */}
+                            {postData.negotiable && (
                                 <span 
-                                    className="fw-bold"
-                                    style={{ 
-                                        fontSize: '16px', 
-                                        color: '#dc3545'
-                                    }}
+                                    className="badge bg-warning text-dark"
+                                    style={{ fontSize: '10px', padding: '2px 5px' }}
                                 >
-                                    {post.categorySpecificData.subCategory}
+                                    Négociable
                                 </span>
                             )}
-                            
-                            {/* "DA" al extremo derecho */}
-                            {post.wilaya}
-                            {post.commune}
                         </div>
-                    </ListGroup.Item>
+                    ) : (
+                        <div className="text-muted small">Prix non spécifié</div>
+                    )}
+                </ListGroup.Item>
 
-                    {/* FILA 3: BOTONES DE CONTACTO SIN BACKGROUND - SOLO COLORES DE TEXTO */}
-                    <ListGroup.Item className="border-0 px-1 py-1">
-                        <div className="d-flex justify-content-between align-items-center gap-3">
-                            {/* 1. Teléfono - Solo color de texto */}
-                            <div
-                                className={`d-flex align-items-center justify-content-center ${
-                                    canMakeCall ? 'text-primary' : 'text-muted'
-                                }`}
-                                style={{
-                                    width: '30px',
-                                    height: '30px',
-                                    cursor: canMakeCall ? 'pointer' : 'not-allowed',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onClick={canMakeCall ? handleCallOwner : undefined}
-                                title={canMakeCall ? `Appeler le vendeur` : "Numéro non disponible"}
-                                onMouseEnter={(e) => {
-                                    if (canMakeCall) {
-                                        e.currentTarget.style.transform = 'scale(1.1)';
-                                        e.currentTarget.style.color = '#0056b3';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (canMakeCall) {
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.color = '';
-                                    }
-                                }}
-                            >
-                                <FaPhone size={16} />
-                            </div>
-
-                            {/* 2. Chat - Solo color de texto */}
-                            <div
-                                className={`d-flex align-items-center justify-content-center ${
-                                    canChat ? 'text-success' : 'text-muted'
-                                }`}
-                                style={{
-                                    width: '30px',
-                                    height: '30px',
-                                    cursor: canChat ? 'pointer' : 'not-allowed',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onClick={canChat ? handleChatWithOwner : undefined}
-                                title={canChat ? "Envoyer un message au vendeur" : "Connectez-vous pour chatter"}
-                                onMouseEnter={(e) => {
-                                    if (canChat) {
-                                        e.currentTarget.style.transform = 'scale(1.1)';
-                                        e.currentTarget.style.color = '#198754';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (canChat) {
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.color = '';
-                                    }
-                                }}
-                            >
-                                <FaComment size={16} />
-                            </div>
-
-                            {/* 3. Video llamada - Solo color de texto */}
-                            <div
-                                className={`d-flex align-items-center justify-content-center ${
-                                    canVideoCall ? 'text-info' : 'text-muted'
-                                }`}
-                                style={{
-                                    width: '30px',
-                                    height: '30px',
-                                    cursor: canVideoCall ? 'pointer' : 'not-allowed',
-                                    transition: 'all 0.2s ease'
-                                }}
-                                onClick={canVideoCall ? handleVideoCall : undefined}
-                                title={
-                                    canVideoCall 
-                                        ? `Visioconférence avec ${post.telefono || post.user?.mobile || post.phone}` 
-                                        : "Visioconférence non disponible"
-                                }
-                                onMouseEnter={(e) => {
-                                    if (canVideoCall) {
-                                        e.currentTarget.style.transform = 'scale(1.1)';
-                                        e.currentTarget.style.color = '#0dcaf0';
-                                    }
-                                }}
-                                onMouseLeave={(e) => {
-                                    if (canVideoCall) {
-                                        e.currentTarget.style.transform = 'scale(1)';
-                                        e.currentTarget.style.color = '';
-                                    }
-                                }}
-                            >
-                                <FaVideo size={16} />
-                            </div>
-                        </div>
-                    </ListGroup.Item>
-                </ListGroup>
-            </Card.Footer>
-
-            {/* Modal para prueba de streaming (se mantiene por si acaso) */}
-            <Modal 
-                show={showVideoModal} 
-                onHide={closeVideoModal}
-                size="lg"
-                centered
-            >
-                <Modal.Header className="bg-dark text-white">
-                    <Modal.Title className="d-flex align-items-center">
-                        <FaVideo className="me-2" />
-                        Test de Streaming Vidéo
-                    </Modal.Title>
-                    <Button 
-                        variant="outline-light" 
-                        size="sm" 
-                        onClick={closeVideoModal}
-                    >
-                        <FaTimes />
-                    </Button>
-                </Modal.Header>
-                
-                <Modal.Body className="p-0 bg-dark">
-                    <div className="position-relative">
-                        <video
-                            ref={videoRef}
-                            autoPlay
-                            muted
-                            playsInline
+                {/* FILA 3: ICONOS DE LLAMADA Y CHAT */}
+                <ListGroup.Item className="border-0 px-1 py-1">
+                    <div className="d-flex justify-content-between align-items-center">
+                        {/* ICONO DE LLAMADA */}
+                        <div
+                            className={`d-flex align-items-center gap-1 ${
+                                canMakeCall ? 'text-primary' : 'text-muted'
+                            }`}
                             style={{
-                                width: '100%',
-                                height: '400px',
-                                backgroundColor: '#000',
-                                objectFit: 'cover'
+                                cursor: canMakeCall ? 'pointer' : 'not-allowed',
+                                transition: 'all 0.2s ease'
                             }}
-                        />
-                        
-                        {!isCameraActive && (
-                            <div className="position-absolute top-50 start-50 translate-middle text-center text-white">
-                                <FaVideo size={48} className="mb-3 opacity-50" />
-                                <p className="mb-0">Caméra en attente d'activation...</p>
-                            </div>
-                        )}
-                    </div>
-                </Modal.Body>
-                
-                <Modal.Footer className="bg-light">
-                    <div className="d-flex justify-content-between w-100 align-items-center">
-                        <div>
-                            <small className="text-muted">
-                                {isCameraActive ? '✅ Caméra active' : '❌ Caméra inactive'}
-                            </small>
+                            onClick={canMakeCall ? handleCallOwner : undefined}
+                            title={canMakeCall ? 'Appeler le vendeur' : 'Numéro non disponible'}
+                            onMouseEnter={(e) => {
+                                if (canMakeCall) {
+                                    e.currentTarget.style.transform = 'scale(1.05)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (canMakeCall) {
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                }
+                            }}
+                        >
+                            <FaPhone size={14} />
+                            <span style={{ fontSize: '12px' }}>Appeler</span>
                         </div>
-                        
-                        <div className="d-flex gap-2">
-                            <Button
-                                variant={isCameraActive ? "warning" : "success"}
-                                size="sm"
-                                onClick={toggleCamera}
-                            >
-                                {isCameraActive ? '🛑 Arrêter' : '🎥 Démarrer'}
-                            </Button>
-                            
-                            <Button
-                                variant="secondary"
-                                size="sm"
-                                onClick={closeVideoModal}
-                            >
-                                Fermer
-                            </Button>
+
+                        {/* ICONO DE CHAT */}
+                        <div
+                            className={`d-flex align-items-center gap-1 ${
+                                canChat ? 'text-success' : 'text-muted'
+                            }`}
+                            style={{
+                                cursor: canChat ? 'pointer' : 'not-allowed',
+                                transition: 'all 0.2s ease'
+                            }}
+                            onClick={canChat ? handleChatWithOwner : undefined}
+                            title={canChat ? 'Envoyer un message' : 'Connectez-vous pour chatter'}
+                            onMouseEnter={(e) => {
+                                if (canChat) {
+                                    e.currentTarget.style.transform = 'scale(1.05)';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (canChat) {
+                                    e.currentTarget.style.transform = 'scale(1)';
+                                }
+                            }}
+                        >
+                            <FaComment size={14} />
+                            <span style={{ fontSize: '12px' }}>Chat</span>
                         </div>
                     </div>
-                </Modal.Footer>
-            </Modal>
-        </>
+                </ListGroup.Item>
+            </ListGroup>
+        </Card.Footer>
     );
 };
 

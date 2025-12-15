@@ -18,7 +18,7 @@ export { default as TypeSelectField } from './TypeSelectField';*/
 // camposComun/index.js
 import MarqueField from './MarqueField';
 import ModeleField from './ModeleField';
-import PrixField from './PrixField';
+ import PrixField from './PrixField';
 import TailleField from './TailleField';
 import EtatField from './EtatField';
 import WilayaField from './WilayaField';
@@ -27,6 +27,7 @@ import PhoneField from './PhoneField';
 import DateField from './DateField';
 import QuantiteField from './QuantiteField';
 
+ 
 // Exportación individual
 export {
   MarqueField,

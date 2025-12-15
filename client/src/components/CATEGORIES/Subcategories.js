@@ -242,6 +242,21 @@ const Subcategories = ({ postData, handleChangeInput }) => {
     { id: 'flashage_installation_jeux', name: t('services.categories.flashage_installation_jeux'), icon: <span style={{ fontSize: '24px' }}>🎮</span>, color: 'warning', emoji: '🎮' },
     { id: 'juridique', name: t('services.categories.juridique'), icon: <span style={{ fontSize: '24px' }}>⚖️</span>, color: 'dark', emoji: '⚖️' }
   ];
+
+  const materiauxCategories = [
+    { id: 'materiel_professionnel', name: t('materiaux.categories.materiel_professionnel'), icon: <span style={{ fontSize: '24px', color: '#007bff' }}>🏭</span>, color: 'primary', emoji: '🏭', description: t('materiaux.descriptions.materiel_professionnel', 'Équipement professionnel industriel') },
+    { id: 'outillage_professionnel', name: t('materiaux.categories.outillage_professionnel'), icon: <span style={{ fontSize: '24px', color: '#28a745' }}>🔧</span>, color: 'success', emoji: '🔧', description: t('materiaux.descriptions.outillage_professionnel', 'Outils professionnels de qualité') },
+    { id: 'materiaux_construction', name: t('materiaux.categories.materiaux_construction'), icon: <span style={{ fontSize: '24px', color: '#dc3545' }}>🧱</span>, color: 'danger', emoji: '🧱', description: t('materiaux.descriptions.materiaux_construction', 'Matériaux pour construction') },
+    { id: 'matieres_premieres', name: t('materiaux.categories.matieres_premieres'), icon: <span style={{ fontSize: '24px', color: '#ffc107' }}>⚙️</span>, color: 'warning', emoji: '⚙️', description: t('materiaux.descriptions.matieres_premieres', 'Matières premières industrielles') },
+    { id: 'produits_hygiene', name: t('materiaux.categories.produits_hygiene'), icon: <span style={{ fontSize: '24px', color: '#17a2b8' }}>🧴</span>, color: 'info', emoji: '🧴', description: t('materiaux.descriptions.produits_hygiene', 'Produits d\'hygiène professionnels') },
+    { id: 'materiel_agricole', name: t('materiaux.categories.materiel_agricole'), icon: <span style={{ fontSize: '24px', color: '#20c997' }}>🚜</span>, color: 'success', emoji: '🚜', description: t('materiaux.descriptions.materiel_agricole', 'Équipement agricole') },
+    { id: 'autre', name: t('materiaux.categories.autre'), icon: <span style={{ fontSize: '24px', color: '#6c757d' }}>📦</span>, color: 'secondary', emoji: '📦', description: t('materiaux.descriptions.autre', 'Autres matériaux et équipements') }
+  ];
+
+
+
+
+
   //  emojes
   const voyagesCategories = [
     { id: 'voyage_organise', name: t('voyages.categories.voyage_organise'), icon: <span style={{ fontSize: '24px', color: '#007bff' }}>✈️</span>, color: 'primary', emoji: '✈️' },
@@ -270,6 +285,12 @@ const Subcategories = ({ postData, handleChangeInput }) => {
     { id: 'bungalow', name: t('immobilier.property.bungalow') },
     { id: 'terrain_agricole', name: t('immobilier.property.terrain_agricole') }
   ];
+  const  emploiCategories = [
+    { id: 'offres_emploi', name: t('offre.property.Offresemploi') },
+    { id: 'demandes_emploi', name: t('offre.property.Demandesemploi') },
+    
+  ];
+
   useEffect(() => {
     console.log('🔄 Subcategories useEffect - Categoría:', postData.categorie);
     

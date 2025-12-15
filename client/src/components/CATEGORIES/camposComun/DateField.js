@@ -1,12 +1,12 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
 
-const DateField = ({ postData, handleChangeInput, isRTL, t, name, label, minDate }) => {
+const DateField = ({ postData, handleChangeInput, isRTL,   name, label, minDate }) => {
   const today = new Date().toISOString().split('T')[0];
   
   return (
     <Form.Group>
-      <Form.Label>📅 {t(label, 'Date')}</Form.Label>
+      <Form.Label>📅 Date</Form.Label>
       <Form.Control
         type="date"
         name={name}

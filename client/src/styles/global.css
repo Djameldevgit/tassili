@@ -153,6 +153,8 @@ url("./header.css"); */
 @import url("./typing.css");
 @import url("./DetailPostCard.css");
 @import url("./toast.css");
+@import url("./headercarousel.css");
+
 .rtl {
   direction: rtl;
   text-align: right;

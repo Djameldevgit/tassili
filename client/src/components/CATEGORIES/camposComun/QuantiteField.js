@@ -1,16 +1,16 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
-
+import { useTranslation } from 'react-i18next';
 const QuantiteField = ({ 
   postData, 
   handleChangeInput, 
   isRTL, 
-  t, 
+ 
   name = 'quantite', 
   label = 'quantity',
   min = 1,
   step = 1
-}) => {
+}) => {  const { t } = useTranslation();
   return (
     <Form.Group>
       <Form.Label>📦 {t(label, 'Quantité')}</Form.Label>
