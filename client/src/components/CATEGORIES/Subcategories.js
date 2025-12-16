@@ -292,8 +292,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
   ];
 
   useEffect(() => {
-    console.log('🔄 Subcategories useEffect - Categoría:', postData.categorie);
-    
+ 
     if (!postData.categorie) {
       setAvailableSubcategories([]);
       return;
@@ -303,7 +302,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
     
     try {
       const subcats = getSubcategoriesByCategory(postData.categorie);
-      console.log('✅ Subcategorías cargadas:', subcats);
+      
       setAvailableSubcategories(subcats);
     } catch (error) {
       console.error('❌ Error cargando subcategorías:', error);
@@ -323,7 +322,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
         
         // Opcional: Si estás en modo edición, puedes mantenerla
         // pero para creación nueva, limpiar
-        if (!postData._id) { // Si no es un post existente
+        if (!postData._id) {  
           handleChangeInput({
             target: { name: 'subCategory', value: '' }
           });
@@ -334,7 +333,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
   // Handlers para cada select
   const handleOperationChange = (e) => {
     const value = e.target.value;
-    console.log('🔄 Operación seleccionada:', value);
+    
     
     // Guardar operación
     handleChangeInput({
@@ -481,7 +480,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
     'informatique': t('type_computer', 'Type d\'équipement informatique'),
     'electromenager': t('type_appliance', 'Type d\'appareil électroménager'),
     'piecesDetachees': t('type_pieces_detachees', 'Type de pièces détachées'),
-    'sante_beaute': t('type_sante_beaute', 'Type de produit santé & beauté'),
+    'sante_beaute': t('type_sante_beautee', 'Type de produit santé & beauté'),
     'meubles': t('type_meubles', 'Type de meuble & maison'),
     'loisirs': t('type_loisirs', 'Type de loisirs & divertissements'),
     'emploi': t('type_emploi', 'Type d\'offre/emploi'),

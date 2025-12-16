@@ -159,8 +159,10 @@ url("./header.css"); */
   direction: rtl;
   text-align: right;
 }
-
-
+.arabic {
+  font-family: 'El Messiri', sans-serif;
+  font-weight: 500;
+}
 @media (max-width: 766px){
   
   
@@ -207,3 +209,7 @@ body.rtl .container {
 .dropdown-toggle::after {
   display: none !important;
 }
+
+
+/*cofiguracion global para lenguaje arabe*/
+ 

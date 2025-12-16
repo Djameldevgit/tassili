@@ -30,7 +30,7 @@ const CreateAnnoncePage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const location = useLocation();
-  const { t, i18n } = useTranslation(['common', 'categories', 'subcategories']);
+  const { t, i18n } = useTranslation('createannoncepage'); // SOLO este namespace
 
   const isRTL = i18n.language === 'ar';
   const isEdit = location.state?.isEdit || false;
@@ -53,8 +53,7 @@ const CreateAnnoncePage = () => {
   const [showAlert, setShowAlert] = useState(false);
   const [alertMessage, setAlertMessage] = useState('');
   const [alertVariant, setAlertVariant] = useState('info');
-  const [renderCount, setRenderCount] = useState(0);
-
+ 
   // 🔷 USEMEMO PARA POSTDATA COMPLETO (EVITA RERENDERS INNECESARIOS)
   const completePostData = useMemo(() => {
     return { ...formData, ...specificData };
@@ -66,7 +65,7 @@ const CreateAnnoncePage = () => {
   // 🔷 CARGA DE DATOS PARA EDICIÓN (SIMPLIFICADA Y OPTIMIZADA)
   useEffect(() => {
     if (isEdit && postToEdit) {
-      console.log('📥 Iniciando carga para edición del post:', postToEdit._id);
+     
 
       // 1. CARGAR CAMPOS BASE
       const loadedBaseData = {
@@ -132,7 +131,7 @@ const CreateAnnoncePage = () => {
     const { name, value, type, checked } = e.target;
     const val = type === 'checkbox' ? checked : value;
     
-    console.log(`✏️ Campo cambiado: ${name} = ${val}`);
+  
 
     // ¿Es un campo base?
     if (BASE_FIELDS.includes(name)) {
@@ -211,7 +210,7 @@ const CreateAnnoncePage = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    console.log('🚀 Iniciando envío del formulario...');
+  
 
     // ✅ VALIDACIONES
     if (images.length === 0) {
@@ -295,154 +294,151 @@ const CreateAnnoncePage = () => {
     socket, dispatch, history, isSubmitting, showAlertMessage
   ]);
 
-  // 🔷 RENDER OPTIMIZADO
-  return (
-    <Container className="py-4" dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* TITULO */}
-      <div className="mb-4">
-        <h3 className="fw-bold">
-          {isEdit ? '✏️ ' : '➕ '}
-          {isEdit ? t('edit_ad', 'Modifier') : t('create_ad', 'Créer une annonce')}
-        </h3>
-      
-      </div>
+ 
 
-      {/* ALERTA */}
-      {showAlert && (
-        <Alert 
-          variant={alertVariant} 
-          dismissible 
-          onClose={() => setShowAlert(false)}
-          className="mt-3"
-        >
-          {alertMessage}
-        </Alert>
+// 🔷 ACTUALIZA TODAS LAS TRADUCCIONES en el return:
+return (
+  <Container className="py-4" dir={isRTL ? 'rtl' : 'ltr'}>
+    {/* TITULO */}
+    <div className="mb-4">
+      <h3 className="fw-bold">
+        {isEdit ? '✏️ ' : '➕ '}
+        {isEdit ? t('page_title.edit') : t('page_title.create')}
+      </h3>
+    </div>
+
+    {/* ALERTA */}
+    {showAlert && (
+      <Alert variant={alertVariant} dismissible onClose={() => setShowAlert(false)}>
+        {alertMessage} {/* Mantienes los mensajes hardcodeados o los traduces */}
+      </Alert>
+    )}
+
+    <form onSubmit={handleSubmit}>
+      {/* SECCIÓN 1: CATEGORÍAS */}
+      <Card className="mb-3 border-0 shadow-sm">
+        <Card.Header className="bg-light">
+          <h5 className="mb-0">🏷️ {t('sections.categories')}</h5>
+        </Card.Header>
+        <Card.Body>
+          {/* Categories y SubCategories manejan sus propias traducciones */}
+          <Categories
+            postData={formData}
+            handleChangeInput={handleInputChange}
+          />
+          
+          {formData.categorie && (
+            <div className="mt-3">
+              <SubCategories
+                postData={formData}
+                handleChangeInput={handleInputChange}
+              />
+            </div>
+          )}
+        </Card.Body>
+      </Card>
+
+      {/* SECCIÓN 2: CAMPOS DINÁMICOS */}
+      {formData.subCategory && (
+        <Card className="mb-3 border-0 shadow-sm">
+          <Card.Header className="bg-light">
+            <h5 className="mb-0">📋 {t('sections.dynamic_fields')}</h5>
+          </Card.Header>
+          <Card.Body>
+            <DynamicFieldManager
+              mainCategory={formData.categorie}
+              subCategory={formData.subCategory}
+              articleType={formData.articleType}
+              postData={completePostData}
+              handleChangeInput={handleInputChange}
+              isRTL={isRTL}
+            />
+          </Card.Body>
+        </Card>
       )}
 
-      <form onSubmit={handleSubmit}>
-        {/* SECCIÓN 1: CATEGORÍAS */}
-        <Card className="mb-3 border-0 shadow-sm">
-          <Card.Header className="bg-light">
-            <h5 className="mb-0">🏷️ {t('categories', 'Catégories')}</h5>
-          </Card.Header>
-          <Card.Body>
-            <Categories
-              postData={formData}
-              handleChangeInput={handleInputChange}
-            />
-            
-            {formData.categorie && (
-              <div className="mt-3">
-                <SubCategories
-                  postData={formData}
-                  handleChangeInput={handleInputChange}
-                />
-              </div>
-            )}
-          </Card.Body>
-        </Card>
-
-        {/* SECCIÓN 2: TODOS LOS CAMPOS DINÁMICOS */}
-        {formData.subCategory && (
-          <Card className="mb-3 border-0 shadow-sm">
-           
-            <Card.Body>
-              <DynamicFieldManager
-                mainCategory={formData.categorie}
-                subCategory={formData.subCategory}
-                articleType={formData.articleType}
-                postData={completePostData}  // ← useMemo optimizado
-                handleChangeInput={handleInputChange} // ← Handler unificado
+      {/* SECCIÓN 3: LOCALIZACIÓN Y CONTACTO */}
+      <Card className="mb-3 border-0 shadow-sm">
+        <Card.Header className="bg-light">
+          <h5 className="mb-0">📍 {t('sections.location_contact')}</h5>
+        </Card.Header>
+        <Card.Body>
+          {/* WilayaCommunesField y NumeroTelephoneField manejan sus traducciones */}
+          <div className="row g-3">
+            <div className="col-md-6">
+              <WilayaCommunesField
+                postData={formData}
+                handleChangeInput={handleInputChange}
                 isRTL={isRTL}
-                // ❌ NO pasar onCategoryDataChange (causaba el bucle)
               />
-            </Card.Body>
-          </Card>
-        )}
-
-        {/* SECCIÓN 3: LOCALIZACIÓN Y CONTACTO */}
-        <Card className="mb-3 border-0 shadow-sm">
-          <Card.Header className="bg-light">
-            <h5 className="mb-0">📍 {t('location_contact', 'Localisation & Contact')}</h5>
-          </Card.Header>
-          <Card.Body>
-            <div className="row g-3">
-              <div className="col-md-6">
-                <WilayaCommunesField
-                  postData={formData}
-                  handleChangeInput={handleInputChange}
-                  isRTL={isRTL}
-                />
-              </div>
-              <div className="col-md-6">
-                <NumeroTelephoneField
-                  postData={formData}
-                  handleChangeInput={handlePhoneChange}
-                  isRTL={isRTL}
-                />
-              </div>
             </div>
-          </Card.Body>
-        </Card>
+            <div className="col-md-6">
+              <NumeroTelephoneField
+                postData={formData}
+                handleChangeInput={handlePhoneChange}
+                isRTL={isRTL}
+              />
+            </div>
+          </div>
+        </Card.Body>
+      </Card>
 
-        {/* SECCIÓN 4: IMÁGENES */}
-        <Card className="mb-4 border-0 shadow-sm">
-          <Card.Header className="bg-light">
-            <h5 className="mb-0">🖼️ {t('images', 'Photos')} *</h5>
-            <small className="text-muted">
-              {images.length} photo(s) | Max: 10
-            </small>
-          </Card.Header>
-          <Card.Body>
-            <ImageUploadField
-              images={images}
-              handleChangeImages={handleChangeImages}
-              deleteImages={deleteImages}
-              isRTL={isRTL}
-              maxImages={10}
-            />
-            <small className="text-muted d-block mt-2">
-              * {t('required_field', 'Champ obligatoire')}
-            </small>
-          </Card.Body>
-        </Card>
+      {/* SECCIÓN 4: IMÁGENES */}
+      <Card className="mb-4 border-0 shadow-sm">
+        <Card.Header className="bg-light">
+          <h5 className="mb-0">🖼️ {t('sections.images')} *</h5>
+          <small className="text-muted">
+            {t('labels.photos_count', { count: images.length })} | {t('labels.max_photos')}
+          </small>
+        </Card.Header>
+        <Card.Body>
+          <ImageUploadField
+            images={images}
+            handleChangeImages={handleChangeImages}
+            deleteImages={deleteImages}
+            isRTL={isRTL}
+            maxImages={10}
+          />
+          <small className="text-muted d-block mt-2">
+            {t('labels.required_field')}
+          </small>
+        </Card.Body>
+      </Card>
 
-        {/* BOTONES */}
-        <div className="text-center">
-          <Button
-            variant={isEdit ? "warning" : "primary"}
-            size="lg"
-            type="submit"
-            disabled={isSubmitting}
-            className="px-5"
-          >
-            {isSubmitting ? (
-              <>
-                <Spinner size="sm" animation="border" className="me-2" />
-                {t('processing', 'Traitement...')}
-              </>
-            ) : (
-              <>
-                {isEdit ? '✏️ ' : '🚀 '}
-                {isEdit ? t('update', 'Mettre à jour') : t('publish', 'Publier')}
-              </>
-            )}
-          </Button>
+      {/* BOTONES */}
+      <div className="text-center">
+        <Button
+          variant={isEdit ? "warning" : "primary"}
+          size="lg"
+          type="submit"
+          disabled={isSubmitting}
+          className="px-5"
+        >
+          {isSubmitting ? (
+            <>
+              <Spinner size="sm" animation="border" className="me-2" />
+              {t('buttons.processing')}
+            </>
+          ) : (
+            <>
+              {isEdit ? '✏️ ' : '🚀 '}
+              {isEdit ? t('buttons.update') : t('buttons.publish')}
+            </>
+          )}
+        </Button>
 
-          <Button
-            variant="outline-secondary"
-            className="ms-2"
-            onClick={() => history.goBack()}
-            disabled={isSubmitting}
-          >
-            {t('cancel', 'Annuler')}
-          </Button>
-        </div>
-      </form>
-
-      
-    </Container>
-  );
+        <Button
+          variant="outline-secondary"
+          className="ms-2"
+          onClick={() => history.goBack()}
+          disabled={isSubmitting}
+        >
+          {t('buttons.cancel')}
+        </Button>
+      </div>
+    </form>
+  </Container>
+);
 };
 
 // 🔷 MEMO PARA OPTIMIZAR RENDERS

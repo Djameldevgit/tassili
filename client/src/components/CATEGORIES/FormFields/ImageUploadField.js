@@ -3,14 +3,14 @@ import { Card, Form, Button, Row, Col, Badge } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 
 const ImageUploadField = ({ images, handleChangeImages, deleteImages, theme }) => {
-    const { t, i18n } = useTranslation([  "categories"]);
+    const { t } = useTranslation('formfields'); // <-- Solo 'formfields'
 
     // Mostrar solo imágenes
     const imageShow = (src, index) => (
         <div className="position-relative">
             <img
                 src={src}
-                alt={t('preview')}
+                alt={t('preview')} // <-- Usa traducción
                 style={{
                     width: '100%',
                     height: '120px',
@@ -19,13 +19,11 @@ const ImageUploadField = ({ images, handleChangeImages, deleteImages, theme }) =
                 }}
             />
             <Badge
-                
                 className="position-absolute top-0 start-0 m-1"
             >
                 🖼️
             </Badge>
             <Badge
-                
                 className="position-absolute top-0 end-0 m-1"
             >
                 #{index + 1}
@@ -39,7 +37,6 @@ const ImageUploadField = ({ images, handleChangeImages, deleteImages, theme }) =
                 {/* Preview de imágenes */}
                 {images.length > 0 && (
                     <div className="mb-4">
-                      
                         <Row className="g-3">
                             {images.map((img, index) => (
                                 <Col key={index} xs={6} md={4} lg={3}>
@@ -97,7 +94,6 @@ const ImageUploadField = ({ images, handleChangeImages, deleteImages, theme }) =
                         onChange={handleChangeImages}
                         style={{ display: 'none' }}
                     />
-                  
                 </Form.Group>
             </Card.Body>
         </Card>

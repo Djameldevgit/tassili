@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Form } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next'; // AÑADIR import
 
 const CommuneField = ({ 
   postData, 
   handleChangeInput, 
   isRTL, 
-  t, 
   name = 'commune', 
   label = 'commune',
   wilayaField = 'wilaya'
 }) => {
+  const { t } = useTranslation('camposcomunes'); // USAR useTranslation
   const [communes, setCommunes] = useState([]);
   
   // Simulación de datos - en producción sería API
@@ -30,7 +31,7 @@ const CommuneField = ({
   
   return (
     <Form.Group>
-      <Form.Label>🏘️ {t(label, 'Commune')}</Form.Label>
+      <Form.Label>🏘️ {t(label)}</Form.Label> {/* USAR t() */}
       <Form.Select
         name={name}
         value={postData[name] || ''}
@@ -38,7 +39,7 @@ const CommuneField = ({
         dir={isRTL ? 'rtl' : 'ltr'}
         disabled={!postData[wilayaField]}
       >
-        <option value="">{t('select_commune', 'Sélectionnez une commune')}</option>
+        <option value="">{t('select_commune')}</option> {/* USAR t() */}
         {communes.map(commune => (
           <option key={commune} value={commune}>
             {commune}
@@ -47,7 +48,7 @@ const CommuneField = ({
       </Form.Select>
       {!postData[wilayaField] && (
         <Form.Text className="text-muted">
-          {t('select_wilaya_first', 'Sélectionnez d\'abord une wilaya')}
+          {t('select_wilaya_first')} {/* USAR t() */}
         </Form.Text>
       )}
     </Form.Group>

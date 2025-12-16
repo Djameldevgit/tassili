@@ -8,8 +8,7 @@ const WilayaField = ({
   name = 'wilaya',
   label = 'Wilaya'
 }) => {
-  const { t } = useTranslation();
-  
+  const { t } = useTranslation('camposcomunes');
   // 🇩🇿 LISTA DE WILAYAS DE ARGELIA
   const wilayas = useMemo(() => [
     'Adrar', 'Chlef', 'Laghouat', 'Oum El Bouaghi', 'Batna', 'Béjaïa', 'Biskra', 'Béchar',

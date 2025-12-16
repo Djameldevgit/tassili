@@ -243,20 +243,25 @@ const Navbar2 = () => {
           <div className="d-flex align-items-center" style={{ minWidth: 0, flex: '0 1 auto' }}>
             <Link
               to="/"
+              onDoubleClick={(e) => {
+                e.preventDefault();
+                window.location.reload();
+              }}
               className="btn p-0"
               style={{
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                width: isMobile ? '38px' : '50px',
-                height: isMobile ? '38px' : '50px',
-                marginRight: isMobile ? '8px' : '12px',
+                width: isMobile ? '32px' : '40px',
+                height: isMobile ? '32px' : '40px',
+                marginRight: isMobile ? '6px' : '10px',
                 background: 'transparent',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '8px',
                 overflow: 'hidden',
                 flexShrink: 0
               }}
+              title="Click para ir al inicio - Doble click para recargar"
             >
               <img
                 src="/images/logo.png"
@@ -265,7 +270,7 @@ const Navbar2 = () => {
                   width: '100%',
                   height: '100%',
                   objectFit: 'contain',
-                  borderRadius: '8px'
+                  borderRadius: '6px'
                 }}
                 onError={(e) => {
                   e.target.style.display = 'none';
@@ -274,23 +279,52 @@ const Navbar2 = () => {
             </Link>
 
             {!isMobile && (
-              <Navbar.Brand href="/" className="py-2 mb-0" style={{ flexShrink: 0 }}>
-                <Card.Title
-                  className="mb-0"
+              <Link
+                to="/"
+                onDoubleClick={(e) => {
+                  e.preventDefault();
+                  window.location.reload();
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  textDecoration: 'none',
+                  display: 'flex', // 🔥 NUEVO: Para alinear verticalmente
+                  alignItems: 'center' // 🔥 NUEVO: Centrar verticalmente
+                }}
+                title="Click para ir al inicio - Doble click para recargar"
+              >
+                <Navbar.Brand
+                  className="py-0 mb-0" // 🔥 CAMBIADO: py-1 a py-0
                   style={{
-                    fontFamily: "'Playfair Display', serif",
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent',
-                    fontWeight: 'bold',
-                    fontSize: '1.4rem',
-                    letterSpacing: '0.5px',
-                    whiteSpace: 'nowrap'
+                    flexShrink: 0,
+                    display: 'flex', // 🔥 NUEVO
+                    alignItems: 'center', // 🔥 NUEVO
+                    height: '100%' // 🔥 NUEVO: Ocupar toda la altura disponible
                   }}
                 >
-                  {t('appName')}
-                </Card.Title>
-              </Navbar.Brand>
+                  <Card.Title
+                    className="mb-0"
+                    style={{
+                      fontFamily: "'Playfair Display', serif",
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      fontWeight: 'bold',
+                      fontSize: '1.2rem',
+                      letterSpacing: '0.3px',
+                      margin: 0, // 🔥 NUEVO: Eliminar todos los márgenes
+                      padding: 0, // 🔥 NUEVO: Eliminar padding
+                      lineHeight: '1.2', // 🔥 NUEVO: Controlar altura de línea
+                      display: 'flex', // 🔥 NUEVO
+                      alignItems: 'center' // 🔥 NUEVO: Centrar verticalmente
+                    }}
+                  >
+                    {t('appName')}
+                  </Card.Title>
+                </Navbar.Brand>
+              </Link>
             )}
           </div>
 

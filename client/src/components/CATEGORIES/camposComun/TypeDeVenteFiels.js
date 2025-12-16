@@ -13,7 +13,7 @@ const TypeDeVenteField = ({
   error = null,
   theme = 'light'
 }) => {
-  const { t, i18n } = useTranslation('tipoventa')
+  const { t } = useTranslation('camposcomunes');
   const isRTL = i18n.language === 'ar' || i18n.language === 'he'
 
   // Extraer valor de postData
@@ -31,23 +31,23 @@ const TypeDeVenteField = ({
   const tiposVenta = [
     { 
       value: "retail", 
-      label: getTranslation('retail', 'Venta al Detalle'),
-      description: getTranslation('retail_description', 'Venta de productos individuales'),
-      icon: "🛍️"
+      label: t('retail', 'Vente al Detalle'),
+      description: t('retail_description', 'Vente de produits individuels')
     },
     { 
       value: "wholesale", 
-      label: getTranslation('wholesale', 'Venta al por Mayor'),
-      description: getTranslation('wholesale_description', 'Venta en grandes cantidades'),
-      icon: "📦"
+      label: t('wholesale', 'Vente al por Mayor'),
+      description: t('wholesale_description', 'Vente en grandes quantités')
     },
     { 
       value: "both", 
-      label: getTranslation('both', 'Venta Detalle y Mayor'),
-      description: getTranslation('both_description', 'Disponible para ambos tipos'),
-      icon: "🏪"
+      label: t('both', 'Vente Detalle y Mayor'),
+      description: t('both_description', 'Disponible para ambos tipos')
     }
-  ]
+  ];
+  
+  // Y en el option del select:
+  <option value="">{t('select_sale_type', 'Selecciona el tipo de venta')}</option>
 
   // ESTILOS IDÉNTICOS A MODELO
   const styles = {

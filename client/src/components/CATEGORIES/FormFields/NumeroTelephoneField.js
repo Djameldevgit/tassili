@@ -1,7 +1,9 @@
 import React from 'react'
 import { Form } from 'react-bootstrap'
+import { useTranslation } from 'react-i18next'
 
 const NumeroTelephoneField = ({ value, onChange, name = 'telefono', error }) => {
+  const { t } = useTranslation('formfields')
   
   const handleChange = (e) => {
     // Solo números y +
@@ -13,7 +15,7 @@ const NumeroTelephoneField = ({ value, onChange, name = 'telefono', error }) => 
 
   return (
     <>
-      <Form.Label>📞 Téléphone</Form.Label>
+      <Form.Label>📞 {t('telephone')}</Form.Label>
       <Form.Control
         type="tel"
         name={name}

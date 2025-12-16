@@ -45,7 +45,7 @@ function App() {
   const [loading, setLoading] = useState(true)
   const language = languageReducer?.language || localStorage.getItem("lang") || "en";
 
-  // ✅ EFECTO PRINCIPAL PARA REFRESCAR TOKEN
+  
   useEffect(() => {
     const initializeApp = async () => {
       try {

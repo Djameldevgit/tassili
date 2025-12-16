@@ -78,7 +78,7 @@ const WilayaCommunesField = ({
   error = null,
   theme = 'light'
 }) => {
-  const { t, i18n } = useTranslation("categories");
+  const { t, i18n } = useTranslation("formfields");
   const isRTL = i18n.language === 'ar';
   const currentLanguage = i18n.language;
 

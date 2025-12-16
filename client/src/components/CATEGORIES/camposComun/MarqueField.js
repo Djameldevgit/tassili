@@ -11,7 +11,7 @@ const MarqueField = ({
   name = 'marque',
   label = 'Marque du produit'
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('camposcomunes');
   const [filteredBrands, setFilteredBrands] = useState([]);
   const [debugInfo, setDebugInfo] = useState({});
   

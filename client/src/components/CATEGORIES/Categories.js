@@ -50,7 +50,7 @@ const Categories = ({ postData, handleChangeInput }) => {
   // Datos de las categorías
   const categories = [
     { id: 'immobilier', name: t('immobilier', 'Immobilier') },
-    { id: 'vehicules', name: t('automobiles', 'Automobiles & Véhicules') },
+    { id: 'vehicules', name: t('automobiles') }, 
     { id: 'telephones', name: t('telephones', 'Téléphones & Accessoires') },
     { id: 'informatique', name: t('informatique', 'Informatique') },
     { id: 'electromenager', name: t('electromenager', 'Électroménager & Électronique') },
@@ -74,7 +74,7 @@ const Categories = ({ postData, handleChangeInput }) => {
   return (
     <div className={`${isRTL ? 'rtl' : 'ltr'}`}>
       <Form.Group>
-    
+       
         <Form.Select
           name="categorie"
           value={postData.categorie || ''}

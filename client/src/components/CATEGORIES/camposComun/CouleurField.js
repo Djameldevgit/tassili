@@ -1,5 +1,6 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 
 const CouleurField = ({ 
   selectedCategory,
@@ -7,10 +8,10 @@ const CouleurField = ({
   postData, 
   handleChangeInput, 
   isRTL, 
-  t, 
   name = 'couleur', 
   label = 'color'
 }) => {
+  const { t } = useTranslation('camposcomunes');
   
   // 📦 BASE DE DATOS DE COLORES DINÁMICA POR CATEGORÍA Y SUBCATEGORÍA
   const allColorsByCategory = {
@@ -149,26 +150,26 @@ const CouleurField = ({
   
   return (
     <Form.Group>
-      <Form.Label>🎨 {t(label, 'Couleur')}</Form.Label>
+      <Form.Label>🎨 {t(label)}</Form.Label>
       <Form.Select
         name={name}
         value={postData[name] || ''}
         onChange={handleChangeInput}
         dir={isRTL ? 'rtl' : 'ltr'}
       >
-        <option value="">{t('select_color', 'Sélectionnez une couleur')}</option>
+        <option value="">{t('select_color')}</option>
         
         {/* Agrupar colores si hay muchos */}
         {colors.length > 10 ? (
           <>
-            <optgroup label="🎨 Couleurs principales">
+            <optgroup label={t('couleurs_principales')}>
               {colors.slice(0, 8).map(color => (
                 <option key={color} value={color.toLowerCase()}>
                   {color}
                 </option>
               ))}
             </optgroup>
-            <optgroup label="📋 Toutes les couleurs">
+            <optgroup label={t('toutes_couleurs')}>
               {colors.slice(8).map(color => (
                 <option key={color} value={color.toLowerCase()}>
                   {color}
@@ -184,7 +185,7 @@ const CouleurField = ({
           ))
         )}
         
-        <option value="autre">Autre (précisez)</option>
+        <option value="autre">{t('autre')}</option>
       </Form.Select>
       
       {/* Campo para color personalizado */}
@@ -194,13 +195,13 @@ const CouleurField = ({
           name={`${name}_custom`}
           value={postData[`${name}_custom`] || ''}
           onChange={handleChangeInput}
-          placeholder="Précisez la couleur exacte"
+          placeholder={t('precisez_couleur')}
           className="mt-2"
           dir={isRTL ? 'rtl' : 'ltr'}
         />
       )}
       
-      {/* Información contextual */}
+      {/* Información contextual (mantenemos texto original) */}
       {selectedCategory && (
         <Form.Text className="text-muted">
           <small>

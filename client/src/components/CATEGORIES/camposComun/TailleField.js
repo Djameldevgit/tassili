@@ -7,10 +7,11 @@ const TailleField = ({
   selectedSubCategory,
   postData, 
   handleChangeInput,
+  isRTL,
   name = 'taille',
   label = 'Taille'
 }) => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('camposcomunes');
   
   // 📏 OPCIONES DE TALLA COMPLETAS PARA TODAS LAS CATEGORÍAS
   const sizeOptions = useMemo(() => {
@@ -203,7 +204,7 @@ const TailleField = ({
   const fieldType = getFieldType();
   
   return (
-    <Form.Group className="mt-3">
+    <Form.Group className="mt-3" dir={isRTL ? 'rtl' : 'ltr'}>
       <Form.Label>
         <span role="img" aria-label="size">📏</span> {t(label)}
       </Form.Label>
@@ -216,12 +217,13 @@ const TailleField = ({
             value={postData[name] || ''}
             onChange={handleChangeInput}
             className="mb-2"
+            dir={isRTL ? 'rtl' : 'ltr'}
           >
-            <option value="">{t('select_size', 'Sélectionnez la taille')}</option>
+            <option value="">{t('select_size')}</option>
             {sizeOptions.map((size) => (
               <option key={size} value={size}>{size}</option>
             ))}
-            <option value="autre">{t('other_size', 'Autre taille')}</option>
+            <option value="autre">{t('other_size')}</option>
           </Form.Select>
           
           {postData[name] === 'autre' && (
@@ -230,8 +232,9 @@ const TailleField = ({
               name={`${name}_custom`}
               value={postData[`${name}_custom`] || ''}
               onChange={handleChangeInput}
-              placeholder={t('specify_size', 'Précisez la taille')}
+              placeholder={t('specify_size')}
               className="mt-1"
+              dir={isRTL ? 'rtl' : 'ltr'}
             />
           )}
         </>
@@ -247,6 +250,7 @@ const TailleField = ({
               placeholder={getPlaceholder()}
               min={fieldType === 'number' ? '0' : undefined}
               step={fieldType === 'number' ? '0.01' : undefined}
+              dir={isRTL ? 'rtl' : 'ltr'}
             />
           </Col>
           
@@ -258,6 +262,7 @@ const TailleField = ({
                 value={postData[`${name}Unit`] || getDefaultUnit()}
                 onChange={handleChangeInput}
                 style={{ minWidth: '100px' }}
+                dir={isRTL ? 'rtl' : 'ltr'}
               >
                 {getUnitOptions()}
               </Form.Select>
@@ -281,7 +286,7 @@ const TailleField = ({
       automobiles: 'Ex: SUV, 1000cc, etc.',
       materiaux: 'Ex: 2x4, M10, etc.',
       alimentaires: 'Ex: 1kg, 500g, etc.',
-      default: t('enter_size', 'Entrez la taille')
+      default: t('enter_size')
     };
     
     return placeholders[selectedCategory] || placeholders.default;
@@ -347,22 +352,22 @@ const TailleField = ({
     const info = {
       vetements: (
         <Form.Text className="text-muted">
-          💡 {t('clothing_size_tip', 'Consultez notre guide des tailles')}
+          💡 {t('clothing_size_tip')}
         </Form.Text>
       ),
       chaussures_homme: (
         <Form.Text className="text-muted">
-          👣 {t('shoe_size_tip', 'Taille EU (France)')}
+          👣 {t('shoe_size_tip')}
         </Form.Text>
       ),
       televiseurs: (
         <Form.Text className="text-muted">
-          📺 {t('tv_size_tip', 'Mesure diagonale en pouces')}
+          📺 {t('tv_size_tip')}
         </Form.Text>
       ),
       automobiles: (
         <Form.Text className="text-muted">
-          🚗 {t('car_size_tip', 'Catégorie du véhicule')}
+          🚗 {t('car_size_tip')}
         </Form.Text>
       ),
       default: null

@@ -11,7 +11,7 @@ const DynamicFieldManager = ({
   articleType,
   onCategoryDataChange // 🔥 NUEVO: callback para enviar datos al padre
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation('dynamicmanager');
   const isRTL = i18n.language === 'ar';
   const [visibleFields, setVisibleFields] = useState([]);
   
