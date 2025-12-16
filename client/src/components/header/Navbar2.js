@@ -356,7 +356,7 @@ const Navbar2 = () => {
             {/* Botón Agregar Post */}
             {(userRole === "Super-utilisateur" || userRole === "admin") && (
               <Link
-                to="/CreatePost"
+                to="/creer-annonce"
                 className="icon-button"
                 style={{
                   width: isMobile ? '38px' : '42px',
@@ -510,7 +510,9 @@ const Navbar2 = () => {
                     <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn">
                       {t('appInfo')}
                     </MenuItem>
-
+                    <MenuItem icon={FaTools} iconColor="#6c757d" to="/users/roles">
+                          {t('roles')}
+                        </MenuItem>
                     <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn3">
                       {t('appInfo3')}
                     </MenuItem>

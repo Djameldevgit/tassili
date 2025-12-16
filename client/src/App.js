@@ -35,8 +35,9 @@ import Appinfo3 from './pages/appinfo3';
 import Map from './pages/Map';
 import PostId from './pages/PostId';
 import Message from './pages/message';
-import CreateAnnoncePage from './pages/CreateAnnoncePage';
+ 
 import Navbar2 from './components/header/Navbar2';
+import CreateAnnoncePage from './pages/CreateAnnoncePage';
 
 function App() {
   const { auth, status, modal, languageReducer } = useSelector(state => state)
