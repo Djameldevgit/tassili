@@ -253,20 +253,22 @@ const ElectromenagerFields = ({ fieldName, postData, handleChangeInput, subCateg
         />
       ),
       
-      'modele': (
-        <Form.Group key="modele">
-          <Form.Label>📦 {t('model', 'Modèle')}</Form.Label>
-          <Form.Control
-            type="text"
-            name="modele"
-            value={postData.modele || ''}
-            onChange={handleChangeInput}
-            placeholder={t('enter_model', 'Ex: UE43TU7025, WM14F5Q2A...')}
-            dir={isRTL ? 'rtl' : 'ltr'}
-          />
-        </Form.Group>
-      ),
-      
+     
+      // En tu objeto fields, modifica el campo 'modele':
+'modele': (
+  <ModeleField
+    key={`modele_${subCategory}`}
+    selectedCategory={mainCategory}
+    selectedSubCategory={subCategory}
+    selectedBrand={postData.marque} // ✅ AÑADIR ESTO
+    postData={postData}
+    handleChangeInput={handleChangeInput}
+    isRTL={isRTL}
+    t={t}
+    name="modele"
+    label="modele"
+  />
+),
     
     'tailleEcran': (
       <Form.Group>

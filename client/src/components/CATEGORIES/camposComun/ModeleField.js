@@ -78,7 +78,24 @@ const ModeleField = ({
           'Plume L5', 'Plume P8 Pro', 'Plume P8', 'Griffe G6', 'Allure A9',
           'Infinity F1', 'Phoenix P1'
         ]
-      }
+      },
+
+      electromenager: {
+        'televiseurs': {
+          'Samsung': ['QLED Q60', 'Crystal UHD', 'The Frame', 'Neo QLED', 'TU7000'],
+          'LG': ['OLED C3', 'NanoCell', 'UHD 4K', 'QNED', 'UN7000'],
+          'Sony': ['BRAVIA XR', 'BRAVIA X80', 'BRAVIA X90', 'KD-55X80J'],
+          'TCL': ['C71', 'C81', 'P71', '4K Android TV'],
+          'IRIS': ['Smart TV 4K', 'LED TV', 'Android TV', 'Ultra Slim'],
+        },
+        refrigerateurs_congelateurs: {
+          'Whirlpool': ['W7X', 'MaxiCool', 'FrostFree', 'Inverter'],
+          'Bosch': ['KGN', 'GSV', 'Vario', 'VitaFresh'],
+          'LG': ['InstaView', 'DoorCooling+', 'Smart Inverter'],
+          'Brandt': ['BFD', 'BFC', 'Inverter', 'No Frost'],
+        }
+      },
+
     }
     // ... resto de tu código de modelos existente
   };

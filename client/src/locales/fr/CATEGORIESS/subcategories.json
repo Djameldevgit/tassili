@@ -1,6 +1,42 @@
 {
 
-
+ 
+     
+      "fields": {
+        "type_service": "Type de service",
+        "competence": "Compétence",
+        "experience": "Expérience",
+        "diplome": "Diplôme",
+        "zone_intervention": "Zone d'intervention",
+        "tarif_horaire": "Tarif horaire",
+        "tarif_forfait": "Tarif forfaitaire",
+        "disponibilite": "Disponibilité",
+        "mode_travail": "Mode de travail",
+        "portfolio": "Portfolio",
+        "reference": "Références",
+        "certification": "Certification",
+        "langue": "Langue parlée",
+        "outils": "Outils utilisés",
+        "delai_livraison": "Délai de livraison",
+        "garantie": "Garantie",
+        "support": "Support après-service"
+      },
+      "common": {
+        "select_category": "Sélectionnez une catégorie de service",
+        "all_categories": "Toutes les catégories",
+        "professional_services": "Services professionnels",
+        "personal_services": "Services personnels",
+        "online_services": "Services en ligne",
+        "onsite_services": "Services sur place",
+        "urgent": "Urgent",
+        "available_now": "Disponible maintenant",
+        "best_rated": "Mieux notés",
+        "price_low_high": "Prix : croissant",
+        "price_high_low": "Prix : décroissant",
+        "newest": "Plus récents"
+      },
+  
+ 
  
   "select_subcategory_option": "Sélectionnez une sous-catégorie...",
    
@@ -236,73 +272,100 @@
     },
 
 
-    "emploi": {
-      "categories": {
-        "offres_emploi": "عروض العمل",
-        "demandes_emploi": "طلبات العمل"
-      }
+    
+      "emploi": {
+        "categories": {
+          "offres_emploi": "Offres d'emploi",
+          "demandes_emploi": "Demandes d'emploi"
+        }
+      },
+      "sport": {
+        "categories": {
+          "football": "Football",
+          "hand_voley_basket": "Handball/Volley/Basketball",
+          "sport_combat": "Sports de combat",
+          "fitness_musculation": "Fitness & Musculation",
+          "natation": "Natation",
+          "velos_trotinettes": "Vélos & Trotinettes",
+          "sports_raquette": "Sports de raquette",
+          "sport_aquatiques": "Sports aquatiques"
+        }
+      },
+      "alimentaires": {
+        "categories": {
+          "produits_laitiers": "Produits laitiers",
+          "fruits_secs": "Fruits secs",
+          "graines_riz_cereales": "Graines - Riz - Céréales",
+          "sucres_produits_sucres": "Sucres et produits sucrés",
+          "boissons": "Boissons",
+          "viandes_poissons": "Viandes & Poissons",
+          "cafe_the_infusion": "Café - Thé - Infusions",
+          "complements_alimentaires": "Compléments alimentaires",
+          "miel_derives": "Miel et dérivés",
+          "fruits_legumes": "Fruits & Légumes",
+          "ble_farine": "Blé & Farine",
+          "bonbons_chocolat": "Bonbons & Chocolat",
+          "boulangerie_viennoiserie": "Boulangerie & Viennoiserie",
+          "ingredients_cuisine_patisserie": "Ingrédients cuisine & pâtisserie",
+          "noix_graines": "Noix & Graines",
+          "plats_cuisines": "Plats cuisinés",
+          "sauces_epices_condiments": "Sauces - Épices - Condiments",
+          "oeufs": "Œufs",
+          "huiles": "Huiles",
+          "pates": "Pâtes",
+          "gateaux": "Gâteaux",
+          "emballage": "Emballage",
+          "aliments_bebe": "Aliments bébé",
+          "aliments_dietetiques": "Aliments diététiques"
+        }
+      },
+      "materiaux": {
+        "categories": {
+          "materiel_professionnel": "Matériel professionnel",
+          "outillage_professionnel": "Outillage professionnel",
+          "materiaux_construction": "Matériaux de construction",
+          "matieres_premieres": "Matières premières",
+          "produits_hygiene": "Produits d'hygiène",
+          "materiel_agricole": "Matériel agricole",
+          "autre": "Autre"
+        }
+      
     },
-    "sport": {
-      "categories": {
-        "football": "كرة القدم",
-        "hand_voley_basket": "كرة اليد/الكرة الطائرة/كرة السلة",
-        "sport_combat": "رياضات قتالية",
-        "fitness_musculation": "لياقة بدنية وكمال أجسام",
-        "natation": "سباحة",
-        "velos_trotinettes": "دراجات ودراجات هوائية",
-        "sports_raquette": "رياضات المضرب",
-        "sport_aquatiques": "رياضات مائية"
+   
+      "services": {
+        "categories": {
+          "construction_travaux": "Construction & Travaux",
+          "ecoles_formations": "Écoles & Formation",
+          "industrie_fabrication": "Industrie & Fabrication",
+          "transport_demenagement": "Transport & Déménagement",
+          "decoration_amenagement": "Décoration & Aménagement",
+          "publicite_communication": "Publicité & Communication",
+          "nettoyage_jardinage": "Nettoyage & Jardinage",
+          "froid_climatisation": "Froid & Climatisation",
+          "traiteurs_gateaux": "Restauration & Pâtisserie",
+          "medecine_sante": "Médecine & Santé",
+          "reparation_auto_diagnostic": "Réparation auto & Diagnostic",
+          "securite_alarme": "Sécurité & Alarmes",
+          "projets_etudes": "Projets & Études",
+          "bureautique_internet": "Bureautique & Internet",
+          "location_vehicules": "Location de véhicules",
+          "menuiserie_meubles": "Menuiserie & Meubles",
+          "impression_edition": "Impression & Édition",
+          "hotellerie_restauration_salles": "Hôtellerie, Restauration & Salles",
+          "esthetique_beaute": "Esthétique & Beauté",
+          "image_son": "Image & Son",
+          "comptabilite_economie": "Comptabilité & Économie",
+          "couture_confection": "Couture & Confection",
+          "maintenance_informatique": "Maintenance informatique",
+          "reparation_electromenager": "Réparation électroménager",
+          "evenements_divertissement": "Événements & Divertissement",
+          "paraboles_demos": "Paraboles & Décodeurs",
+          "reparation_electronique": "Réparation électronique",
+          "services_etranger": "Services à l'étranger",
+          "flashage_reparation_telephones": "Flashage & Réparation téléphones",
+          "flashage_installation_jeux": "Flashage & Installation jeux",
+          "juridique": "Juridique"
+        }
       }
-    },
-    "alimentaires": {
-      "categories": {
-        "produits_laitiers": "منتجات الألبان",
-        "fruits_secs": "فواكه مجففة",
-        "graines_riz_cereales": "حبوب - أرز - حبوب",
-        "sucres_produits_sucres": "سكريات ومنتجات سكرية",
-        "boissons": "مشروبات",
-        "viandes_poissons": "لحوم وأسماك",
-        "cafe_the_infusion": "قهوة - شاي - أعشاب",
-        "complements_alimentaires": "مكملات غذائية",
-        "miel_derives": "عسل ومشتقاته",
-        "fruits_legumes": "فواكه وخضروات",
-        "ble_farine": "قمح ودقيق",
-        "bonbons_chocolat": "حلويات وشوكولاتة",
-        "boulangerie_viennoiserie": "مخبوزات وحلويات",
-        "ingredients_cuisine_patisserie": "مكونات الطبخ والحلويات",
-        "noix_graines": "مكسرات وحبوب",
-        "plats_cuisines": "أطباق جاهزة",
-        "sauces_epices_condiments": "صلصات - بهارات - توابل",
-        "oeufs": "بيض",
-        "huiles": "زيوت",
-        "pates": "معكرونة",
-        "gateaux": "كعك",
-        "emballage": "تغليف",
-        "aliments_bebe": "أطعمة الأطفال",
-        "aliments_dietetiques": "أطعمة غذائية"
-      }
-    },
-    "materiaux": {
-      "categories": {
-        "materiel_professionnel": "معدات مهنية",
-        "outillage_professionnel": "أدوات مهنية",
-        "materiaux_construction": "مواد بناء",
-        "matieres_premieres": "مواد أولية",
-        "produits_hygiene": "منتجات نظافة",
-        "materiel_agricole": "معدات زراعية",
-        "autre": "أخرى"
-      }
-    },
-    "services": {
-      "categories": {
-        "construction_travaux": "بناء وأشغال",
-        "ecoles_formations": "مدارس وتدريب",
-        "industrie_fabrication": "صناعة وتصنيع",
-        "transport_demenagement": "نقل وتغيير محل الإقامة",
-        "decoration_amenagement": "ديكور وتأثيث",
-        "publicite_communication": "إعلان وتواصل",
-        "nettoyage_jardinage": "تنظيف وزراعة حدائق",
-        "froid_climatisation": "تبريد وتكييف"
-      }
-    }
+    
   }

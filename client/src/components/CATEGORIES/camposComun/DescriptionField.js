@@ -1,8 +1,8 @@
 import React from 'react';
 import { Form } from 'react-bootstrap';
-
+import { useTranslation } from 'react-i18next';
 const DescriptionField = ({ postData, handleChangeInput, isRTL, name = 'description', label = 'description', rows = 3 }) => {
-  const { t } = useTranslation('description');
+  const { t } = useTranslation('camposcomunes');
   
   return (
     <Form.Group>
