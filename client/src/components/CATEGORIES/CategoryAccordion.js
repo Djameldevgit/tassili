@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Accordion, Card, Button, Form, Row, Col, Badge } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
+import { ChevronRight, ChevronDown } from 'react-bootstrap-icons';
 
 const CategoryAccordion = ({ postData, handleChangeInput }) => {
   const { t, i18n } = useTranslation(['categories', 'subcategories']);
@@ -8,6 +9,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeKey, setActiveKey] = useState(null);
   const [localPostData, setLocalPostData] = useState(postData);
+  const [selectedOperation, setSelectedOperation] = useState(null);
 
   // 🔄 Sincronizar con cambios externos
   useEffect(() => {
@@ -17,6 +19,11 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     // Expandir automáticamente si hay categoría seleccionada
     if (postData.categorie && !activeKey) {
       setActiveKey(postData.categorie);
+    }
+    
+    // Si es immobilier y hay articleType, actualizar selectedOperation
+    if (postData.categorie === 'immobilier' && postData.articleType) {
+      setSelectedOperation(postData.articleType);
     }
   }, [postData]);
 
@@ -40,7 +47,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     'voyages': '✈️'
   };
 
-  // Datos de categorías principales
+  // Datos de categorías principales (actualizado con textos más grandes)
   const categories = [
     { id: 'immobilier', name: t('immobilier', { ns: 'categories' }) },
     { id: 'vehicules', name: t('automobiles', { ns: 'categories' }) },
@@ -156,7 +163,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     category.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // 🎯 FUNCIONES HANDLER CORREGIDAS
+  // 🎯 FUNCIONES HANDLER (manteniendo la misma lógica)
   const handleCategorySelect = (categoryId) => {
     console.log('🎯 Seleccionando categoría:', categoryId);
     
@@ -173,6 +180,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
       handleChangeInput({
         target: { name: 'subCategory', value: '' }
       });
+      setSelectedOperation(null);
     } else {
       // Para otras categorías, limpiar subCategory
       handleChangeInput({
@@ -180,7 +188,12 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
       });
     }
     
-    setActiveKey(categoryId);
+    // Toggle del accordion
+    if (activeKey === categoryId) {
+      setActiveKey(null);
+    } else {
+      setActiveKey(categoryId);
+    }
   };
 
   const handleSubcategorySelect = (subcategoryId) => {
@@ -192,6 +205,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
 
   const handleOperationSelect = (operationId) => {
     console.log('🏠 Seleccionando operación Immobilier:', operationId);
+    setSelectedOperation(operationId);
     handleChangeInput({
       target: { name: 'articleType', value: operationId }
     });
@@ -211,112 +225,169 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     });
   };
 
-  // Renderizar contenido especial para Immobilier
+  const handleBackToOperations = () => {
+    setSelectedOperation(null);
+    handleChangeInput({
+      target: { name: 'articleType', value: '' }
+    });
+    handleChangeInput({
+      target: { name: 'subCategory', value: '' }
+    });
+  };
+
+  // Renderizar contenido especial para Immobilier (sin modal, en el mismo accordion)
   const renderImmobilierContent = () => (
-    <div className="mt-2">
-      {/* Tipo de Operación */}
-      <div className="mb-3">
-        <div className={`fw-bold mb-1 ${isRTL ? 'text-end' : ''}`} style={{ fontSize: '0.85rem' }}>
-          📋 {t('type_operation', { ns: 'subcategories' })}
-        </div>
-        <Form.Select
-          value={localPostData.articleType || ''}
-          onChange={(e) => handleOperationSelect(e.target.value)}
-          className="form-select-sm"
-          dir={isRTL ? 'rtl' : 'ltr'}
-          size="sm"
-          style={{ fontSize: '0.85rem', padding: '0.25rem 0.5rem' }}
-        >
-          <option value="">
-            {t('select_operation', { ns: 'subcategories', defaultValue: 'Sélectionnez une opération...' })}
-          </option>
-          {immobilierOperations.map((operation) => (
-            <option key={operation.id} value={operation.id}>
-              {operation.name}
-            </option>
-          ))}
-        </Form.Select>
-      </div>
-
-      {/* Tipo de Propiedad (solo si hay operación seleccionada) */}
-      {localPostData.articleType && (
-        <div className="mb-3">
-          <div className={`fw-bold mb-1 ${isRTL ? 'text-end' : ''}`} style={{ fontSize: '0.85rem' }}>
-            🏠 {t('type_property', { ns: 'subcategories' })}
+    <div className="immobilier-content mt-2">
+      {/* NIVEL 1: Operaciones */}
+      {!selectedOperation ? (
+        <div className="operations-level">
+          <div className="level-header mb-2">
+            <h6 className="level-title fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
+              <span className="me-2">📋</span>
+              Sélectionnez une opération
+            </h6>
+            <p className="level-description mb-2" style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+              Choisissez le type de transaction immobilière
+            </p>
           </div>
-          <Form.Select
-            value={localPostData.subCategory || ''}
-            onChange={(e) => handlePropertySelect(e.target.value)}
-            className="form-select-sm"
-            dir={isRTL ? 'rtl' : 'ltr'}
-            size="sm"
-            style={{ fontSize: '0.85rem', padding: '0.25rem 0.5rem' }}
-          >
-            <option value="">
-              {t('select_property', { ns: 'subcategories', defaultValue: 'Sélectionnez un type de bien...' })}
-            </option>
-            {immobilierProperties.map((property) => (
-              <option key={property.id} value={property.id}>
-                {property.name}
-              </option>
+          
+          <div className="operations-list">
+            {immobilierOperations.map((operation) => (
+              <div 
+                key={operation.id}
+                className={`operation-item ${localPostData.articleType === operation.id ? 'selected' : ''}`}
+                onClick={() => handleOperationSelect(operation.id)}
+              >
+                <div className="d-flex align-items-center">
+                  <div className="operation-emoji me-3">
+                    {operation.id === 'vente' ? '💰' : 
+                     operation.id === 'location' ? '📅' : '🏖️'}
+                  </div>
+                  <div className="operation-info">
+                    <div className="operation-name fw-medium" style={{ fontSize: '0.9rem' }}>
+                      {operation.name}
+                    </div>
+                    <div className="operation-desc" style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                      {operation.id === 'vente' ? 'Achat/Vente de biens' :
+                       operation.id === 'location' ? 'Location à long terme' :
+                       'Location saisonnière'}
+                    </div>
+                  </div>
+                </div>
+                {localPostData.articleType === operation.id && (
+                  <div className="operation-check">✓</div>
+                )}
+              </div>
             ))}
-          </Form.Select>
+          </div>
         </div>
-      )}
-
-      {/* Estado actual de Immobilier */}
-      {(localPostData.articleType || localPostData.subCategory) && (
-        <div className="alert alert-light border p-2 mt-2" style={{ fontSize: '0.8rem' }}>
-          <small>
-            <strong>📊 État Immobilier:</strong>
-            {localPostData.articleType && (
-              <div className="text-success">
-                📋 <strong>Opération:</strong> {
-                  immobilierOperations.find(op => op.id === localPostData.articleType)?.name
-                }
+      ) : (
+        /* NIVEL 2: Propiedades */
+        <div className="properties-level">
+          <div className="level-header mb-2">
+            <div className="d-flex align-items-center justify-content-between">
+              <div>
+                <h6 className="level-title fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
+                  <span className="me-2">🏠</span>
+                  Sélectionnez un type de bien
+                </h6>
+                <p className="level-description mb-2" style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+                  Opération: <span className="fw-bold">
+                    {immobilierOperations.find(op => op.id === selectedOperation)?.name}
+                  </span>
+                </p>
               </div>
-            )}
-            {localPostData.subCategory && (
-              <div className="text-primary">
-                🏠 <strong>Type de bien:</strong> {
-                  immobilierProperties.find(prop => prop.id === localPostData.subCategory)?.name
-                }
+              <Button 
+                variant="link" 
+                className="btn-back p-0"
+                onClick={handleBackToOperations}
+                style={{ fontSize: '0.8rem' }}
+              >
+                ← Changer
+              </Button>
+            </div>
+          </div>
+          
+          <div className="properties-list">
+            {immobilierProperties.map((property) => (
+              <div 
+                key={property.id}
+                className={`property-item ${localPostData.subCategory === property.id ? 'selected' : ''}`}
+                onClick={() => handlePropertySelect(property.id)}
+              >
+                <div className="d-flex align-items-center">
+                  <div className="property-emoji me-3">
+                    {property.id === 'appartement' ? '🏢' : 
+                     property.id === 'villa' ? '🏡' : 
+                     property.id === 'terrain' ? '🌳' : '🏢'}
+                  </div>
+                  <div className="property-info">
+                    <div className="property-name fw-medium" style={{ fontSize: '0.9rem' }}>
+                      {property.name}
+                    </div>
+                    <div className="property-desc" style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                      {property.id === 'appartement' ? 'Appartements et studios' :
+                       property.id === 'villa' ? 'Maisons et villas' :
+                       property.id === 'terrain' ? 'Terrains et parcelles' :
+                       'Locaux commerciaux'}
+                    </div>
+                  </div>
+                </div>
+                {localPostData.subCategory === property.id && (
+                  <div className="property-check">✓</div>
+                )}
               </div>
-            )}
-          </small>
+            ))}
+          </div>
         </div>
       )}
     </div>
   );
 
-  // Renderizar contenido para otras categorías
+  // Renderizar contenido para otras categorías (mejorado con listas visuales)
   const renderRegularSubcategories = (categoryId) => {
     const subcategories = subcategoriesData[categoryId] || [];
     
     if (subcategories.length === 0) return null;
 
     return (
-      <div className="mt-2">
-        <div className={`fw-bold mb-1 ${isRTL ? 'text-end' : ''}`} style={{ fontSize: '0.85rem' }}>
-          📂 {getCategoryTitle(categoryId)}
+      <div className="regular-subcategories mt-2">
+        <div className="subcategories-header mb-2">
+          <h6 className="subcategories-title fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
+            <span className="me-2">📂</span>
+            {getCategoryTitle(categoryId)}
+          </h6>
+          <p className="subcategories-description mb-2" style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+            Choisissez une sous-catégorie
+          </p>
         </div>
-        <Form.Select
-          value={localPostData.subCategory || ''}
-          onChange={(e) => handleSubcategorySelect(e.target.value)}
-          className="form-select-sm"
-          dir={isRTL ? 'rtl' : 'ltr'}
-          size="sm"
-          style={{ fontSize: '0.85rem', padding: '0.25rem 0.5rem' }}
-        >
-          <option value="">
-            {t('select_subcategory_option', { ns: 'subcategories', defaultValue: 'Sélectionnez une sous-catégorie...' })}
-          </option>
+        
+        <div className="subcategories-list">
           {subcategories.map((subcat) => (
-            <option key={subcat.id} value={subcat.id}>
-              {subcat.name}
-            </option>
+            <div 
+              key={subcat.id}
+              className={`subcategory-item ${localPostData.subCategory === subcat.id ? 'selected' : ''}`}
+              onClick={() => handleSubcategorySelect(subcat.id)}
+            >
+              <div className="d-flex align-items-center">
+                <div className="subcategory-emoji me-3">
+                  •
+                </div>
+                <div className="subcategory-info">
+                  <div className="subcategory-name fw-medium" style={{ fontSize: '0.9rem' }}>
+                    {subcat.name}
+                  </div>
+                  <div className="subcategory-id" style={{ fontSize: '0.8rem', color: '#6c757d' }}>
+                    {subcat.id}
+                  </div>
+                </div>
+              </div>
+              {localPostData.subCategory === subcat.id && (
+                <div className="subcategory-check">✓</div>
+              )}
+            </div>
           ))}
-        </Form.Select>
+        </div>
       </div>
     );
   };
@@ -344,194 +415,410 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     return titles[categoryId] || t('select_subcategory', { ns: 'subcategories' });
   };
 
-  // Badge para mostrar selección actual
-  const getSelectionBadge = (categoryId) => {
-    if (localPostData.categorie !== categoryId) return null;
-    
-    if (categoryId === 'immobilier') {
-      const operation = localPostData.articleType 
-        ? immobilierOperations.find(op => op.id === localPostData.articleType)?.name 
-        : null;
-      const property = localPostData.subCategory 
-        ? immobilierProperties.find(prop => prop.id === localPostData.subCategory)?.name 
-        : null;
-      
-      return (
-        <div className="d-flex gap-1" style={{ fontSize: '0.7rem' }}>
-          {operation && (
-            <Badge bg="primary" className="px-1 py-0">
-              {operation.substring(0, 10)}...
-            </Badge>
-          )}
-          {property && (
-            <Badge bg="success" className="px-1 py-0">
-              {property.substring(0, 10)}...
-            </Badge>
-          )}
-        </div>
-      );
-    } else {
-      return localPostData.subCategory ? (
-        <Badge bg="secondary" className="ms-1 px-1 py-0" style={{ fontSize: '0.7rem' }}>
-          {subcategoriesData[categoryId]?.find(sc => sc.id === localPostData.subCategory)?.name?.substring(0, 12)}...
-        </Badge>
-      ) : null;
-    }
-  };
-
   return (
     <div className={`category-accordion ${isRTL ? 'rtl' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Barra de búsqueda */}
-      <div className="mb-3">
+      {/* Barra de búsqueda mejorada */}
+      <div className="search-container mb-4">
         <Form.Control
           type="text"
-          placeholder={t('search_category', { ns: 'categories', defaultValue: 'Rechercher une catégorie...' })}
+          placeholder={t('search_category', { ns: 'categories', defaultValue: '🔍 Rechercher une catégorie...' })}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="form-control-sm"
+          className="search-input"
           dir={isRTL ? 'rtl' : 'ltr'}
           size="sm"
-          style={{ fontSize: '0.85rem', padding: '0.25rem 0.5rem' }}
         />
       </div>
 
-      {/* Accordion */}
-      <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key)}>
-        {filteredCategories.map((category) => (
-          <Accordion.Item 
-            key={category.id} 
-            eventKey={category.id}
-            className="border mb-1"
-            style={{ 
-              borderRadius: '4px',
-              borderColor: localPostData.categorie === category.id ? '#0d6efd' : '#dee2e6'
-            }}
-          >
-            <Accordion.Header 
-              onClick={() => handleCategorySelect(category.id)}
-              className="py-1 px-2"
-              style={{ 
-                cursor: 'pointer',
-                backgroundColor: localPostData.categorie === category.id ? '#e7f1ff' : 'white',
-                fontSize: '0.85rem'
-              }}
-            >
-              <div className="d-flex align-items-center w-100">
-                <span className="me-2" style={{ fontSize: '1rem' }}>
-                  {categoryEmojis[category.id]}
-                </span>
-                <span className="flex-grow-1">
-                  {category.name}
-                </span>
-                {getSelectionBadge(category.id)}
-              </div>
-            </Accordion.Header>
-            
-            <Accordion.Body className="p-2" style={{ fontSize: '0.85rem' }}>
-              {localPostData.categorie === category.id && (
-                <>
-                  {category.id === 'immobilier' ? (
-                    renderImmobilierContent()
-                  ) : (
-                    renderRegularSubcategories(category.id)
-                  )}
-                </>
-              )}
-            </Accordion.Body>
-          </Accordion.Item>
-        ))}
-      </Accordion>
-
-      {/* Estado de selección */}
-      {localPostData.categorie && (
-        <div className="mt-3 p-2 border rounded" style={{ 
-          backgroundColor: '#f8f9fa',
-          fontSize: '0.85rem'
-        }}>
-          <small>
-            <strong>🎯 Sélection actuelle:</strong>
-            <div className="mt-1 d-flex flex-wrap gap-2">
-              <span>
-                📁 <strong>Catégorie:</strong> {categories.find(c => c.id === localPostData.categorie)?.name}
-              </span>
-              
-              {localPostData.categorie === 'immobilier' && localPostData.articleType && (
-                <span>
-                  📋 <strong>Opération:</strong> <span className="text-primary">
-                    {immobilierOperations.find(op => op.id === localPostData.articleType)?.name}
-                  </span>
-                </span>
-              )}
-              
-              {localPostData.subCategory && (
-                <span>
-                  📂 <strong>Sous-catégorie:</strong> <span className="text-success">
-                    {localPostData.categorie === 'immobilier'
-                      ? immobilierProperties.find(p => p.id === localPostData.subCategory)?.name
-                      : subcategoriesData[localPostData.categorie]?.find(sc => sc.id === localPostData.subCategory)?.name}
-                  </span>
-                </span>
-              )}
-            </div>
-          </small>
+      {/* Contador de resultados */}
+      {searchTerm && (
+        <div className="results-count mb-3">
+          <Badge bg="light" text="dark" className="px-3 py-1">
+            <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
+              {filteredCategories.length}
+            </span>
+            <span className="ms-1" style={{ fontSize: '0.85rem' }}>
+              catégorie(s) trouvée(s)
+            </span>
+          </Badge>
         </div>
       )}
 
+      {/* Accordion mejorado */}
+      <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key)}>
+        {filteredCategories.length > 0 ? (
+          filteredCategories.map((category) => (
+            <Accordion.Item 
+              key={category.id} 
+              eventKey={category.id}
+              className="category-accordion-item mb-2"
+            >
+              <Accordion.Header 
+                onClick={() => handleCategorySelect(category.id)}
+                className="category-header"
+              >
+                <div className="d-flex align-items-center w-100">
+                  <span className="category-emoji">
+                    {categoryEmojis[category.id]}
+                  </span>
+                  <div className="category-info ms-3 flex-grow-1">
+                    <div className="category-name">
+                      {category.name}
+                    </div>
+                    <div className="category-id">
+                      {category.id}
+                    </div>
+                  </div>
+                  <div className="category-actions">
+                    {localPostData.categorie === category.id && (
+                      <Badge bg="success" className="selected-badge me-2">
+                        ✓
+                      </Badge>
+                    )}
+                    <span className="expand-icon">
+                      {activeKey === category.id ? <ChevronDown /> : <ChevronRight />}
+                    </span>
+                  </div>
+                </div>
+              </Accordion.Header>
+              
+              <Accordion.Body className="category-body">
+                {localPostData.categorie === category.id && (
+                  <>
+                    {category.id === 'immobilier' ? (
+                      renderImmobilierContent()
+                    ) : (
+                      renderRegularSubcategories(category.id)
+                    )}
+                  </>
+                )}
+              </Accordion.Body>
+            </Accordion.Item>
+          ))
+        ) : (
+          <div className="no-results text-center py-4">
+            <div className="no-results-icon mb-2" style={{ fontSize: '2rem' }}>
+              🔍
+            </div>
+            <div className="no-results-title fw-bold mb-1" style={{ fontSize: '1rem' }}>
+              Aucune catégorie trouvée
+            </div>
+            <div className="no-results-text" style={{ fontSize: '0.9rem', color: '#6c757d' }}>
+              Essayez avec d'autres termes de recherche
+            </div>
+          </div>
+        )}
+      </Accordion>
+
+      {/* Estado de selección mejorado */}
+      {localPostData.categorie && (
+        <div className="current-selection mt-4">
+          <Card className="border-0 shadow-sm">
+            <Card.Header className="bg-primary bg-opacity-10 border-0 py-2">
+              <h6 className="mb-0 fw-bold d-flex align-items-center" style={{ fontSize: '1rem' }}>
+                <span className="me-2">✅</span>
+                Sélection actuelle
+              </h6>
+            </Card.Header>
+            <Card.Body className="p-3">
+              <div className="selection-details">
+                <div className="selection-item mb-2">
+                  <div className="selection-label" style={{ fontSize: '0.9rem' }}>Catégorie:</div>
+                  <div className="selection-value fw-bold" style={{ fontSize: '1rem' }}>
+                    <span className="me-2">{categoryEmojis[localPostData.categorie]}</span>
+                    {categories.find(c => c.id === localPostData.categorie)?.name}
+                  </div>
+                </div>
+                
+                {localPostData.categorie === 'immobilier' && localPostData.articleType && (
+                  <div className="selection-item mb-2">
+                    <div className="selection-label" style={{ fontSize: '0.9rem' }}>Opération:</div>
+                    <div className="selection-value fw-medium" style={{ fontSize: '0.95rem' }}>
+                      <span className="me-2">
+                        {localPostData.articleType === 'vente' ? '💰' : 
+                         localPostData.articleType === 'location' ? '📅' : '🏖️'}
+                      </span>
+                      {immobilierOperations.find(op => op.id === localPostData.articleType)?.name}
+                    </div>
+                  </div>
+                )}
+                
+                {localPostData.subCategory && (
+                  <div className="selection-item">
+                    <div className="selection-label" style={{ fontSize: '0.9rem' }}>Sous-catégorie:</div>
+                    <div className="selection-value fw-medium" style={{ fontSize: '0.95rem' }}>
+                      <span className="me-2">
+                        {localPostData.categorie === 'immobilier'
+                          ? (localPostData.subCategory === 'appartement' ? '🏢' : 
+                             localPostData.subCategory === 'villa' ? '🏡' : 
+                             localPostData.subCategory === 'terrain' ? '🌳' : '🏢')
+                          : '•'}
+                      </span>
+                      {localPostData.categorie === 'immobilier'
+                        ? immobilierProperties.find(p => p.id === localPostData.subCategory)?.name
+                        : subcategoriesData[localPostData.categorie]?.find(sc => sc.id === localPostData.subCategory)?.name}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </Card.Body>
+            <Card.Footer className="bg-light border-0 py-2">
+              <Button 
+                variant="outline-secondary" 
+                size="sm"
+                onClick={() => {
+                  handleChangeInput({ target: { name: 'categorie', value: '' } });
+                  handleChangeInput({ target: { name: 'subCategory', value: '' } });
+                  handleChangeInput({ target: { name: 'articleType', value: '' } });
+                  setActiveKey(null);
+                  setSelectedOperation(null);
+                }}
+                className="w-100"
+                style={{ fontSize: '0.85rem' }}
+              >
+                Changer de catégorie
+              </Button>
+            </Card.Footer>
+          </Card>
+        </div>
+      )}
+
+      {/* Styles CSS actualizados */}
       <style>{`
         .category-accordion {
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
         
-        .category-accordion .accordion-button {
-          padding: 0.25rem 0.5rem !important;
-          font-size: 0.85rem !important;
-          min-height: 32px;
+        /* Barra de búsqueda */
+        .search-input {
+          width: 100%;
+          padding: 0.75rem 1rem 0.75rem 2.5rem;
+          font-size: 0.95rem;
+          border: 2px solid #e9ecef;
+          border-radius: 8px;
+          background-color: white;
+          transition: all 0.2s ease;
         }
         
-        .category-accordion .accordion-button:not(.collapsed) {
-          background-color: transparent;
-          color: inherit;
-          box-shadow: none;
+        .search-input:focus {
+          outline: none;
+          border-color: #0d6efd;
+          box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
         }
         
-        .category-accordion .accordion-button::after {
-          background-size: 0.8rem;
-          width: 0.8rem;
-          height: 0.8rem;
+        /* Ítem del accordion */
+        .category-accordion-item {
+          border: 1px solid #e9ecef;
+          border-radius: 8px !important;
+          overflow: hidden;
+          margin-bottom: 4px;
         }
         
-        .category-accordion .accordion-body {
-          padding: 0.5rem !important;
+        /* Cabecera */
+        .category-header {
+          padding: 1rem 1.25rem !important;
+          background-color: white !important;
+          border: none !important;
+        }
+        
+        .category-header:hover {
+          background-color: #f8f9fa !important;
+        }
+        
+        .category-accordion-item .accordion-button {
+          padding: 0 !important;
+          box-shadow: none !important;
+        }
+        
+        .category-accordion-item .accordion-button:not(.collapsed) {
+          background-color: transparent !important;
+          color: inherit !important;
+          box-shadow: none !important;
+        }
+        
+        /* Iconos y texto */
+        .category-emoji {
+          font-size: 1.5rem;
+          min-width: 40px;
+        }
+        
+        .category-info {
+          flex-grow: 1;
+        }
+        
+        .category-name {
+          font-size: 1rem;
+          font-weight: 600;
+          color: #212529;
+        }
+        
+        .category-id {
           font-size: 0.85rem;
-          border-top: 1px solid rgba(0,0,0,0.1);
+          color: #6c757d;
+          margin-top: 2px;
         }
         
-        .category-accordion .form-select-sm {
-          padding: 0.2rem 0.5rem;
+        .category-actions {
+          display: flex;
+          align-items: center;
+        }
+        
+        .selected-badge {
+          font-size: 0.8rem;
+          padding: 0.25rem 0.5rem;
+        }
+        
+        .expand-icon {
+          color: #6c757d;
+        }
+        
+        /* Cuerpo del accordion */
+        .category-body {
+          padding: 1.25rem !important;
+          background-color: #f8f9fa;
+          border-top: 1px solid #e9ecef;
+          animation: slideDown 0.3s ease-out;
+        }
+        
+        /* Contenido Immobilier */
+        .immobilier-content {
+          animation: fadeIn 0.2s ease;
+        }
+        
+        .operations-list, .properties-list, .subcategories-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        
+        .operation-item, .property-item, .subcategory-item {
+          padding: 0.875rem 1rem;
+          background-color: white;
+          border-radius: 6px;
+          border: 2px solid transparent;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        
+        .operation-item:hover, .property-item:hover, .subcategory-item:hover {
+          border-color: #dee2e6;
+          transform: translateY(-1px);
+        }
+        
+        .operation-item.selected, .property-item.selected, .subcategory-item.selected {
+          border-color: #0d6efd;
+          background-color: #f8f9ff;
+        }
+        
+        .operation-emoji, .property-emoji, .subcategory-emoji {
+          font-size: 1.3rem;
+          min-width: 36px;
+          text-align: center;
+        }
+        
+        .operation-info, .property-info, .subcategory-info {
+          flex-grow: 1;
+        }
+        
+        .operation-check, .property-check, .subcategory-check {
+          color: #198754;
+          font-weight: bold;
+          font-size: 1.2rem;
+        }
+        
+        .btn-back {
+          text-decoration: none;
+          color: #6c757d;
           font-size: 0.85rem;
-          border-radius: 3px;
-          height: 30px;
         }
         
-        .category-accordion .form-control-sm {
-          font-size: 0.85rem;
-          padding: 0.2rem 0.5rem;
-          height: 30px;
+        .btn-back:hover {
+          color: #0d6efd;
         }
         
-        .rtl .accordion-button::after {
-          margin-left: 0;
-          margin-right: auto;
-          transform: rotate(180deg);
+        /* No results */
+        .no-results {
+          background-color: #f8f9fa;
+          border-radius: 8px;
+          padding: 2rem;
         }
         
-        .rtl .accordion-button:not(.collapsed)::after {
-          transform: rotate(90deg);
+        /* Current selection */
+        .current-selection {
+          animation: fadeIn 0.3s ease;
         }
         
-        .badge {
-          font-size: 0.65rem !important;
+        .selection-item {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.75rem;
+        }
+        
+        .selection-label {
+          min-width: 100px;
+          color: #6c757d;
           font-weight: 500;
+        }
+        
+        .selection-value {
+          flex-grow: 1;
+          color: #212529;
+        }
+        
+        /* Animations */
+        @keyframes slideDown {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 1000px;
+          }
+        }
+        
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+          .category-name {
+            font-size: 0.95rem;
+          }
+          
+          .category-body {
+            padding: 1rem !important;
+          }
+          
+          .operation-item, .property-item, .subcategory-item {
+            padding: 0.75rem;
+          }
+        }
+        
+        /* RTL Support */
+        .rtl .category-info {
+          margin-right: 0.75rem;
+          margin-left: 0;
+        }
+        
+        .rtl .expand-icon {
+          transform: scaleX(-1);
+        }
+        
+        .rtl .selected-badge {
+          margin-right: 0.5rem;
+          margin-left: 0;
         }
       `}</style>
     </div>

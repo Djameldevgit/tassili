@@ -6,21 +6,21 @@ import { Link } from 'react-router-dom';
 import Avatar from '../Avatar';
 import Card from 'react-bootstrap/Card';
 import {
-  FaPlus,
-  FaInfoCircle,
+   
+ 
   FaTools,
   FaShieldAlt,
   FaUsers,
   FaUserCog,
   FaSignOutAlt,
-  FaUserCircle,
+ 
   FaSignInAlt,
   FaUserPlus,
-  FaSearch,
-  FaBell,
+  
+  
   FaShareAlt,
   FaGlobe,
-  FaDownload
+  
 } from 'react-icons/fa';
 
 import { Navbar, Container, NavDropdown, Badge } from 'react-bootstrap';
@@ -29,6 +29,8 @@ import VerifyModal from '../authAndVerify/VerifyModal';
 import DesactivateModal from '../authAndVerify/DesactivateModal';
 import MultiCheckboxModal from './MultiCheckboxModal.';
 import ShareAppModal from '../shareAppModal';
+import Drawer from './Drawer'; // <- Importación del Drawer separado
+import { FaBars, FaPlus, FaSearch, FaBell, FaUserCircle, FaDownload /* ... otros iconos */ } from 'react-icons/fa';
 
 const Navbar2 = () => {
   const { auth, theme, cart, notify, settings } = useSelector((state) => state);
@@ -38,22 +40,26 @@ const Navbar2 = () => {
   const lang = languageReducer.language || 'es';
 
   // Estados PWA
-  const [deferredPrompt, setDeferredPrompt] = useState(null);
+  
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
 
   // Estados del componente
   const [showShareModal, setShowShareModal] = useState(false);
   const [userRole, setUserRole] = useState(auth.user?.role);
-  const [showLanguageModal, setShowLanguageModal] = useState(false);
+ 
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
-  const [showNotifyDropdown, setShowNotifyDropdown] = useState(false);
-
+ 
   const notifyDropdownRef = useRef(null);
 
+  const [showDrawer, setShowDrawer] = useState(false);
+
+  // Funciones para manejar el drawer
+  const handleDrawerOpen = () => setShowDrawer(true);
+  const handleDrawerClose = () => setShowDrawer(false);
   // 🔥 DETECCIÓN MEJORADA DE TAMAÑO DE PANTALLA
   useEffect(() => {
     const handleResize = () => {
@@ -541,13 +547,13 @@ const Navbar2 = () => {
                       {t('profile')}
                     </MenuItem>
 
-                    <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn">
+                    <MenuItem  iconColor="#6c757d" to="/infoaplicacionn">
                       {t('appInfo')}
                     </MenuItem>
                     <MenuItem icon={FaTools} iconColor="#6c757d" to="/users/roles">
                           {t('roles')}
                         </MenuItem>
-                    <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn3">
+                    <MenuItem  iconColor="#6c757d" to="/infoaplicacionn3">
                       {t('appInfo3')}
                     </MenuItem>
 
@@ -599,7 +605,7 @@ const Navbar2 = () => {
                       {t('register')}
                     </MenuItem>
 
-                    <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn">
+                    <MenuItem  iconColor="#6c757d" to="/infoaplicacionn">
                       {t('appInfo')}
                     </MenuItem>
 
@@ -610,6 +616,34 @@ const Navbar2 = () => {
                 )}
               </div>
             </NavDropdown>
+
+            <button
+          onClick={handleDrawerOpen}
+          className="icon-button"
+          style={{
+            width: isMobile ? '38px' : '42px',
+            height: isMobile ? '38px' : '42px',
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: settings.style ? 'rgba(255,255,255,0.1)' : 'rgba(102, 126, 234, 0.1)',
+            border: 'none',
+            transition: 'all 0.3s ease',
+            cursor: 'pointer',
+            marginLeft: isMobile ? '4px' : '6px'
+          }}
+          title={t('menu') || "Menú"}
+        >
+          <FaBars
+            size={isMobile ? 18 : 20}
+            style={{ 
+              color: settings.style ? '#ffffff' : '#667eea'
+            }}
+          />
+        </button>
+
+
           </div>
         </Container>
       </Navbar>
@@ -842,6 +876,14 @@ const Navbar2 = () => {
         show={showShareModal}
         onClose={() => setShowShareModal(false)}
       />
+   <Drawer
+        show={showDrawer}
+        onHide={handleDrawerClose}
+        position="start"
+        title={t('menu') || "Menú"}
+      />
+
+
     </>
   );
 };

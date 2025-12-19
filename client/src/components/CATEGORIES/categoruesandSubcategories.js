@@ -7,6 +7,7 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
   const isRTL = i18n.language === 'ar';
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedCategory, setExpandedCategory] = useState(null);
+  const [selectedOperation, setSelectedOperation] = useState(null);
 
   // Mapeo de categorías a emojis
   const categoryEmojis = {
@@ -197,6 +198,7 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
         target: { name: 'articleType', value: '' }
       });
       setExpandedCategory(null);
+      setSelectedOperation(null);
     } else {
       // Seleccionar nueva categoría
       handleChangeInput({
@@ -209,6 +211,7 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
         target: { name: 'articleType', value: '' }
       });
       setExpandedCategory(categoryId);
+      setSelectedOperation(null);
     }
   };
 
@@ -221,8 +224,23 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
 
   // Handler para seleccionar operación en immobilier
   const handleImmobilierOperation = (operationId) => {
+    setSelectedOperation(operationId);
     handleChangeInput({
       target: { name: 'articleType', value: operationId }
+    });
+    handleChangeInput({
+      target: { name: 'subCategory', value: '' }
+    });
+  };
+
+  // Handler para volver a seleccionar operación en immobilier
+  const handleBackToOperations = () => {
+    setSelectedOperation(null);
+    handleChangeInput({
+      target: { name: 'articleType', value: '' }
+    });
+    handleChangeInput({
+      target: { name: 'subCategory', value: '' }
     });
   };
 
@@ -236,113 +254,134 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
     const hasSubcategories = categorySubcats || isImmobilier;
 
     return (
-      <div className="category-column-item">
-        {/* Línea de categoría */}
+      <div className="category-accordion-item">
+        {/* CABECERA DE CATEGORÍA */}
         <div 
-          className={`category-line ${isSelected ? 'selected' : ''} ${isExpanded ? 'expanded' : ''}`}
+          className={`category-header ${isSelected ? 'selected' : ''}`}
           onClick={() => handleCategorySelect(category.id)}
-          style={{
-            borderLeft: `4px solid ${isSelected ? '#0d6efd' : 'transparent'}`
-          }}
         >
           <div className="d-flex align-items-center justify-content-between w-100">
             <div className="d-flex align-items-center">
-              <div className="category-emoji me-3" style={{ fontSize: '1.3rem' }}>
+              <div className="category-emoji">
                 {emoji}
               </div>
-              <div className="category-info">
-                <div className="category-name fw-bold" style={{ color: isSelected ? '#0d6efd' : '#212529' }}>
+              <div className="category-info ms-3">
+                <div className="category-title">
                   {category.name}
                 </div>
-                <div className="category-id text-muted" style={{ fontSize: '0.8rem' }}>
+                <div className="category-subtitle">
                   {category.id}
                 </div>
               </div>
             </div>
             <div className="category-actions">
               {isSelected && (
-                <span className="badge bg-success me-2" style={{ fontSize: '0.7rem' }}>
+                <span className="selected-badge">
                   ✓
                 </span>
               )}
               {hasSubcategories && (
                 <span className="expand-icon">
-                  {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                  {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* SUB-CATEGORÍAS (solo si está expandida) */}
+        {/* CONTENIDO EXPANDIBLE */}
         {isExpanded && hasSubcategories && (
-          <div className="subcategories-panel">
-            {/* CASO INMOBILIARIO (especial) */}
+          <div className="category-content">
+            {/* CASO INMOBILIARIO (especial con dos niveles) */}
             {isImmobilier ? (
-              <div className="immobilier-subcategories">
-                {/* Paso 1: Seleccionar operación */}
-                {!postData.articleType ? (
-                  <div className="immobilier-step">
-                    <div className="step-title mb-3">
-                      <h6 className="fw-bold">📋 Sélectionnez une opération</h6>
-                    </div>
-                    <div className="operations-list">
-                      {immobilierOperations.map((operation) => (
-                        <div 
-                          key={operation.id}
-                          className={`operation-item ${postData.articleType === operation.id ? 'selected' : ''}`}
-                          onClick={() => handleImmobilierOperation(operation.id)}
-                        >
-                          <div className="d-flex align-items-center">
-                            <div className="operation-emoji me-3" style={{ fontSize: '1.2rem' }}>
-                              {operation.id === 'vente' ? '💰' : 
-                               operation.id === 'location' ? '📅' : '🏖️'}
-                            </div>
-                            <div>
-                              <div className="fw-bold">{operation.name}</div>
+              <div className="immobilier-levels">
+                {/* NIVEL 1: Operaciones */}
+                <div className={`level-section ${!selectedOperation ? 'active' : ''}`}>
+                  <div className="level-header">
+                    <h6 className="level-title">
+                      <span className="level-icon">📋</span>
+                      Sélectionnez une opération
+                    </h6>
+                    <p className="level-description">
+                      Choisissez le type de transaction immobilière
+                    </p>
+                  </div>
+                  <div className="level-items">
+                    {immobilierOperations.map((operation) => (
+                      <div 
+                        key={operation.id}
+                        className={`level-item ${postData.articleType === operation.id ? 'selected' : ''}`}
+                        onClick={() => handleImmobilierOperation(operation.id)}
+                      >
+                        <div className="d-flex align-items-center">
+                          <div className="item-emoji">
+                            {operation.id === 'vente' ? '💰' : 
+                             operation.id === 'location' ? '📅' : '🏖️'}
+                          </div>
+                          <div className="item-info">
+                            <div className="item-title">{operation.name}</div>
+                            <div className="item-subtitle">
+                              {operation.id === 'vente' ? 'Achat/Vente de biens' :
+                               operation.id === 'location' ? 'Location à long terme' :
+                               'Location saisonnière'}
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                        {postData.articleType === operation.id && (
+                          <div className="item-check">✓</div>
+                        )}
+                      </div>
+                    ))}
                   </div>
-                ) : (
-                  /* Paso 2: Seleccionar tipo de propiedad */
-                  <div className="immobilier-step">
-                    <div className="step-title mb-3">
+                </div>
+
+                {/* NIVEL 2: Propiedades (solo si hay operación seleccionada) */}
+                {selectedOperation && (
+                  <div className="level-section active">
+                    <div className="level-header">
                       <div className="d-flex align-items-center justify-content-between">
-                        <h6 className="fw-bold">🏠 Sélectionnez un type de bien</h6>
+                        <div>
+                          <h6 className="level-title">
+                            <span className="level-icon">🏠</span>
+                            Sélectionnez un type de bien
+                          </h6>
+                          <p className="level-description">
+                            Opération: <span className="fw-bold">
+                              {immobilierOperations.find(op => op.id === selectedOperation)?.name}
+                            </span>
+                          </p>
+                        </div>
                         <button 
-                          className="btn btn-sm btn-outline-secondary"
-                          onClick={() => handleImmobilierOperation('')}
+                          className="btn-back"
+                          onClick={handleBackToOperations}
                         >
-                          ← Changer opération
+                          ← Changer
                         </button>
                       </div>
-                      <small className="text-muted">
-                        Opération: {immobilierOperations.find(op => op.id === postData.articleType)?.name}
-                      </small>
                     </div>
-                    <div className="properties-list">
-                      {immobilierProperties[postData.articleType]?.map((property) => (
+                    <div className="level-items">
+                      {immobilierProperties[selectedOperation]?.map((property) => (
                         <div 
                           key={property.id}
-                          className={`property-item ${postData.subCategory === property.id ? 'selected' : ''}`}
+                          className={`level-item ${postData.subCategory === property.id ? 'selected' : ''}`}
                           onClick={() => handleSubcategorySelect(property.id)}
                         >
                           <div className="d-flex align-items-center">
-                            <div className="property-emoji me-3" style={{ fontSize: '1.2rem' }}>
+                            <div className="item-emoji">
                               {property.id === 'appartement' ? '🏢' : 
                                property.id === 'villa' ? '🏡' : '🌳'}
                             </div>
-                            <div>
-                              <div className="fw-bold">{property.name}</div>
+                            <div className="item-info">
+                              <div className="item-title">{property.name}</div>
+                              <div className="item-subtitle">
+                                {property.id === 'appartement' ? 'Appartements et studios' :
+                                 property.id === 'villa' ? 'Maisons et villas' :
+                                 'Terrains et parcelles'}
+                              </div>
                             </div>
                           </div>
                           {postData.subCategory === property.id && (
-                            <span className="badge bg-success">
-                              ✓ Sélectionné
-                            </span>
+                            <div className="item-check">✓</div>
                           )}
                         </div>
                       ))}
@@ -353,28 +392,34 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
             ) : (
               /* OTRAS CATEGORÍAS (subcategorías normales) */
               <div className="regular-subcategories">
+                <div className="subcategories-header">
+                  <h6 className="subcategories-title">
+                    <span className="me-2">📂</span>
+                    Sous-catégories
+                  </h6>
+                  <p className="subcategories-description">
+                    Choisissez une sous-catégorie
+                  </p>
+                </div>
                 <div className="subcategories-list">
                   {categorySubcats.map((subcat) => (
                     <div 
                       key={subcat.id} 
                       className={`subcategory-item ${postData.subCategory === subcat.id ? 'selected' : ''}`}
                       onClick={() => handleSubcategorySelect(subcat.id)}
-                      style={{
-                        paddingLeft: isRTL ? '0' : '2rem',
-                        paddingRight: isRTL ? '2rem' : '0'
-                      }}
                     >
                       <div className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center">
-                          <div className="me-2" style={{ fontSize: '0.9rem' }}>
+                          <div className="subcategory-emoji me-3">
                             •
                           </div>
-                          <div className="subcategory-name">
-                            {subcat.name}
+                          <div className="subcategory-info">
+                            <div className="subcategory-name">{subcat.name}</div>
+                            <div className="subcategory-id">{subcat.id}</div>
                           </div>
                         </div>
                         {postData.subCategory === subcat.id && (
-                          <span className="badge bg-success" style={{ fontSize: '0.7rem' }}>
+                          <span className="subcategory-check">
                             ✓
                           </span>
                         )}
@@ -395,79 +440,110 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
     if (!postData.categorie) return null;
 
     const selectedCategory = categories.find(c => c.id === postData.categorie);
-    
+    const selectedSubcategory = postData.subCategory ? 
+      (selectedOperation ? 
+        immobilierProperties[selectedOperation]?.find(p => p.id === postData.subCategory)?.name :
+        subcategories[postData.categorie]?.find(s => s.id === postData.subCategory)?.name
+      ) : null;
+
     return (
       <div className="current-selection">
-        <div className="d-flex align-items-center justify-content-between p-3 border rounded bg-light">
-          <div className="d-flex align-items-center">
-            <div className="me-3" style={{ fontSize: '1.5rem' }}>
-              {categoryEmojis[postData.categorie]}
-            </div>
-            <div>
-              <div className="fw-bold">Catégorie sélectionnée</div>
-              <div className="text-muted">{selectedCategory?.name}</div>
-              {postData.subCategory && (
-                <small className="d-block text-primary">
-                  Sous-catégorie: {postData.subCategory}
-                </small>
-              )}
-            </div>
+        <div className="selection-card">
+          <div className="selection-header">
+            <h5 className="selection-title">
+              <span className="me-2">✅</span>
+              Sélection actuelle
+            </h5>
           </div>
-          <button 
-            className="btn btn-sm btn-outline-secondary"
-            onClick={() => {
-              handleChangeInput({
-                target: { name: 'categorie', value: '' }
-              });
-              handleChangeInput({
-                target: { name: 'subCategory', value: '' }
-              });
-              handleChangeInput({
-                target: { name: 'articleType', value: '' }
-              });
-              setExpandedCategory(null);
-            }}
-          >
-            Changer
-          </button>
+          <div className="selection-body">
+            <div className="selection-item">
+              <div className="selection-label">Catégorie:</div>
+              <div className="selection-value">
+                <span className="selection-emoji">{categoryEmojis[postData.categorie]}</span>
+                {selectedCategory?.name}
+              </div>
+            </div>
+            
+            {postData.articleType && (
+              <div className="selection-item">
+                <div className="selection-label">Opération:</div>
+                <div className="selection-value">
+                  <span className="selection-emoji">
+                    {postData.articleType === 'vente' ? '💰' : 
+                     postData.articleType === 'location' ? '📅' : '🏖️'}
+                  </span>
+                  {immobilierOperations.find(op => op.id === postData.articleType)?.name}
+                </div>
+              </div>
+            )}
+            
+            {postData.subCategory && (
+              <div className="selection-item">
+                <div className="selection-label">Sous-catégorie:</div>
+                <div className="selection-value">
+                  <span className="selection-emoji">
+                    {postData.subCategory === 'appartement' ? '🏢' : 
+                     postData.subCategory === 'villa' ? '🏡' : 
+                     postData.subCategory === 'terrain' ? '🌳' : '•'}
+                  </span>
+                  {selectedSubcategory}
+                </div>
+              </div>
+            )}
+          </div>
+          <div className="selection-footer">
+            <button 
+              className="btn-change"
+              onClick={() => {
+                handleChangeInput({ target: { name: 'categorie', value: '' } });
+                handleChangeInput({ target: { name: 'subCategory', value: '' } });
+                handleChangeInput({ target: { name: 'articleType', value: '' } });
+                setExpandedCategory(null);
+                setSelectedOperation(null);
+              }}
+            >
+              Changer de catégorie
+            </button>
+          </div>
         </div>
       </div>
     );
   };
 
   return (
-    <div className={`${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
+    <div className={`categories-accordion ${isRTL ? 'rtl' : 'ltr'}`} dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Barra de búsqueda */}
-      <div className="mb-3">
+      <div className="search-container mb-4">
         <input
           type="text"
           placeholder="🔍 Rechercher une catégorie..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="form-control form-control-sm"
-          style={{ 
-            padding: '0.375rem 0.75rem',
-            fontSize: '0.875rem'
-          }}
+          className="search-input"
         />
       </div>
 
       {/* Contador de resultados */}
       {searchTerm && (
-        <div className="mb-2 text-muted" style={{ fontSize: '0.85rem' }}>
-          {filteredCategories.length} catégorie(s) trouvée(s)
+        <div className="results-count mb-3">
+          <span className="results-number">{filteredCategories.length}</span>
+          <span className="results-text"> catégorie(s) trouvée(s)</span>
         </div>
       )}
 
-      {/* Lista de catégories */}
-      <div className="categories-column">
+      {/* Accordion de catégories */}
+      <div className="categories-accordion-list">
         {filteredCategories.length > 0 ? (
           filteredCategories.map((category) => (
             <CategoryItem key={category.id} category={category} />
           ))
         ) : (
-          <div className="text-center py-4 text-muted">
-            Aucune catégorie trouvée
+          <div className="no-results">
+            <div className="no-results-icon">🔍</div>
+            <div className="no-results-title">Aucune catégorie trouvée</div>
+            <div className="no-results-text">
+              Essayez avec d'autres termes de recherche
+            </div>
           </div>
         )}
       </div>
@@ -475,81 +551,152 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
       {/* Sélection actuelle */}
       {renderCurrentSelection()}
 
-      {/* Styles CSS */}
+      {/* Styles CSS actualizados */}
       <style>
         {`
-          .categories-column {
+          .categories-accordion {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+          }
+          
+          /* Barra de búsqueda */
+          .search-container {
+            position: relative;
+          }
+          
+          .search-input {
+            width: 100%;
+            padding: 0.875rem 1rem 0.875rem 2.75rem;
+            font-size: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            background-color: white;
+            transition: all 0.2s ease;
+          }
+          
+          .search-input:focus {
+            outline: none;
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+          }
+          
+          .search-input::placeholder {
+            color: #6c757d;
+          }
+          
+          /* Contador de resultados */
+          .results-count {
+            padding: 0.5rem 1rem;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            font-size: 0.95rem;
+          }
+          
+          .results-number {
+            font-weight: bold;
+            color: #0d6efd;
+          }
+          
+          .results-text {
+            color: #6c757d;
+          }
+          
+          /* Lista de categorías */
+          .categories-accordion-list {
             display: flex;
             flex-direction: column;
-            gap: 2px;
-            max-height: 500px;
+            gap: 4px;
+            max-height: 600px;
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: #adb5bd #f8f9fa;
-            padding-right: 5px;
+            padding-right: 8px;
           }
           
-          .categories-column::-webkit-scrollbar {
-            width: 6px;
+          .categories-accordion-list::-webkit-scrollbar {
+            width: 8px;
           }
           
-          .categories-column::-webkit-scrollbar-track {
+          .categories-accordion-list::-webkit-scrollbar-track {
             background: #f8f9fa;
-            border-radius: 3px;
+            border-radius: 4px;
           }
           
-          .categories-column::-webkit-scrollbar-thumb {
+          .categories-accordion-list::-webkit-scrollbar-thumb {
             background-color: #adb5bd;
-            border-radius: 3px;
+            border-radius: 4px;
           }
           
-          .category-column-item {
-            margin-bottom: 2px;
+          /* Ítem del accordion */
+          .category-accordion-item {
+            margin-bottom: 4px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
           }
           
-          .category-line {
-            padding: 0.75rem 1rem;
+          .category-accordion-item:hover {
+            border-color: #dee2e6;
+          }
+          
+          /* Cabecera de categoría */
+          .category-header {
+            padding: 1rem 1.25rem;
             cursor: pointer;
             background-color: white;
             transition: all 0.2s ease;
-            border-bottom: 1px solid #f1f3f5;
+            border-bottom: 1px solid transparent;
           }
           
-          .category-line:hover {
+          .category-header:hover {
             background-color: #f8f9fa;
           }
           
-          .category-line.selected {
+          .category-header.selected {
             background-color: #f8f9ff;
-            border-left-color: #0d6efd !important;
+            border-left: 4px solid #0d6efd;
           }
           
-          .category-line.expanded {
-            border-bottom: none;
+          .category-emoji {
+            font-size: 1.5rem;
+            min-width: 40px;
+            text-align: center;
           }
           
           .category-info {
             flex-grow: 1;
           }
           
-          .category-name {
-            font-size: 0.95rem;
-            line-height: 1.2;
+          .category-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #212529;
+            line-height: 1.3;
           }
           
-          .category-id {
-            font-size: 0.75rem;
-            margin-top: 1px;
-          }
-          
-          .category-emoji {
-            min-width: 24px;
-            text-align: center;
+          .category-subtitle {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-top: 2px;
           }
           
           .category-actions {
             display: flex;
             align-items: center;
+            gap: 8px;
+          }
+          
+          .selected-badge {
+            background-color: #198754;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.875rem;
           }
           
           .expand-icon {
@@ -557,108 +704,304 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
             transition: transform 0.2s ease;
           }
           
-          .subcategories-panel {
+          /* Contenido expandible */
+          .category-content {
             background-color: #f8f9fa;
-            border-left: 4px solid #e9ecef;
-            animation: slideDown 0.2s ease-out;
+            border-top: 1px solid #e9ecef;
+            animation: slideDown 0.3s ease-out;
           }
           
-          .immobilier-subcategories {
-            padding: 1rem;
+          /* Niveles para immobilier */
+          .immobilier-levels {
+            padding: 1.5rem;
           }
           
-          .immobilier-step {
+          .level-section {
+            margin-bottom: 1.5rem;
+          }
+          
+          .level-section.active {
+            display: block;
+          }
+          
+          .level-header {
             margin-bottom: 1rem;
           }
           
-          .step-title {
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid #e9ecef;
+          .level-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 0.25rem;
+            display: flex;
+            align-items: center;
           }
           
-          .operations-list, .properties-list {
+          .level-icon {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+          }
+          
+          .level-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0;
+          }
+          
+          .level-items {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
           }
           
-          .operation-item, .property-item {
-            padding: 0.75rem 1rem;
-            background: white;
+          .level-item {
+            padding: 1rem;
+            background-color: white;
             border-radius: 6px;
-            cursor: pointer;
             border: 2px solid transparent;
+            cursor: pointer;
             transition: all 0.2s ease;
           }
           
-          .operation-item:hover, .property-item:hover {
-            background-color: #f8f9fa;
+          .level-item:hover {
             border-color: #dee2e6;
+            transform: translateY(-1px);
           }
           
-          .operation-item.selected, .property-item.selected {
+          .level-item.selected {
             border-color: #0d6efd;
             background-color: #f8f9ff;
           }
           
-          .operation-emoji, .property-emoji {
-            min-width: 28px;
+          .item-emoji {
+            font-size: 1.4rem;
+            min-width: 40px;
             text-align: center;
           }
           
+          .item-info {
+            flex-grow: 1;
+          }
+          
+          .item-title {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #212529;
+          }
+          
+          .item-subtitle {
+            font-size: 0.85rem;
+            color: #6c757d;
+            margin-top: 2px;
+          }
+          
+          .item-check {
+            color: #198754;
+            font-weight: bold;
+            font-size: 1.2rem;
+          }
+          
+          .btn-back {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-size: 0.875rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+          }
+          
+          .btn-back:hover {
+            color: #0d6efd;
+            background-color: #f8f9fa;
+          }
+          
+          /* Subcategorías regulares */
           .regular-subcategories {
-            padding: 0.5rem 0;
+            padding: 1.5rem;
+          }
+          
+          .subcategories-header {
+            margin-bottom: 1rem;
+          }
+          
+          .subcategories-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 0.25rem;
+          }
+          
+          .subcategories-description {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0;
           }
           
           .subcategories-list {
-            padding: 0.5rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
           }
           
           .subcategory-item {
-            padding: 0.6rem 1rem;
+            padding: 0.875rem 1rem;
+            background-color: white;
+            border-radius: 6px;
+            border-left: 3px solid transparent;
             cursor: pointer;
             transition: all 0.2s ease;
-            border-bottom: 1px solid #f1f3f5;
           }
           
           .subcategory-item:hover {
-            background-color: #e9ecef;
+            background-color: #f8f9fa;
           }
           
           .subcategory-item.selected {
-            background-color: #e7f1ff;
-            border-left: 3px solid #0d6efd;
+            border-left-color: #0d6efd;
+            background-color: #f8f9ff;
+          }
+          
+          .subcategory-emoji {
+            font-size: 1.2rem;
+            color: #6c757d;
+          }
+          
+          .subcategory-info {
+            flex-grow: 1;
           }
           
           .subcategory-name {
-            font-size: 0.9rem;
-            color: #495057;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #212529;
           }
           
+          .subcategory-id {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 1px;
+          }
+          
+          .subcategory-check {
+            color: #198754;
+            font-weight: bold;
+            font-size: 1.1rem;
+          }
+          
+          /* No results */
+          .no-results {
+            text-align: center;
+            padding: 3rem 1rem;
+          }
+          
+          .no-results-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+          }
+          
+          .no-results-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+          }
+          
+          .no-results-text {
+            font-size: 0.9rem;
+            color: #adb5bd;
+          }
+          
+          /* Selección actual */
           .current-selection {
-            margin-top: 1.5rem;
+            margin-top: 2rem;
             animation: fadeIn 0.3s ease;
           }
           
-          .rtl .category-line {
-            border-left: none !important;
-            border-right: 4px solid transparent;
+          .selection-card {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f1f5ff 100%);
+            border-radius: 10px;
+            border: 1px solid #e0e7ff;
+            overflow: hidden;
           }
           
-          .rtl .category-line.selected {
-            border-right-color: #0d6efd !important;
+          .selection-header {
+            padding: 1rem 1.5rem;
+            background-color: rgba(13, 110, 253, 0.05);
+            border-bottom: 1px solid #e0e7ff;
           }
           
-          .rtl .subcategories-panel {
-            border-left: none;
-            border-right: 4px solid #e9ecef;
+          .selection-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #0d6efd;
+            margin: 0;
+            display: flex;
+            align-items: center;
           }
           
-          .rtl .subcategory-item.selected {
-            border-left: none;
-            border-right: 3px solid #0d6efd;
+          .selection-body {
+            padding: 1.5rem;
           }
           
+          .selection-item {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: flex-start;
+          }
+          
+          .selection-item:last-child {
+            margin-bottom: 0;
+          }
+          
+          .selection-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            min-width: 120px;
+            font-weight: 500;
+          }
+          
+          .selection-value {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #212529;
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+          }
+          
+          .selection-emoji {
+            margin-right: 0.5rem;
+            font-size: 1.2rem;
+          }
+          
+          .selection-footer {
+            padding: 1rem 1.5rem;
+            background-color: white;
+            border-top: 1px solid #e9ecef;
+            text-align: center;
+          }
+          
+          .btn-change {
+            background-color: white;
+            color: #0d6efd;
+            border: 1px solid #0d6efd;
+            padding: 0.5rem 1.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+          }
+          
+          .btn-change:hover {
+            background-color: #0d6efd;
+            color: white;
+          }
+          
+          /* Animations */
           @keyframes slideDown {
             from {
               opacity: 0;
@@ -668,17 +1011,42 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
             to {
               opacity: 1;
               transform: translateY(0);
-              max-height: 500px;
+              max-height: 1000px;
             }
           }
           
           @keyframes fadeIn {
             from {
               opacity: 0;
+              transform: translateY(10px);
             }
             to {
               opacity: 1;
+              transform: translateY(0);
             }
+          }
+          
+          /* RTL Support */
+          .rtl .category-header.selected {
+            border-left: none;
+            border-right: 4px solid #0d6efd;
+          }
+          
+          .rtl .subcategory-item.selected {
+            border-left: none;
+            border-right: 3px solid #0d6efd;
+          }
+          
+          .rtl .selection-emoji {
+            margin-right: 0;
+            margin-left: 0.5rem;
+          }
+          
+          .rtl .item-emoji,
+          .rtl .category-emoji,
+          .rtl .subcategory-emoji {
+            margin-right: 0;
+            margin-left: 0.5rem;
           }
         `}
       </style>
