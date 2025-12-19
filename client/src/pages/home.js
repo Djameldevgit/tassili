@@ -3,9 +3,11 @@ import Posts from '../components/home/Posts'
 import { useSelector } from 'react-redux'
 import LoadIcon from '../images/loading.gif'
 import { useTranslation } from 'react-i18next';
-import HeaderCarousel from '../components/HeaderCarousel';
+ 
 import { ButtonGroup, Button } from 'react-bootstrap';
 import { Grid3x3, List } from 'react-bootstrap-icons';
+import HeaderCarousel from '../components/SlidersHeadrs/HeaderCarousel';
+import CategorySlider from '../components/SlidersHeadrs/CategorySlider';
 
 let scroll = 0;
 
@@ -56,7 +58,8 @@ const Home = () => {
     return (
         <div>
             <div>
-                <HeaderCarousel/>
+                <HeaderCarousel />
+                <CategorySlider/>
             </div>
             
             {/* 🎯 BOTÓN DE CAMBIO DE VISTA - SOLO EN MÓVIL */}

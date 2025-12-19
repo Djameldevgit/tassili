@@ -432,8 +432,8 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
 
       {/* Contador de resultados */}
       {searchTerm && (
-        <div className="results-count mb-3">
-          <Badge bg="light" text="dark" className="px-3 py-1">
+        <div className="results-count mb-2">
+          <Badge bg="light" text="dark" className="px-1 py-1">
             <span className="fw-bold" style={{ fontSize: '0.9rem' }}>
               {filteredCategories.length}
             </span>
@@ -451,13 +451,13 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
             <Accordion.Item 
               key={category.id} 
               eventKey={category.id}
-              className="category-accordion-item mb-2"
+              className="category-accordion-item mb-1"
             >
               <Accordion.Header 
                 onClick={() => handleCategorySelect(category.id)}
                 className="category-header"
               >
-                <div className="d-flex align-items-center w-100">
+                <div className="d-flex align-items w-100">
                   <span className="category-emoji">
                     {categoryEmojis[category.id]}
                   </span>
@@ -512,7 +512,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
 
       {/* Estado de selección mejorado */}
       {localPostData.categorie && (
-        <div className="current-selection mt-4">
+        <div className="current-selection mt-2">
           <Card className="border-0 shadow-sm">
             <Card.Header className="bg-primary bg-opacity-10 border-0 py-2">
               <h6 className="mb-0 fw-bold d-flex align-items-center" style={{ fontSize: '1rem' }}>
@@ -520,7 +520,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                 Sélection actuelle
               </h6>
             </Card.Header>
-            <Card.Body className="p-3">
+            <Card className="p-1">
               <div className="selection-details">
                 <div className="selection-item mb-2">
                   <div className="selection-label" style={{ fontSize: '0.9rem' }}>Catégorie:</div>
@@ -531,7 +531,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                 </div>
                 
                 {localPostData.categorie === 'immobilier' && localPostData.articleType && (
-                  <div className="selection-item mb-2">
+                  <div className="selection-item mb-1">
                     <div className="selection-label" style={{ fontSize: '0.9rem' }}>Opération:</div>
                     <div className="selection-value fw-medium" style={{ fontSize: '0.95rem' }}>
                       <span className="me-2">
@@ -561,7 +561,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                   </div>
                 )}
               </div>
-            </Card.Body>
+            </Card>
             <Card.Footer className="bg-light border-0 py-2">
               <Button 
                 variant="outline-secondary" 
@@ -638,7 +638,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         
         /* Iconos y texto */
         .category-emoji {
-          font-size: 1.5rem;
+          font-size: 2rem;
           min-width: 40px;
         }
         
@@ -647,7 +647,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         }
         
         .category-name {
-          font-size: 1rem;
+          font-size: 1.5rem;
           font-weight: 600;
           color: #212529;
         }
@@ -674,7 +674,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         
         /* Cuerpo del accordion */
         .category-body {
-          padding: 1.25rem !important;
+         
           background-color: #f8f9fa;
           border-top: 1px solid #e9ecef;
           animation: slideDown 0.3s ease-out;

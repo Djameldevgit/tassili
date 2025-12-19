@@ -158,7 +158,7 @@ const DynamicFieldManager = ({
   const getStepTitle = () => {
     const titles = {
       1: t('step1_title', 'Información básica'),
-      2: t('step2_title', 'Descripción y detalles'),
+      2: t('step2_title', 'Detalles'),
       3: t('step3_title', 'Precio y condiciones'),
       4: t('step4_title', 'Contacto y ubicación'),
       5: t('step5_title', 'Imágenes')

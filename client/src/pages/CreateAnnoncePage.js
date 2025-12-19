@@ -105,14 +105,14 @@ const CreateAnnoncePage = () => {
           >
             <Card className="mb-3">
               <Card.Header>
-                <h4>🏷️ Étape 1: Catégorie</h4>
+                <h5>🏷️ Étape 1: Catégorie</h5>
               </Card.Header>
-              <Card.Body>
+              
                 <CategoryAccordion
                   postData={formData}
                   handleChangeInput={handleCategoryChange}
                 />
-              </Card.Body>
+              
             </Card>
           </motion.div>
         );
@@ -174,11 +174,11 @@ const CreateAnnoncePage = () => {
   ];
   
   return (
-    <Container className="py-4" dir={isRTL ? 'rtl' : 'ltr'}>
+    <Container className="py-2" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* TÍTULO */}
-      <div className="mb-4">
-        <h1 className="fw-bold">➕ Créer une annonce</h1>
-        <p className="text-muted">Complétez les étapes pour publier votre annonce</p>
+      <div className="mb-2">
+        <h3 className="fw-bold">➕ Créer une annonce</h3>
+        <p className="text-muted">Complétez les étapes</p>
       </div>
       
       {/* BARRA DE PROGRESO SUPERIOR */}

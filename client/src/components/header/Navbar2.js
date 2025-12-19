@@ -6,21 +6,21 @@ import { Link } from 'react-router-dom';
 import Avatar from '../Avatar';
 import Card from 'react-bootstrap/Card';
 import {
-   
- 
+
+
   FaTools,
   FaShieldAlt,
   FaUsers,
   FaUserCog,
   FaSignOutAlt,
- 
+  FaInfoCircle,
   FaSignInAlt,
   FaUserPlus,
-  
-  
+
+
   FaShareAlt,
   FaGlobe,
-  
+
 } from 'react-icons/fa';
 
 import { Navbar, Container, NavDropdown, Badge } from 'react-bootstrap';
@@ -29,30 +29,30 @@ import VerifyModal from '../authAndVerify/VerifyModal';
 import DesactivateModal from '../authAndVerify/DesactivateModal';
 import MultiCheckboxModal from './MultiCheckboxModal.';
 import ShareAppModal from '../shareAppModal';
-import Drawer from './Drawer'; // <- Importación del Drawer separado
+import Drawer from './Drawer';
 import { FaBars, FaPlus, FaSearch, FaBell, FaUserCircle, FaDownload /* ... otros iconos */ } from 'react-icons/fa';
 
 const Navbar2 = () => {
-  const { auth, theme, cart, notify, settings } = useSelector((state) => state);
+  const { auth, cart, notify, settings } = useSelector((state) => state);
   const dispatch = useDispatch();
   const { languageReducer } = useSelector(state => state);
   const { t, i18n } = useTranslation('navbar2');
   const lang = languageReducer.language || 'es';
 
   // Estados PWA
-  
+
   const [isPWAInstalled, setIsPWAInstalled] = useState(false);
   const [showInstallButton, setShowInstallButton] = useState(false);
 
   // Estados del componente
   const [showShareModal, setShowShareModal] = useState(false);
   const [userRole, setUserRole] = useState(auth.user?.role);
- 
+
   const [showVerifyModal, setShowVerifyModal] = useState(false);
   const [showDeactivatedModal, setShowDeactivatedModal] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 700);
   const [showFeaturesModal, setShowFeaturesModal] = useState(false);
- 
+
   const notifyDropdownRef = useRef(null);
 
   const [showDrawer, setShowDrawer] = useState(false);
@@ -124,27 +124,27 @@ const Navbar2 = () => {
   // Verificación PWA mejorada
   useEffect(() => {
     const checkPWAInstallation = () => {
-      const isInstalled = 
+      const isInstalled =
         window.matchMedia('(display-mode: standalone)').matches ||
         window.navigator.standalone ||
         localStorage.getItem('pwaInstalled') === 'true';
-      
+
       setIsPWAInstalled(isInstalled);
       return isInstalled;
     };
-  
+
     const installed = checkPWAInstallation();
-    
+
     if (!installed) {
       const handleInstallAvailable = () => setShowInstallButton(true);
       const handleInstalled = () => {
         setIsPWAInstalled(true);
         setShowInstallButton(false);
       };
-  
+
       window.addEventListener('pwaInstallAvailable', handleInstallAvailable);
       window.addEventListener('pwaInstalled', handleInstalled);
-  
+
       const installCheckInterval = setInterval(() => {
         if (checkPWAInstallation()) {
           clearInterval(installCheckInterval);
@@ -152,7 +152,7 @@ const Navbar2 = () => {
           setShowInstallButton(true);
         }
       }, 2000);
-  
+
       return () => {
         window.removeEventListener('pwaInstallAvailable', handleInstallAvailable);
         window.removeEventListener('pwaInstalled', handleInstalled);
@@ -160,7 +160,7 @@ const Navbar2 = () => {
       };
     }
   }, [showInstallButton]);
-  
+
   // Manejador de instalación PWA
   const handleInstallPWA = async () => {
     try {
@@ -237,10 +237,10 @@ const Navbar2 = () => {
         }}
         className={settings.style ? "navbar-dark" : "navbar-light"}
       >
-        <Container 
-          fluid 
-          className="align-items-center justify-content-between" 
-          style={{ 
+        <Container
+          fluid
+          className="align-items-center justify-content-between"
+          style={{
             padding: isMobile ? '0 12px' : '0 20px',
             maxWidth: '100%'
           }}
@@ -335,9 +335,9 @@ const Navbar2 = () => {
           </div>
 
           {/* Iconos de acción */}
-          <div 
-            className="d-flex align-items-center" 
-            style={{ 
+          <div
+            className="d-flex align-items-center"
+            style={{
               gap: isMobile ? '6px' : '10px',
               flexShrink: 0,
               marginLeft: 'auto'
@@ -547,15 +547,17 @@ const Navbar2 = () => {
                       {t('profile')}
                     </MenuItem>
 
-                    <MenuItem  iconColor="#6c757d" to="/infoaplicacionn">
+                    <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn">
                       {t('appInfo')}
                     </MenuItem>
+
                     <MenuItem icon={FaTools} iconColor="#6c757d" to="/users/roles">
-                          {t('roles')}
-                        </MenuItem>
-                    <MenuItem  iconColor="#6c757d" to="/infoaplicacionn3">
-                      {t('appInfo3')}
+                      {t('roles')}
                     </MenuItem>
+                    <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn">
+                      {t('appInfo')}
+                    </MenuItem>
+
 
                     <MenuItem icon={FaShareAlt} iconColor="#ffc107" onClick={() => setShowShareModal(true)}>
                       {t('shareApp')}
@@ -604,10 +606,10 @@ const Navbar2 = () => {
                     <MenuItem icon={FaUserPlus} iconColor="#667eea" to="/register">
                       {t('register')}
                     </MenuItem>
-
-                    <MenuItem  iconColor="#6c757d" to="/infoaplicacionn">
+                    <MenuItem icon={FaInfoCircle} iconColor="#6c757d" to="/infoaplicacionn">
                       {t('appInfo')}
                     </MenuItem>
+
 
                     <MenuItem icon={FaShareAlt} iconColor="#ffc107" onClick={() => setShowShareModal(true)}>
                       {t('shareApp')}
@@ -618,30 +620,30 @@ const Navbar2 = () => {
             </NavDropdown>
 
             <button
-          onClick={handleDrawerOpen}
-          className="icon-button"
-          style={{
-            width: isMobile ? '38px' : '42px',
-            height: isMobile ? '38px' : '42px',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: settings.style ? 'rgba(255,255,255,0.1)' : 'rgba(102, 126, 234, 0.1)',
-            border: 'none',
-            transition: 'all 0.3s ease',
-            cursor: 'pointer',
-            marginLeft: isMobile ? '4px' : '6px'
-          }}
-          title={t('menu') || "Menú"}
-        >
-          <FaBars
-            size={isMobile ? 18 : 20}
-            style={{ 
-              color: settings.style ? '#ffffff' : '#667eea'
-            }}
-          />
-        </button>
+              onClick={handleDrawerOpen}
+              className="icon-button"
+              style={{
+                width: isMobile ? '38px' : '42px',
+                height: isMobile ? '38px' : '42px',
+                borderRadius: '10px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: settings.style ? 'rgba(255,255,255,0.1)' : 'rgba(102, 126, 234, 0.1)',
+                border: 'none',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+                marginLeft: isMobile ? '4px' : '6px'
+              }}
+              title={t('menu') || "Menú"}
+            >
+              <FaBars
+                size={isMobile ? 18 : 20}
+                style={{
+                  color: settings.style ? '#ffffff' : '#667eea'
+                }}
+              />
+            </button>
 
 
           </div>
@@ -649,7 +651,7 @@ const Navbar2 = () => {
       </Navbar>
 
       {/* 🔥 ESPACIO PARA COMPENSAR EL NAVBAR FIJO */}
-      <div style={{ 
+      <div style={{
         height: isMobile ? '56px' : '64px',
         minHeight: isMobile ? '56px' : '64px'
       }} />
@@ -876,7 +878,7 @@ const Navbar2 = () => {
         show={showShareModal}
         onClose={() => setShowShareModal(false)}
       />
-   <Drawer
+      <Drawer
         show={showDrawer}
         onHide={handleDrawerClose}
         position="start"
