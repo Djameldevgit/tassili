@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useLocation, useHistory } from 'react-router-dom';
 import Offcanvas from 'react-bootstrap/Offcanvas';
 import { logout } from '../../redux/actions/authAction';
-import { useTranslation } from 'react-i18next'; // AÑADIDO: Para traducciones
+import { useTranslation } from 'react-i18next';
 import { 
   FaHome, FaUser, FaCog, FaSignOutAlt, FaBell, FaShoppingCart,
   FaCar, FaTools, FaMobileAlt, FaLaptop, FaTv, FaTshirt, FaHeart,
@@ -14,7 +14,7 @@ import {
   FaPlus, FaList, FaBox, FaExchangeAlt, FaPalette, FaAd,
   FaWrench, FaBuilding, FaTruck, FaHeadset, FaMedkit, FaFutbol as FaSoccerBall,
   FaGraduationCap, FaHardHat, FaCarrot, FaHandsHelping, FaGlobeAmericas,
-  FaTimes // AÑADIDO: Icono de cerrar
+  FaTimes
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
@@ -29,13 +29,13 @@ const Drawer = ({
   const location = useLocation();
   const history = useHistory();
   const { auth } = useSelector(state => state);
-  const { languageReducer } = useSelector(state => state); // AÑADIDO: Para idioma
-  const { t, i18n } = useTranslation('global'); // AÑADIDO: Para traducciones
+  const { languageReducer } = useSelector(state => state);
+  const { t, i18n } = useTranslation('global');
   const [darkMode, setDarkMode] = useState(false);
   const [currentLang, setCurrentLang] = useState(languageReducer.language || 'fr');
 
   // Detectar si está en dashboard/profile
-  const isDashboardPage = location.pathname.includes('/dashboard') || 
+  const isDashboardPage = location.pathname.includes('/users/dashboardpage') || 
                          location.pathname.includes('/profile') ||
                          location.pathname.startsWith('/mes-');
 
@@ -101,8 +101,10 @@ const Drawer = ({
     document.body.classList.toggle('dark-mode', !darkMode);
   };
 
-  // Renderizar item del menú
-  const renderMenuItem = ({ icon: Icon, name, path, onClick, color = '#667eea', isSection = false, external = false }) => {
+  // Componente LinkItem mejorado
+  const LinkItem = ({ icon: Icon, name, path, onClick, color = '#667eea', isSection = false, external = false }) => {
+    const isActive = location.pathname === path;
+    
     const content = (
       <div
         style={{
@@ -113,22 +115,22 @@ const Drawer = ({
           alignItems: 'center',
           transition: 'all 0.2s ease',
           cursor: 'pointer',
-          backgroundColor: location.pathname === path ? `${color}15` : 'transparent',
-          borderLeft: location.pathname === path ? `3px solid ${color}` : 'none'
+          backgroundColor: isActive ? `${color}15` : 'transparent',
+          borderLeft: isActive ? `3px solid ${color}` : 'none'
         }}
         onClick={onClick}
         onMouseEnter={(e) => {
-          if (!isSection) e.currentTarget.style.backgroundColor = `${color}10`;
+          if (!isSection && !isActive) e.currentTarget.style.backgroundColor = `${color}10`;
         }}
         onMouseLeave={(e) => {
-          if (!isSection) e.currentTarget.style.backgroundColor = location.pathname === path ? `${color}15` : 'transparent';
+          if (!isSection) e.currentTarget.style.backgroundColor = isActive ? `${color}15` : 'transparent';
         }}
       >
-        {Icon && <Icon style={{ color: color, marginRight: '12px', fontSize: '1.1rem' }} />}
+        {Icon && <Icon style={{ color: isActive ? color : (isSection ? '#555' : '#6c757d'), marginRight: '12px', fontSize: '1.1rem' }} />}
         <span style={{
           fontSize: isSection ? '0.9rem' : '0.95rem',
           fontWeight: isSection ? '600' : '500',
-          color: isSection ? '#555' : '#333'
+          color: isActive ? color : (isSection ? '#555' : '#333')
         }}>
           {name}
         </span>
@@ -137,7 +139,13 @@ const Drawer = ({
 
     if (external) {
       return (
-        <a href={path} style={{ textDecoration: 'none', color: 'inherit' }} target="_blank" rel="noopener noreferrer">
+        <a 
+          href={path} 
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          onClick={onHide}
+        >
           {content}
         </a>
       );
@@ -145,13 +153,21 @@ const Drawer = ({
 
     if (path && !onClick) {
       return (
-        <Link to={path} style={{ textDecoration: 'none', color: 'inherit' }} onClick={onHide}>
+        <Link 
+          to={path} 
+          style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} 
+          onClick={onHide}
+        >
           {content}
         </Link>
       );
     }
 
-    return content;
+    return (
+      <div style={{ display: 'block' }} onClick={onClick}>
+        {content}
+      </div>
+    );
   };
 
   // CONTENIDO 1: Dashboard del usuario
@@ -189,67 +205,67 @@ const Drawer = ({
       </div>
 
       {/* Dark Mode */}
-      {renderMenuItem({ 
-        icon: darkMode ? FaSun : FaMoon, 
-        name: 'Dark Mode', 
-        onClick: toggleDarkMode,
-        color: darkMode ? '#ffc107' : '#6c757d'
-      })}
+      <LinkItem 
+        icon={darkMode ? FaSun : FaMoon} 
+        name="Dark Mode" 
+        onClick={toggleDarkMode}
+        color={darkMode ? '#ffc107' : '#6c757d'}
+      />
 
       {/* Sección: Mon compte */}
       <div style={{ margin: '15px 0 5px 16px', fontSize: '0.85rem', fontWeight: '600', color: '#666' }}>
         Mon compte
       </div>
       
-      {renderMenuItem({ icon: FaHome, name: 'Tableau de bord', path: '/dashboard' })}
-      {renderMenuItem({ icon: FaUser, name: 'Paramètres du profil', path: '/profile' })}
+      <LinkItem icon={FaHome} name="Tableau de bord" path="/users/dashboardpage" />
+      <LinkItem icon={FaUser} name="Paramètres du profil" path="/profile" />
 
       {/* Sección: Annonces */}
       <div style={{ margin: '20px 0 5px 16px', fontSize: '0.85rem', fontWeight: '600', color: '#666' }}>
         Annonces
       </div>
       
-      {renderMenuItem({ icon: FaList, name: 'Mes Annonces', path: '/mes-annonces' })}
-      {renderMenuItem({ icon: FaPlus, name: 'Ajouter Annonce', path: '/creer-annonce', color: '#28a745' })}
+      <LinkItem icon={FaList} name="Mes Annonces" path="/mes-annonces" />
+      <LinkItem icon={FaPlus} name="Ajouter Annonce" path="/creer-annonce" color="#28a745" />
 
       {/* Sección: Commandes */}
       <div style={{ margin: '20px 0 5px 16px', fontSize: '0.85rem', fontWeight: '600', color: '#666' }}>
         Commandes
       </div>
       
-      {renderMenuItem({ icon: FaShoppingCart, name: 'Mes Commandes', path: '/mes-commandes' })}
-      {renderMenuItem({ icon: FaTicketAlt, name: 'Mes Tickets de livraison', path: '/tickets-livraison' })}
+      <LinkItem icon={FaShoppingCart} name="Mes Commandes" path="/mes-commandes" />
+      <LinkItem icon={FaTicketAlt} name="Mes Tickets de livraison" path="/tickets-livraison" />
 
       {/* Sección: Voyage */}
       <div style={{ margin: '20px 0 5px 16px', fontSize: '0.85rem', fontWeight: '600', color: '#666' }}>
         Voyage
       </div>
       
-      {renderMenuItem({ icon: FaPlane, name: 'Mes Demandes de Devis', path: '/demandes-devis' })}
+      <LinkItem icon={FaPlane} name="Mes Demandes de Devis" path="/demandes-devis" />
 
       {/* Sección: Publicité */}
       <div style={{ margin: '20px 0 5px 16px', fontSize: '0.85rem', fontWeight: '600', color: '#666' }}>
         Publicité
       </div>
       
-      {renderMenuItem({ icon: FaStore, name: 'Achat Store', path: '/achat-store' })}
-      {renderMenuItem({ icon: FaBullhorn, name: 'Achat Publicité', path: '/achat-publicite' })}
+      <LinkItem icon={FaStore} name="Achat Store" path="/achat-store" />
+      <LinkItem icon={FaBullhorn} name="Achat Publicité" path="/achat-publicite" />
 
       {/* Sección: Transactions */}
       <div style={{ margin: '20px 0 5px 16px', fontSize: '0.85rem', fontWeight: '600', color: '#666' }}>
         Transactions
       </div>
       
-      {renderMenuItem({ icon: FaCreditCard, name: 'Transactions', path: '/transactions' })}
+      <LinkItem icon={FaCreditCard} name="Transactions" path="/transactions" />
 
       {/* Logout */}
       <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
-        {renderMenuItem({ 
-          icon: FaSignOutAlt, 
-          name: 'Se déconnecter', 
-          onClick: handleLogout,
-          color: '#dc3545'
-        })}
+        <LinkItem 
+          icon={FaSignOutAlt} 
+          name="Se déconnecter" 
+          onClick={handleLogout}
+          color="#dc3545"
+        />
       </div>
     </>
   );
@@ -265,37 +281,39 @@ const Drawer = ({
         marginBottom: '15px',
         borderRadius: '0 0 10px 10px'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div style={{
-            width: '40px',
-            height: '40px',
-            borderRadius: '50%',
-            background: 'rgba(255,255,255,0.2)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginRight: '12px'
-          }}>
-            <FaUser size={20} />
-          </div>
-          <div>
-            <div style={{ fontWeight: '600', fontSize: '1rem' }}>
-              Bonjour, {auth.user?.username}
+        <Link to="/users/dashboardpage" style={{ textDecoration: 'none', color: 'inherit' }} onClick={onHide}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.2)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginRight: '12px'
+            }}>
+              <FaUser size={20} />
             </div>
-            <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>
-              Accédez à votre espace
+            <div>
+              <div style={{ fontWeight: '600', fontSize: '1rem' }}>
+                Bonjour, {auth.user?.username}
+              </div>
+              <div style={{ fontSize: '0.8rem', opacity: 0.9 }}>
+                Accédez à votre espace
+              </div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
 
       {/* Acceso rápido al dashboard */}
-      {renderMenuItem({ 
-        icon: FaHome, 
-        name: 'Mon Tableau de bord', 
-        path: '/dashboard',
-        color: '#667eea'
-      })}
+      <LinkItem 
+        icon={FaHome} 
+        name="Mon Tableau de bord" 
+        path="/users/dashboardpage"
+        color="#667eea"
+      />
 
       {/* Categorías */}
       <div style={{ margin: '20px 0 8px 16px', fontSize: '0.9rem', fontWeight: '600', color: '#555' }}>
@@ -303,22 +321,23 @@ const Drawer = ({
       </div>
       
       {categories.map((category, index) => (
-        renderMenuItem({ 
-          icon: category.icon, 
-          name: category.name, 
-          path: `/category/${category.slug}`,
-          color: category.color
-        })
+        <LinkItem 
+          key={index}
+          icon={category.icon} 
+          name={category.name} 
+          path={`/category/${category.slug}`}
+          color={category.color}
+        />
       ))}
 
       {/* Dark Mode */}
       <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
-        {renderMenuItem({ 
-          icon: darkMode ? FaSun : FaMoon, 
-          name: 'Mode sombre', 
-          onClick: toggleDarkMode,
-          color: darkMode ? '#ffc107' : '#6c757d'
-        })}
+        <LinkItem 
+          icon={darkMode ? FaSun : FaMoon} 
+          name="Mode sombre" 
+          onClick={toggleDarkMode}
+          color={darkMode ? '#ffc107' : '#6c757d'}
+        />
       </div>
     </>
   );
@@ -327,20 +346,20 @@ const Drawer = ({
   const renderLoggedOutContent = () => (
     <>
       {/* Dark Mode */}
-      {renderMenuItem({ 
-        icon: darkMode ? FaSun : FaMoon, 
-        name: 'Mode sombre', 
-        onClick: toggleDarkMode,
-        color: darkMode ? '#ffc107' : '#6c757d'
-      })}
+      <LinkItem 
+        icon={darkMode ? FaSun : FaMoon} 
+        name="Mode sombre" 
+        onClick={toggleDarkMode}
+        color={darkMode ? '#ffc107' : '#6c757d'}
+      />
 
       {/* Compte */}
       <div style={{ margin: '15px 0 5px 16px', fontSize: '0.9rem', fontWeight: '600', color: '#555' }}>
         Compte
       </div>
       
-      {renderMenuItem({ icon: FaSignInAlt, name: 'Se connecter', path: '/login', color: '#28a745' })}
-      {renderMenuItem({ icon: FaUserPlus, name: 'S\'inscrire', path: '/register', color: '#667eea' })}
+      <LinkItem icon={FaSignInAlt} name="Se connecter" path="/login" color="#28a745" />
+      <LinkItem icon={FaUserPlus} name="S'inscrire" path="/register" color="#667eea" />
 
       {/* Catégories */}
       <div style={{ margin: '20px 0 8px 16px', fontSize: '0.9rem', fontWeight: '600', color: '#555' }}>
@@ -348,12 +367,13 @@ const Drawer = ({
       </div>
       
       {categories.map((category, index) => (
-        renderMenuItem({ 
-          icon: category.icon, 
-          name: category.name, 
-          path: `/category/${category.slug}`,
-          color: category.color
-        })
+        <LinkItem 
+          key={index}
+          icon={category.icon} 
+          name={category.name} 
+          path={`/category/${category.slug}`}
+          color={category.color}
+        />
       ))}
 
       {/* Liens utiles */}
@@ -362,12 +382,13 @@ const Drawer = ({
       </div>
       
       {usefulLinks.map((link, index) => (
-        renderMenuItem({ 
-          icon: link.icon, 
-          name: link.name, 
-          path: link.path,
-          color: '#6c757d'
-        })
+        <LinkItem 
+          key={index}
+          icon={link.icon} 
+          name={link.name} 
+          path={link.path}
+          color="#6c757d"
+        />
       ))}
     </>
   );

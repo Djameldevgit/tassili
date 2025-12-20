@@ -1,7 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Accordion, Card, Button, Form, Row, Col, Badge } from 'react-bootstrap';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
+import { Accordion, Card, Button, Form, Badge } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, ChevronDown } from 'react-bootstrap-icons';
+ 
+// 🔄 Lazy load de componentes de subcategorías
+const VehiculesSubcategories = lazy(() => import('./subcategories/VehiculesFields'));
+const VetementsSubcategories = lazy(() => import('./subcategories/VetementsFields'));
+const TelephonesSubcategories = lazy(() => import('./subcategories/TelephonesFields'));
+const InformatiqueSubcategories = lazy(() => import('./subcategories/InformatiqueFields'));
+const ElectromenagerSubcategories = lazy(() => import('./subcategories/ElectromenagerFields'));
+const PiecesDetacheesSubcategories = lazy(() => import('./subcategories/PiecesDetacheesFields'));
+const SanteBeauteSubcategories = lazy(() => import('./subcategories/SanteBeauteFields'));
+const MeublesSubcategories = lazy(() => import('./subcategories/MeublesFields'));
+const LoisirsSubcategories = lazy(() => import('./subcategories/LoisirsFields'));
+const SportSubcategories = lazy(() => import('./subcategories/SportFields'));
+const AlimentairesSubcategories = lazy(() => import('./subcategories/AlimentairesFields'));
+const ServicesSubcategories = lazy(() => import('./subcategories/ServicesFields'));
+const MateriauxSubcategories = lazy(() => import('./subcategories/MateriauxFields'));
+const VoyagesSubcategories = lazy(() => import('./subcategories/VoyagesFields'));
+const EmploiSubcategories = lazy(() => import('./subcategories/EmploiFields'));
 
 const CategoryAccordion = ({ postData, handleChangeInput }) => {
   const { t, i18n } = useTranslation(['categories', 'subcategories']);
@@ -10,6 +27,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
   const [activeKey, setActiveKey] = useState(null);
   const [localPostData, setLocalPostData] = useState(postData);
   const [selectedOperation, setSelectedOperation] = useState(null);
+  const [loadedComponents, setLoadedComponents] = useState({});
 
   // 🔄 Sincronizar con cambios externos
   useEffect(() => {
@@ -26,6 +44,13 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
       setSelectedOperation(postData.articleType);
     }
   }, [postData]);
+
+  // 🔄 Cargar componente bajo demanda
+  const loadComponent = (categoryId) => {
+    if (!loadedComponents[categoryId]) {
+      setLoadedComponents(prev => ({ ...prev, [categoryId]: true }));
+    }
+  };
 
   // Mapeo de categorías a emojis
   const categoryEmojis = {
@@ -47,7 +72,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     'voyages': '✈️'
   };
 
-  // Datos de categorías principales (actualizado con textos más grandes)
+  // Datos de categorías principales
   const categories = [
     { id: 'immobilier', name: t('immobilier', { ns: 'categories' }) },
     { id: 'vehicules', name: t('automobiles', { ns: 'categories' }) },
@@ -66,83 +91,6 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     { id: 'sport', name: t('Sport', { ns: 'categories' }) },
     { id: 'voyages', name: t('Voyage', { ns: 'categories' }) }
   ];
-
-  // Datos de subcategorías (completos)
-  const subcategoriesData = {
-    vehicules: [
-      { id: 'automobiles', name: t('vehicules.categories.voitures', { ns: 'subcategories' }) },
-      { id: 'utilitaires', name: t('vehicules.categories.utilitaire', { ns: 'subcategories' }) },
-      { id: 'motos', name: t('vehicules.categories.motos', { ns: 'subcategories' }) },
-    ],
-    vetements: [
-      { id: 'vetements_homme', name: t('vetements.categories.vetements_homme', { ns: 'subcategories' }) },
-      { id: 'vetements_femme', name: t('vetements.categories.vetements_femme', { ns: 'subcategories' }) },
-      { id: 'chaussures_homme', name: t('vetements.categories.chaussures_homme', { ns: 'subcategories' }) },
-    ],
-    telephones: [
-      { id: 'smartphones', name: t('telephones.categories.smartphones', { ns: 'subcategories' }) },
-      { id: 'telephones_cellulaires', name: t('telephones.categories.telephones_cellulaires', { ns: 'subcategories' }) },
-      { id: 'tablettes', name: t('telephones.categories.tablettes', { ns: 'subcategories' }) },
-    ],
-    informatique: [
-      { id: 'ordinateurs_portables', name: t('informatique.categories.ordinateurs_portables', { ns: 'subcategories' }) },
-      { id: 'ordinateurs_bureau', name: t('informatique.categories.ordinateurs_bureau', { ns: 'subcategories' }) },
-      { id: 'serveurs', name: t('informatique.categories.serveurs', { ns: 'subcategories' }) },
-    ],
-    electromenager: [
-      { id: 'televiseurs', name: t('electromenager.categories.televiseurs', { ns: 'subcategories' }) },
-      { id: 'demodulateurs_box_tv', name: t('electromenager.categories.demodulateurs_box_tv', { ns: 'subcategories' }) },
-      { id: 'paraboles_switch_tv', name: t('electromenager.categories.paraboles_switch_tv', { ns: 'subcategories' }) },
-    ],
-    piecesDetachees: [
-      { id: 'pieces_automobiles', name: t('pieces_detachees.categories.pieces_automobiles', { ns: 'subcategories' }) },
-      { id: 'pieces_vehicules', name: t('pieces_detachees.categories.pieces_vehicules', { ns: 'subcategories' }) },
-      { id: 'pieces_moto', name: t('pieces_detachees.categories.pieces_moto', { ns: 'subcategories' }) },
-    ],
-    sante_beaute: [
-      { id: 'cosmetiques_beaute', name: t('sante_beaute.categories.cosmetiques_beaute', { ns: 'subcategories' }) },
-      { id: 'parfums_deodorants_femme', name: t('sante_beaute.categories.parfums_deodorants_femme', { ns: 'subcategories' }) },
-      { id: 'parfums_deodorants_homme', name: t('sante_beaute.categories.parfums_deodorants_homme', { ns: 'subcategories' }) },
-      { id: 'parapharmacie_sante', name: t('sante_beaute.categories.parapharmacie_sante', { ns: 'subcategories' }) },
-    ],
-    meubles: [
-      { id: 'meubles_maison', name: t('meubles.categories.meubles_maison', { ns: 'subcategories' }) },
-      { id: 'decoration', name: t('meubles.categories.decoration', { ns: 'subcategories' }) },
-      { id: 'vaisselle', name: t('meubles.categories.vaisselle', { ns: 'subcategories' }) },
-    ],
-    loisirs: [
-      { id: 'animalerie', name: t('loisirs.categories.animalerie', { ns: 'subcategories' }) },
-      { id: 'consoles_jeux_videos', name: t('loisirs.categories.consoles_jeux_videos', { ns: 'subcategories' }) },
-      { id: 'livres_magazines', name: t('loisirs.categories.livres_magazines', { ns: 'subcategories' }) },
-    ],
-    sport: [
-      { id: 'football', name: t('sport.categories.football', { ns: 'subcategories' }) },
-      { id: 'hand_voley_basket', name: t('sport.categories.hand_voley_basket', { ns: 'subcategories' }) },
-    ],
-    alimentaires: [
-      { id: 'fruits_secs', name: t('alimentaires.categories.fruits_secs', { ns: 'subcategories' }) },
-      { id: 'graines_riz_cereales', name: t('alimentaires.categories.graines_riz_cereales', { ns: 'subcategories' }) },
-      { id: 'aliments_dietetiques', name: t('alimentaires.categories.aliments_dietetiques', { ns: 'subcategories' }) },
-    ],
-    services: [
-      { id: 'construction_travaux', name: t('services.categories.construction_travaux', { ns: 'subcategories' }) },
-      { id: 'ecoles_formations', name: t('services.categories.ecoles_formations', { ns: 'subcategories' }) },
-    ],
-    materiaux: [
-      { id: 'materiel_professionnel', name: t('materiaux.categories.materiel_professionnel', { ns: 'subcategories' }) },
-      { id: 'outillage_professionnel', name: t('materiaux.categories.outillage_professionnel', { ns: 'subcategories' }) },
-      { id: 'materiaux_construction', name: t('materiaux.categories.materiaux_construction', { ns: 'subcategories' }) },
-    ],
-    voyages: [
-      { id: 'voyage_organise', name: t('voyages.categories.voyage_organise', { ns: 'subcategories' }) },
-      { id: 'location_vacances', name: t('voyages.categories.location_vacances', { ns: 'subcategories' }) },
-      { id: 'hajj_omra', name: t('voyages.categories.hajj_omra', { ns: 'subcategories' }) },
-    ],
-    emploi: [
-      { id: 'offres_emploi', name: t('offre.property.Offresemploi', { ns: 'subcategories' }) },
-      { id: 'demandes_emploi', name: t('offre.property.Demandesemploi', { ns: 'subcategories' }) },
-    ]
-  };
 
   // Datos especiales para Immobilier
   const immobilierOperations = [
@@ -166,6 +114,9 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
   // 🎯 FUNCIONES HANDLER (manteniendo la misma lógica)
   const handleCategorySelect = (categoryId) => {
     console.log('🎯 Seleccionando categoría:', categoryId);
+    
+    // Cargar componente bajo demanda
+    loadComponent(categoryId);
     
     // Notificar al padre
     handleChangeInput({
@@ -235,10 +186,72 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     });
   };
 
-  // Renderizar contenido especial para Immobilier (sin modal, en el mismo accordion)
+  // 🔄 Mapeo de componentes lazy por categoría
+  const getLazySubcategoryComponent = (categoryId) => {
+    const components = {
+      vehicules: VehiculesSubcategories,
+      vetements: VetementsSubcategories,
+      telephones: TelephonesSubcategories,
+      informatique: InformatiqueSubcategories,
+      electromenager: ElectromenagerSubcategories,
+      piecesDetachees: PiecesDetacheesSubcategories,
+      sante_beaute: SanteBeauteSubcategories,
+      meubles: MeublesSubcategories,
+      loisirs: LoisirsSubcategories,
+      sport: SportSubcategories,
+      alimentaires: AlimentairesSubcategories,
+      services: ServicesSubcategories,
+      materiaux: MateriauxSubcategories,
+      voyages: VoyagesSubcategories,
+      emploi: EmploiSubcategories,
+    };
+    
+    return components[categoryId] || null;
+  };
+
+  // 🔄 Renderizar contenido con lazy loading
+  const renderLazySubcategories = (categoryId) => {
+    const LazyComponent = getLazySubcategoryComponent(categoryId);
+    
+    if (!LazyComponent || !loadedComponents[categoryId]) {
+      return (
+        <div className="loading-placeholder">
+          <div className="text-center py-3">
+            <div className="spinner-border spinner-border-sm text-primary me-2" role="status">
+              <span className="visually-hidden">Chargement...</span>
+            </div>
+            <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+              Chargement des sous-catégories...
+            </span>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <Suspense fallback={
+        <div className="loading-placeholder">
+          <div className="text-center py-3">
+            <div className="spinner-border spinner-border-sm text-primary me-2" role="status">
+              <span className="visually-hidden">Chargement...</span>
+            </div>
+            <span style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+              Chargement des sous-catégories...
+            </span>
+          </div>
+        </div>
+      }>
+        <LazyComponent 
+          postData={localPostData}
+          onSelect={handleSubcategorySelect}
+        />
+      </Suspense>
+    );
+  };
+
+  // 🔄 Renderizar contenido especial para Immobilier
   const renderImmobilierContent = () => (
     <div className="immobilier-content mt-2">
-      {/* NIVEL 1: Operaciones */}
       {!selectedOperation ? (
         <div className="operations-level">
           <div className="level-header mb-2">
@@ -282,7 +295,6 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
           </div>
         </div>
       ) : (
-        /* NIVEL 2: Propiedades */
         <div className="properties-level">
           <div className="level-header mb-2">
             <div className="d-flex align-items-center justify-content-between">
@@ -344,54 +356,6 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     </div>
   );
 
-  // Renderizar contenido para otras categorías (mejorado con listas visuales)
-  const renderRegularSubcategories = (categoryId) => {
-    const subcategories = subcategoriesData[categoryId] || [];
-    
-    if (subcategories.length === 0) return null;
-
-    return (
-      <div className="regular-subcategories mt-2">
-        <div className="subcategories-header mb-2">
-          <h6 className="subcategories-title fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
-            <span className="me-2">📂</span>
-            {getCategoryTitle(categoryId)}
-          </h6>
-          <p className="subcategories-description mb-2" style={{ fontSize: '0.85rem', color: '#6c757d' }}>
-            Choisissez une sous-catégorie
-          </p>
-        </div>
-        
-        <div className="subcategories-list">
-          {subcategories.map((subcat) => (
-            <div 
-              key={subcat.id}
-              className={`subcategory-item ${localPostData.subCategory === subcat.id ? 'selected' : ''}`}
-              onClick={() => handleSubcategorySelect(subcat.id)}
-            >
-              <div className="d-flex align-items-center">
-                <div className="subcategory-emoji me-3">
-                  •
-                </div>
-                <div className="subcategory-info">
-                  <div className="subcategory-name fw-medium" style={{ fontSize: '0.9rem' }}>
-                    {subcat.name}
-                  </div>
-                  <div className="subcategory-id" style={{ fontSize: '0.8rem', color: '#6c757d' }}>
-                    {subcat.id}
-                  </div>
-                </div>
-              </div>
-              {localPostData.subCategory === subcat.id && (
-                <div className="subcategory-check">✓</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   // Títulos para categorías
   const getCategoryTitle = (categoryId) => {
     const titles = {
@@ -417,7 +381,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
 
   return (
     <div className={`category-accordion ${isRTL ? 'rtl' : ''}`} dir={isRTL ? 'rtl' : 'ltr'}>
-      {/* Barra de búsqueda mejorada */}
+      {/* Barra de búsqueda */}
       <div className="search-container mb-4">
         <Form.Control
           type="text"
@@ -444,7 +408,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         </div>
       )}
 
-      {/* Accordion mejorado */}
+      {/* Accordion */}
       <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key)}>
         {filteredCategories.length > 0 ? (
           filteredCategories.map((category) => (
@@ -488,7 +452,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                     {category.id === 'immobilier' ? (
                       renderImmobilierContent()
                     ) : (
-                      renderRegularSubcategories(category.id)
+                      renderLazySubcategories(category.id)
                     )}
                   </>
                 )}
@@ -510,7 +474,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         )}
       </Accordion>
 
-      {/* Estado de selección mejorado */}
+      {/* Estado de selección */}
       {localPostData.categorie && (
         <div className="current-selection mt-2">
           <Card className="border-0 shadow-sm">
@@ -542,24 +506,6 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                     </div>
                   </div>
                 )}
-                
-                {localPostData.subCategory && (
-                  <div className="selection-item">
-                    <div className="selection-label" style={{ fontSize: '0.9rem' }}>Sous-catégorie:</div>
-                    <div className="selection-value fw-medium" style={{ fontSize: '0.95rem' }}>
-                      <span className="me-2">
-                        {localPostData.categorie === 'immobilier'
-                          ? (localPostData.subCategory === 'appartement' ? '🏢' : 
-                             localPostData.subCategory === 'villa' ? '🏡' : 
-                             localPostData.subCategory === 'terrain' ? '🌳' : '🏢')
-                          : '•'}
-                      </span>
-                      {localPostData.categorie === 'immobilier'
-                        ? immobilierProperties.find(p => p.id === localPostData.subCategory)?.name
-                        : subcategoriesData[localPostData.categorie]?.find(sc => sc.id === localPostData.subCategory)?.name}
-                    </div>
-                  </div>
-                )}
               </div>
             </Card>
             <Card.Footer className="bg-light border-0 py-2">
@@ -572,6 +518,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                   handleChangeInput({ target: { name: 'articleType', value: '' } });
                   setActiveKey(null);
                   setSelectedOperation(null);
+                  setLoadedComponents({});
                 }}
                 className="w-100"
                 style={{ fontSize: '0.85rem' }}
@@ -583,7 +530,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         </div>
       )}
 
-      {/* Styles CSS actualizados */}
+      {/* Styles CSS actualizados con soporte para lazy loading */}
       <style>{`
         .category-accordion {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -674,10 +621,17 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         
         /* Cuerpo del accordion */
         .category-body {
-         
           background-color: #f8f9fa;
           border-top: 1px solid #e9ecef;
           animation: slideDown 0.3s ease-out;
+        }
+        
+        /* Loading placeholder */
+        .loading-placeholder {
+          min-height: 100px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         /* Contenido Immobilier */
@@ -685,13 +639,13 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
           animation: fadeIn 0.2s ease;
         }
         
-        .operations-list, .properties-list, .subcategories-list {
+        .operations-list, .properties-list {
           display: flex;
           flex-direction: column;
           gap: 0.5rem;
         }
         
-        .operation-item, .property-item, .subcategory-item {
+        .operation-item, .property-item {
           padding: 0.875rem 1rem;
           background-color: white;
           border-radius: 6px;
@@ -703,27 +657,27 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
           justify-content: space-between;
         }
         
-        .operation-item:hover, .property-item:hover, .subcategory-item:hover {
+        .operation-item:hover, .property-item:hover {
           border-color: #dee2e6;
           transform: translateY(-1px);
         }
         
-        .operation-item.selected, .property-item.selected, .subcategory-item.selected {
+        .operation-item.selected, .property-item.selected {
           border-color: #0d6efd;
           background-color: #f8f9ff;
         }
         
-        .operation-emoji, .property-emoji, .subcategory-emoji {
+        .operation-emoji, .property-emoji {
           font-size: 1.3rem;
           min-width: 36px;
           text-align: center;
         }
         
-        .operation-info, .property-info, .subcategory-info {
+        .operation-info, .property-info {
           flex-grow: 1;
         }
         
-        .operation-check, .property-check, .subcategory-check {
+        .operation-check, .property-check {
           color: #198754;
           font-weight: bold;
           font-size: 1.2rem;
@@ -801,7 +755,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
             padding: 1rem !important;
           }
           
-          .operation-item, .property-item, .subcategory-item {
+          .operation-item, .property-item {
             padding: 0.75rem;
           }
         }

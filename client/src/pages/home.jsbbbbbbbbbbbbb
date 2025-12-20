@@ -1,0 +1,185 @@
+// pages/Home.js - VERSIÓN ACTUALIZADA
+import React, { useEffect, useState } from 'react'
+import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next';
+import { ButtonGroup, Button } from 'react-bootstrap';
+import { Grid3x3, List } from 'react-bootstrap-icons';
+ import Posts from '../components/home/Posts';
+// Importar nuevos componentes
+import HeaderCarousel from '../components/SlidersHeadrs/HeaderCarousel';
+import CategorySlider from '../components/SlidersHeadrs/CategorySlider';
+import CategorySection from '../components/home/CategorySection';
+import LoadIcon from '../images/loading.gif';
+import { getDataAPI } from '../utils/fetchData';
+
+
+let scroll = 0;
+
+const Home = () => {
+    const { homePosts } = useSelector(state => state)
+    const { languageReducer } = useSelector(state => state);
+    const { t, i18n } = useTranslation('navbar2');
+    const lang = languageReducer.language || 'es';
+
+    // 🎯 ESTADOS NUEVOS
+    const [categoriesData, setCategoriesData] = useState({});
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [viewMode, setViewMode] = useState('grid');
+    const [isMobile, setIsMobile] = useState(false);
+
+    // 🎯 CARGAR POSTS POR CATEGORÍA
+    useEffect(() => {
+        const fetchCategoriesData = async () => {
+            try {
+                setLoadingCategories(true);
+                const res = await getDataAPI('posts/home-categories?limit=6');
+                if (res.data && res.data.categories) {
+                    setCategoriesData(res.data.categories);
+                }
+            } catch (err) {
+                console.error('Error fetching categories data:', err);
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+
+        fetchCategoriesData();
+    }, []);
+
+    // 🎯 DETECTAR SI ES DISPOSITIVO MÓVIL
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+
+        return () => {
+            window.removeEventListener('resize', checkMobile);
+        };
+    }, []);
+
+    window.addEventListener('scroll', () => {
+        if (window.location.pathname === '/') {
+            scroll = window.pageYOffset
+            return scroll;
+        }
+    })
+
+    useEffect(() => {
+        setTimeout(() => {
+            window.scrollTo({ top: scroll, behavior: 'smooth' })
+        }, 100)
+    }, [])
+
+    // 🎯 MANEJAR CAMBIO DE VISTA
+    const handleViewChange = (mode) => {
+        setViewMode(mode);
+        document.body.setAttribute('data-post-view', mode);
+    }
+
+    return (
+        <div className="home-page">
+            {/* Carousels */}
+            <div>
+                <HeaderCarousel />
+                <CategorySlider />
+            </div>
+
+            {/* Botón de cambio de vista - SOLO EN MÓVIL */}
+            {isMobile && (
+                <div className="d-flex justify-content-center my-3">
+                    <ButtonGroup size="sm">
+                        <Button
+                            variant={viewMode === 'grid' ? 'primary' : 'outline-primary'}
+                            onClick={() => handleViewChange('grid')}
+                            className="d-flex align-items-center"
+                        >
+                            <Grid3x3 className="me-1" size={14} />
+                            {t('gridView') || 'Grid'}
+                        </Button>
+                        <Button
+                            variant={viewMode === 'list' ? 'primary' : 'outline-primary'}
+                            onClick={() => handleViewChange('list')}
+                            className="d-flex align-items-center"
+                        >
+                            <List className="me-1" size={14} />
+                            {t('listView') || 'List'}
+                        </Button>
+                    </ButtonGroup>
+                </div>
+            )}
+
+            {/* 🎯 SECCIÓN PRINCIPAL: POSTS POR CATEGORÍA */}
+            <div className="container py-4">
+                {loadingCategories ? (
+                    <div className="text-center py-5">
+                        <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+                        <p className="mt-3">Chargement des catégories...</p>
+                    </div>
+                ) : (
+                    // Mostrar cada categoría que tenga posts
+                    Object.keys(categoriesData).length > 0 ? (
+                        Object.entries(categoriesData).map(([categoryName, posts]) => (
+                            <CategorySection
+                                key={categoryName}
+                                categoryName={categoryName}
+                                posts={posts}
+                            />
+                        ))
+                    ) : (
+                        // Si no hay categorías con posts, mostrar posts normales
+                        <div className="mt-4">
+                            <h3 className="mb-4">Dernières annonces</h3>
+                            {homePosts.loading
+                                ? <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+                                : (homePosts.result === 0 && homePosts.posts.length === 0)
+                                    ? <h2 className="text-center">{t('NoPost')}</h2>
+                                    : <Posts viewMode={viewMode} showByCategory={true} />  // ← Agregar prop
+                            }
+                        </div>
+                    )
+                )}
+            </div>
+
+            {/* Estilos específicos */}
+            <style>{`
+                .home-page {
+                    background-color: #f8f9fa;
+                }
+                
+                .category-section {
+                    background: white;
+                    padding: 2rem;
+                    border-radius: 12px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+                    margin-bottom: 2rem;
+                }
+                
+                .category-section h3 {
+                    color: #2d3748;
+                    font-weight: 600;
+                }
+                
+                .category-section hr {
+                    opacity: 0.3;
+                    margin-top: 3rem !important;
+                }
+                
+                @media (max-width: 768px) {
+                    .category-section {
+                        padding: 1.5rem;
+                    }
+                    
+                    .container {
+                        padding-left: 1rem;
+                        padding-right: 1rem;
+                    }
+                }
+            `}</style>
+        </div>
+    )
+}
+
+export default Home;

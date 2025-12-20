@@ -10,7 +10,10 @@ router.route('/post/:id')
     .patch(auth, postCtrl.updatePost)
     .get(  postCtrl.getPost)
     .delete(auth, postCtrl.deletePost)
- 
+    router.get('/post/:id/similar', postCtrl.getSimilarPosts);
+    router.get('/posts/category/:categorie', postCtrl.getPostsByCategory);
+     
+router.get('/posts/home-categories', postCtrl.getPostsByCategoryHome);
 router.patch('/post/:id/like', auth, postCtrl.likePost)
 router.post('/post/:id/view', auth,postCtrl.viewPost);
 router.patch('/post/:id/unlike', auth, postCtrl.unLikePost)

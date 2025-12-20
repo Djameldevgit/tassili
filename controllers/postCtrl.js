@@ -30,12 +30,17 @@ createPost: async (req, res) => {
     try {
       const { postData, images } = req.body;
       
-      // ... validaciones ...
+      if (!images || images.length === 0) {
+        return res.status(400).json({msg: "Veuillez ajouter au moins une photo."})
+    }
+
+    if (!postData.subCategory) {
+        return res.status(400).json({msg: "La sous-catégorie est requise."})
+    }
       
       const commonFields = [
         'categorie', 'subCategory', 'articleType',
-        'title', 'description', 'price',
-        'wilaya', 'commune', 'numeroTelephone',
+       
       ];
       
       const commonData = {};
@@ -84,8 +89,7 @@ updatePost: async (req, res) => {
       // 2. Separar campos base de campos específicos
       const commonFields = [
         'categorie', 'subCategory', 'articleType',
-        'title', 'description', 'price',
-        'wilaya', 'commune', 'numeroTelephone',
+        
       ];
       
       const updateData = {};
@@ -328,6 +332,151 @@ updatePost: async (req, res) => {
             return res.status(500).json({ msg: err.message });
         }
     },
+
+// controllers/postCtrl.js - VERSIÓN SIMPLIFICADA SIN findSimilarPosts
+ // controllers/postCtrl.js - VERSIÓN CORRECTA
+
+  getSimilarPosts : async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // 1. Encontrar el post actual
+        const currentPost = await Posts.findById(id);
+        if (!currentPost) {
+            return res.status(404).json({ 
+                msg: 'Post non trouvé',
+                posts: []
+            });
+        }
+        
+        // 2. Usar la función auxiliar findSimilarPosts ✅
+        const similarPosts = await findSimilarPosts(currentPost);  // ← AHORA SÍ FUNCIONA
+        
+        res.json({
+            msg: 'Success!',
+            result: similarPosts.length,
+            posts: similarPosts
+        });
+        
+    } catch (err) {
+        console.error('Error en getSimilarPosts:', err);
+        res.status(500).json({ 
+            msg: 'Erreur serveur',
+            posts: []
+        });
+    }
+},
+
+// 3. Función auxiliar (NO es controlador de ruta)
+  findSimilarPosts : async (currentPost) => {
+    const { 
+        _id, 
+        categorie, 
+        subCategory, 
+        wilaya, 
+        price,
+        categorySpecificData 
+    } = currentPost;
+
+    // Base de la consulta
+    const baseQuery = {
+        _id: { $ne: _id },
+        isActive: true
+    };
+
+    // Verificar si categorySpecificData existe
+    const marque = categorySpecificData.get('marque');
+    const modele = categorySpecificData.get('modele');
+    const etat = categorySpecificData.get('etat');
+
+    const orConditions = [];
+
+    if (categorie && subCategory) {
+        orConditions.push({ categorie, subCategory });
+    }
+    if (categorie && wilaya) {
+        orConditions.push({ categorie, wilaya });
+    }
+    if (categorie && etat) {
+        orConditions.push({ 
+            categorie, 
+            'categorySpecificData.etat': etat 
+        });
+    }
+    if (categorie && marque) {
+        orConditions.push({ 
+            categorie, 
+            'categorySpecificData.marque': marque 
+        });
+    }
+    if (categorie && price) {
+        const minPrice = price * 0.7;
+        const maxPrice = price * 1.3;
+        orConditions.push({
+            categorie,
+            price: { $gte: minPrice, $lte: maxPrice }
+        });
+    }
+
+    if (orConditions.length === 0 && categorie) {
+        orConditions.push({ categorie });
+    }
+
+    if (orConditions.length > 0) {
+        baseQuery.$or = orConditions;
+    }
+
+    return await Posts.find(baseQuery)
+        .sort({
+            isPromoted: -1,
+            isUrgent: -1,
+            createdAt: -1
+        })
+        .limit(6)
+        .populate("user", "avatar username fullname telefono")
+        .select("title description price wilaya commune categorie subCategory categorySpecificData images views createdAt isPromoted isUrgent");
+},
+
+// 4. Controlador para categoría (actualizado con skip para paginación)
+  getPostsByCategory : async (req, res) => {
+    try {
+        const { categorie } = req.params;
+        const { limit = 6, skip = 0, excludeId } = req.query;
+        
+        const query = {
+            categorie: categorie,
+            isActive: true
+        };
+        
+        if (excludeId) {
+            query._id = { $ne: excludeId };
+        }
+        
+        const posts = await Posts.find(query)
+            .sort({ createdAt: -1 })
+            .skip(parseInt(skip))
+            .limit(parseInt(limit))
+            .populate("user", "avatar username")
+            .select("title price wilaya images categorie subCategory categorySpecificData views createdAt");
+        
+        res.json({
+            msg: 'Success!',
+            result: posts.length,
+            posts,
+            hasMore: posts.length >= parseInt(limit)
+        });
+    } catch (err) {
+        return res.status(500).json({ msg: err.message });
+    }
+},
+
+// 5. EXPORTAR (solo los controladores de ruta)
+ 
+ 
+
+
+
+
     likePost: async (req, res) => {
         try {
             const post = await Posts.find({_id: req.params.id, likes: req.user._id})
@@ -375,26 +524,100 @@ updatePost: async (req, res) => {
                 return res.status(500).json({msg: err.message})
             }
         },
-        getPost: async (req, res) => {
-            try {
-                const post = await Posts.findById(req.params.id)
-                    .populate("user likes", "avatar username followers")
-                    .populate({
-                        path: "comments",
-                        populate: {
-                            path: "user likes",
-                            select: "-password"
-                        }
-                    });
-    
-                if (!post) return res.status(400).json({ msg: req.__('post.post_not_exist') });
-    
-                res.json({ post });
-            } catch (err) {
-                return res.status(500).json({ msg: err.message });
+ 
+ /*getPost : async (req, res) => {
+    try {
+        const post = await Posts.findById(req.params.id)
+            .populate("user likes", "avatar username fullname followers telefono")
+            .populate({
+                path: "comments",
+                populate: {
+                    path: "user likes",
+                    select: "-password"
+                }
+            });
+
+        if (!post) return res.status(400).json({ msg: 'This post does not exist.' });
+
+        // ✅ AHORA findSimilarPosts SÍ está definida
+        const similarPosts = await findSimilarPosts(post);
+
+        res.json({
+            msg: 'Success!',
+            post: {
+                ...post._doc,
+                similarPostsCount: similarPosts.length
+            },
+            // Opcional: incluir los posts similares
+            similarPosts: similarPosts.slice(0, 3) // Solo primeros 3 para no sobrecargar
+        });
+
+    } catch (err) {
+        return res.status(500).json({ msg: err.message });
+    }
+},*/
+getPost: async (req, res) => {
+    try {
+        const post = await Posts.findById(req.params.id)
+        .populate("user likes", "avatar username fullname followers")
+        .populate({
+            path: "comments",
+            populate: {
+                path: "user likes",
+                select: "-password"
             }
-        },
-    
+        })
+
+        if(!post) return res.status(400).json({msg: 'This post does not exist.'})
+
+        res.json({
+            post
+        })
+
+    } catch (err) {
+        return res.status(500).json({msg: err.message})
+    }
+},
+
+  getPostsByCategoryHome : async (req, res) => {
+    try {
+        const { limit = 6 } = req.query;
+        
+        // Lista de todas tus categorías
+        const categories = [
+            'immobilier', 'vehicules', 'telephones', 'informatique',
+            'electromenager', 'piecesDetachees', 'vetements', 'alimentaires',
+            'sante_beaute', 'meubles', 'services', 'materiaux',
+            'loisirs', 'emploi', 'sport', 'voyages'
+        ];
+        
+        const result = {};
+        
+        // Obtener posts para cada categoría
+        for (const categorie of categories) {
+            const posts = await Posts.find({
+                categorie: categorie,
+                isActive: true
+            })
+            .sort({ createdAt: -1 })
+            .limit(parseInt(limit))
+            .populate("user", "avatar username")
+            .select("title description price wilaya images categorie subCategory categorySpecificData views createdAt");
+            
+            if (posts.length > 0) {
+                result[categorie] = posts;
+            }
+        }
+        
+        res.json({
+            msg: 'Success!',
+            categories: result
+        });
+        
+    } catch (err) {
+        return res.status(500).json({ msg: err.message });
+    }
+},
     
         viewPost: async (req, res) => {
             try {
