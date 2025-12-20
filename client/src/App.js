@@ -12,7 +12,7 @@ import Alert from './components/alert/Alert'
 
 import { useSelector, useDispatch } from 'react-redux'
 import { refreshToken } from './redux/actions/authAction'
-import { getPosts } from './redux/actions/postAction'
+import { getCategories, getPosts, getPostsByCategory } from './redux/actions/postAction'
 
 import { GLOBALTYPES } from './redux/actions/globalTypes'
 import SocketClient from './SocketClient'
@@ -72,15 +72,23 @@ function App() {
   }, [dispatch]);
 
   // ✅ EFECTO PARA CARGAR DATOS CUANDO HAY TOKEN
-  useEffect(() => {
-    dispatch(getPosts());
-    if (auth.token && auth.user) {
-      console.log('Token exists, loading data...');
+ // App.js - Hook actualizado
+ useEffect(() => {
+  // Categorías disponibles para todos
+  dispatch(getCategories());
+}, [dispatch]);
 
+// 📌 HOOK 2: Cargar datos del usuario (solo autenticado)
+useEffect(() => {
+getPosts()
+
+  if (auth.token && auth.user) {
+      console.log('🔐 User authenticated, loading user data...');
       dispatch(getPrivacySettings(auth.token));
       dispatch(getUsers(auth.token));
-    }
-  }, [dispatch, auth.token, auth.user]);
+  }
+}, [dispatch, auth.token, auth.user]);
+
 
   // ✅ MANEJO DE IDIOMA
   useEffect(() => {
@@ -164,7 +172,7 @@ function App() {
               component={auth.token ? ActivatePage : Login}
             />
             <Route exact path="/category/:categoryName" component={CategoryPage} />
- <Route exact path="/category/:categoryName" component={CategoryPage} />
+ 
  
  
        

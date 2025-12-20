@@ -1,98 +1,74 @@
-// components/home/Posts.js - VERSIÓN MODIFICADA
-import React, { useState, useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
-import PostCard from '../postcards/PostCard'
-import LoadIcon from '../../images/loading.gif'
-import LoadMoreBtn from '../LoadMoreBtn'
-import { getDataAPI } from '../../utils/fetchData'
-import { POST_TYPES } from '../../redux/actions/postAction'
-import CategorySection from './CategorySection'; // Nuevo import
+// components/home/Posts.js - VERSIÓN FINAL
+import React, { useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
+import PostCard from '../postcards/PostCard';
 
-const Posts = ({ viewMode, showByCategory = false }) => { // Nuevo prop
-    const { homePosts, auth, theme } = useSelector(state => state)
-    const dispatch = useDispatch()
-    const [load, setLoad] = useState(false)
-    const [categoriesData, setCategoriesData] = useState({})
-    const [loadingCategories, setLoadingCategories] = useState(false)
-
-    // 🎯 CARGAR DATOS POR CATEGORÍA SI showByCategory es true
-    useEffect(() => {
-        if (showByCategory) {
-            fetchCategoriesData();
+const Posts = ({ selectedCategory, fromCategoryPage = false }) => {
+    const location = useLocation();
+    const { homePosts } = useSelector(state => state);
+    
+    console.log('🔍 Posts - Estado:', {
+        selectedCategory,
+        fromCategoryPage,
+        path: location.pathname,
+        postsForHome: homePosts.posts?.length,
+        categorySpecificPosts: homePosts.categorySpecificPosts?.length,
+        currentCategory: homePosts.currentCategory
+    });
+    
+    // 📌 LÓGICA DE POSTS A MOSTRAR
+    const displayPosts = useMemo(() => {
+        // CASO 1: Página de categoría específica
+        if (fromCategoryPage || location.pathname.startsWith('/category/')) {
+            console.log('📂 CategoryPage - Usando categorySpecificPosts');
+            return homePosts.categorySpecificPosts || [];
         }
-    }, [showByCategory]);
-
-    const fetchCategoriesData = async () => {
-        try {
-            setLoadingCategories(true);
-            const res = await getDataAPI('posts/home-categories?limit=6');
-            if (res.data && res.data.categories) {
-                setCategoriesData(res.data.categories);
-            }
-        } catch (err) {
-            console.error('Error:', err);
-        } finally {
-            setLoadingCategories(false);
+        
+        // CASO 2: Home con categoría "all"
+        if (selectedCategory === 'all') {
+            console.log('🏠 Home - Mostrando TODOS los posts');
+            return homePosts.posts || [];
         }
-    };
-
-    // 🔹 PAGINACIÓN
-    const handleLoadMore = async () => {
-        setLoad(true)
-        const res = await getDataAPI(`posts?limit=${homePosts.page * 9}`, auth.token)
-
-        dispatch({
-            type: POST_TYPES.GET_POSTS, 
-            payload: {...res.data, page: homePosts.page + 1}
-        })
-
-        setLoad(false)
-    }
-
-    // 🎯 RENDERIZAR POR CATEGORÍA
-    if (showByCategory) {
+        
+        // CASO 3: Home con categoría específica (filtro en Home)
+        if (homePosts.categoryPosts && homePosts.categoryPosts[selectedCategory]) {
+            console.log(`🏠 Home - Filtrado para ${selectedCategory}`);
+            return homePosts.categoryPosts[selectedCategory] || [];
+        }
+        
+        // Fallback
+        console.log('⚠️ No se encontraron posts');
+        return [];
+        
+    }, [homePosts, selectedCategory, fromCategoryPage, location.pathname]);
+    
+    // ... resto del renderizado igual
+    if (!displayPosts || displayPosts.length === 0) {
         return (
-            <div>
-                {loadingCategories ? (
-                    <div className="text-center py-5">
-                        <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
-                    </div>
-                ) : Object.keys(categoriesData).length > 0 ? (
-                    Object.entries(categoriesData).map(([categoryName, posts]) => (
-                        <CategorySection 
-                            key={categoryName}
-                            categoryName={categoryName}
-                            posts={posts}
-                        />
-                    ))
-                ) : (
-                    <h4 className="text-center text-muted py-5">
-                        Aucune annonce disponible pour le moment
-                    </h4>
-                )}
+            <div className="text-center py-5">
+                <div className="display-1 mb-3">📭</div>
+                <h4 className="text-muted mb-3">
+                    {selectedCategory === 'all' 
+                        ? 'No hay anuncios publicados aún' 
+                        : `No hay anuncios en "${selectedCategory}"`
+                    }
+                </h4>
             </div>
         );
     }
-
-    // 🔹 RENDERIZADO NORMAL (sin cambios)
+    
     return (
-        <div>
-            <div className="post_thumb">
-                {homePosts.posts.map(post => (
-                    <PostCard key={post._id} post={post} theme={theme} />
+        <div className="posts">
+            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {displayPosts.map(post => (
+                    <div key={post._id} className="col">
+                        <PostCard post={post} />
+                    </div>
                 ))}
-                
-                {load && <img src={LoadIcon} alt="loading" className="d-block mx-auto" />}
             </div>
-            
-            <LoadMoreBtn 
-                result={homePosts.result} 
-                page={homePosts.page}
-                load={load} 
-                handleLoadMore={handleLoadMore} 
-            />
         </div>
-    )
-}
+    );
+};
 
 export default Posts;

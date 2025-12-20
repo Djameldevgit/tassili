@@ -1,295 +1,226 @@
-// pages/CategoryPage.js
-import React, { useState, useEffect } from 'react';
+// pages/CategoryPage.js - VERSIÓN CORREGIDA
+import React, { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
-import { Container, Row, Col, Spinner, Alert, Breadcrumb, Button } from 'react-bootstrap';
-import { getDataAPI } from '../../utils/fetchData';
-  
-import PostCard from '../../components/postcards/PostCard';
+import { motion } from 'framer-motion';
+import Posts from '../../components/home/Posts';
+import { getPostsByCategory, getCategories } from '../../redux/actions/postAction';
+import LoadIcon from '../../images/loading.gif';
 
-
-
- 
 const CategoryPage = () => {
-  const { categoryName } = useParams();
-  const [posts, setPosts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [skip, setSkip] = useState(0);
-  const limit = 12;
-
-  // Emojis por categoría
-  const categoryEmojis = {
-    'immobilier': '🏠',
-    'vehicules': '🚗',
-    'telephones': '📱',
-    'informatique': '💻',
-    'electromenager': '🔌',
-    'piecesDetachees': '⚙️',
-    'vetements': '👕',
-    'alimentaires': '🍎',
-    'sante_beaute': '💄',
-    'meubles': '🛋️',
-    'services': '🛠️',
-    'materiaux': '🧱',
-    'loisirs': '🎮',
-    'emploi': '💼',
-    'sport': '⚽',
-    'voyages': '✈️'
-  };
-
-  // 1. Cargar posts iniciales
-  useEffect(() => {
-    if (categoryName) {
-      fetchCategoryPosts(true);
-    }
-  }, [categoryName]);
-
-  // Función para cargar posts
-  const fetchCategoryPosts = async (isInitial = false) => {
-    try {
-      if (isInitial) {
-        setLoading(true);
-        setSkip(0);
-      } else {
-        setLoadingMore(true);
-      }
-
-      setError(null);
-      
-      // Usar getDataAPI con el token de autenticación
-      const currentSkip = isInitial ? 0 : skip;
-      const url = `posts/category/${categoryName}?limit=${limit}&skip=${currentSkip}`;
-      
-      const res = await getDataAPI(url);
-      
-      if (res.data && res.data.posts) {
-        if (isInitial) {
-          setPosts(res.data.posts);
-        } else {
-          setPosts(prev => [...prev, ...res.data.posts]);
-        }
-        
-        // Actualizar skip y verificar si hay más posts
-        const newSkip = currentSkip + res.data.posts.length;
-        setSkip(newSkip);
-        setHasMore(res.data.posts.length >= limit);
-        
-        // Si la API devuelve hasMore, usarlo
-        if (res.data.hasMore !== undefined) {
-          setHasMore(res.data.hasMore);
-        }
-      }
-    } catch (err) {
-      console.error('Error fetching category posts:', err);
-      const errorMsg = err.response?.data?.msg || 
-                      err.message || 
-                      'Erreur lors du chargement des annonces';
-      setError(errorMsg);
-    } finally {
-      if (isInitial) {
-        setLoading(false);
-      } else {
-        setLoadingMore(false);
-      }
-    }
-  };
-
-  // Función para cargar más posts
-  const handleLoadMore = () => {
-    fetchCategoryPosts(false);
-  };
-
-  // Función para volver a intentar
-  const handleRetry = () => {
-    fetchCategoryPosts(true);
-  };
-
-  if (loading) {
-    return (
-      <Container className="text-center py-5">
-        <Spinner animation="border" variant="primary" />
-        <p className="mt-3">Chargement des annonces...</p>
-      </Container>
+    const dispatch = useDispatch();
+    const { categoryName } = useParams();
+    const { homePosts } = useSelector(state => state);
+    
+    const [loading, setLoading] = useState(true);
+    const [page, setPage] = useState(1);
+    const [limit] = useState(12);
+    
+    // 📌 DEBUG
+    useEffect(() => {
+        console.log('🔍 CategoryPage Mounted:', {
+            categoryName,
+            homePosts: {
+                postsCount: homePosts.posts?.length,
+                category: homePosts.category,
+                categoriesCount: homePosts.categories?.length,
+                result: homePosts.result
+            }
+        });
+    }, [categoryName, homePosts]);
+    
+    // 📌 Obtener información de la categoría
+    const currentCategory = homePosts.categories?.find(
+        cat => cat.name === categoryName
     );
-  }
-
-  // Formatear nombre de categoría para display
-  const formatCategoryName = (name) => {
-    if (!name) return '';
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  };
-
-  const displayName = formatCategoryName(categoryName);
-  const emoji = categoryEmojis[categoryName] || '📁';
-
-  return (
-    <Container className="category-page py-4">
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-4">
-        <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/" }}>
-          Accueil
-        </Breadcrumb.Item>
-        <Breadcrumb.Item active>
-          {emoji} {displayName}
-        </Breadcrumb.Item>
-      </Breadcrumb>
-
-      {/* Encabezado */}
-      <div className="category-header mb-5">
-        <h1 className="display-6 mb-3">
-          <span className="me-3">{emoji}</span>
-          Catégorie: {displayName}
-        </h1>
-        <p className="lead text-muted">
-          {posts.length} annonce{posts.length !== 1 ? 's' : ''} disponible{posts.length !== 1 ? 's' : ''}
-          {hasMore && posts.length > 0 && ' (et plus...)'}
-        </p>
-      </div>
-
-      {/* Error */}
-      {error && (
-        <Alert variant="warning" className="mb-4">
-          <Alert.Heading>Erreur de chargement</Alert.Heading>
-          <p>{error}</p>
-          <Button variant="outline-warning" onClick={handleRetry}>
-            Réessayer
-          </Button>
-        </Alert>
-      )}
-
-      {/* Posts */}
-      {posts.length > 0 ? (
-        <>
-          <Row xs={1} md={2} lg={3} className="g-4">
-            {posts.map((post) => (
-              <Col key={post._id}>
-                <PostCard post={post} />
-              </Col>
-            ))}
-          </Row>
-          
-          {/* Paginación */}
-          {hasMore && (
-            <div className="text-center mt-5 pt-4 border-top">
-              <Button 
-                variant="primary" 
-                onClick={handleLoadMore}
-                disabled={loadingMore}
-                className="px-5"
-              >
-                {loadingMore ? (
-                  <>
-                    <Spinner animation="border" size="sm" className="me-2" />
-                    Chargement...
-                  </>
-                ) : (
-                  'Charger plus d\'annonces'
-                )}
-              </Button>
+    
+    // 📌 Cargar categorías si no están cargadas
+    useEffect(() => {
+        if (!homePosts.categories || homePosts.categories.length === 0) {
+            dispatch(getCategories());
+        }
+    }, [dispatch, homePosts.categories]);
+    
+    // 📌 Cargar posts de la categoría
+    useEffect(() => {
+        const loadCategoryPosts = async () => {
+            if (!categoryName) return;
+            
+            setLoading(true);
+            console.log(`📂 CategoryPage - Loading posts for: ${categoryName}`);
+            
+            try {
+                const result = await dispatch(getPostsByCategory(categoryName, 1, { limit }));
+                console.log(`✅ CategoryPage - Load result:`, {
+                    success: !!result,
+                    postsCount: result?.posts?.length,
+                    total: result?.total
+                });
+                setPage(2);
+            } catch (error) {
+                console.error('❌ CategoryPage - Error loading posts:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+        
+        loadCategoryPosts();
+    }, [dispatch, categoryName, limit]);
+    
+    // 📌 Cargar más posts
+    const loadMorePosts = async () => {
+        console.log(`📥 Loading more posts, page ${page}`);
+        try {
+            await dispatch(getPostsByCategory(categoryName, page, { limit }));
+            setPage(prev => prev + 1);
+        } catch (error) {
+            console.error('Error loading more posts:', error);
+        }
+    };
+    
+    // 📌 Contar posts totales cargados
+    const totalLoaded = homePosts.posts?.length || 0;
+    const hasMore = currentCategory && totalLoaded < currentCategory.count;
+    
+    // 📌 Verificar si hay posts después de cargar
+    useEffect(() => {
+        if (!loading && homePosts.posts) {
+            console.log('📊 After loading:', {
+                loading,
+                postsCount: homePosts.posts.length,
+                categoryInState: homePosts.category,
+                requestedCategory: categoryName
+            });
+        }
+    }, [loading, homePosts.posts, homePosts.category, categoryName]);
+    
+    if (!categoryName) {
+        return (
+            <div className="text-center py-5">
+                <h4>Categoría no especificada</h4>
+                <Link to="/" className="btn btn-primary">
+                    Volver al inicio
+                </Link>
             </div>
-          )}
-          
-          {/* Mensaje si no hay más posts */}
-          {!hasMore && posts.length > 0 && (
-            <div className="text-center mt-5 pt-4 border-top">
-              <p className="text-muted">
-                ✅ Toutes les annonces de cette catégorie ont été chargées
-              </p>
-            </div>
-          )}
-        </>
-      ) : (
-        // Estado vacío
-        <div className="text-center py-5">
-          <div className="mb-4" style={{ fontSize: '4rem' }}>
-            {emoji}
-          </div>
-          <h4 className="text-muted mb-3">Aucune annonce dans cette catégorie</h4>
-          <p className="text-muted mb-4">
-            La catégorie <strong>"{displayName}"</strong> ne contient pas encore d'annonces.
-            <br />
-            Soyez le premier à publier dans cette catégorie!
-          </p>
-          <div className="d-flex justify-content-center gap-3">
-            <Link to="/create-post" className="btn btn-primary">
-              Publier une annonce
-            </Link>
-            <Button variant="outline-secondary" onClick={handleRetry}>
-              Actualiser
-            </Button>
-          </div>
+        );
+    }
+    
+    return (
+        <div className="category-posts-page container py-4">
+            {/* BREADCRUMB */}
+            <nav aria-label="breadcrumb" className="mb-4">
+                <ol className="breadcrumb">
+                    <li className="breadcrumb-item">
+                        <Link to="/">
+                            <i className="fas fa-home me-1"></i>
+                            Inicio
+                        </Link>
+                    </li>
+                    <li className="breadcrumb-item active" aria-current="page">
+                        {categoryName}
+                    </li>
+                </ol>
+            </nav>
+            
+            {/* CABECERA DE CATEGORÍA */}
+            <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="category-header mb-5 p-4 bg-white rounded-3 shadow-sm"
+            >
+                <div className="d-flex align-items-center mb-3">
+                    <div className="category-icon display-2 me-4">
+                        {currentCategory?.emoji || '📁'}
+                    </div>
+                    <div>
+                        <h1 className="fw-bold mb-2">{categoryName}</h1>
+                        <div className="d-flex align-items-center gap-3">
+                            <span className="badge bg-primary px-3 py-2">
+                                {currentCategory?.count || 0} anuncios totales
+                            </span>
+                            <span className="text-muted">
+                                Mostrando {totalLoaded} anuncios
+                            </span>
+                        </div>
+                        <div className="mt-2">
+                            <small className="text-muted">
+                                Categoría en Redux: <code>{homePosts.category}</code>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+            
+            {/* POSTS */}
+            {loading ? (
+                <div className="text-center py-5">
+                    <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+                    <p className="mt-2">Cargando anuncios de {categoryName}...</p>
+                </div>
+            ) : (
+                <>
+                    {/* DEBUG: Mostrar info de posts */}
+                    <div className="alert alert-info mb-4">
+                        <div className="d-flex align-items-center">
+                            <i className="fas fa-info-circle me-2"></i>
+                            <div>
+                                <strong>Posts cargados:</strong> {totalLoaded}
+                                {currentCategory && (
+                                    <span className="ms-2">
+                                        ({currentCategory.count - totalLoaded} restantes)
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* COMPONENTE POSTS */}
+                    <Posts 
+                        selectedCategory={categoryName}
+                        fromCategoryPage={true}
+                    />
+                    
+                    {/* PAGINACIÓN */}
+                    {hasMore && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-center mt-5 pt-4 border-top"
+                        >
+                            <button
+                                className="btn btn-primary btn-lg px-5"
+                                onClick={loadMorePosts}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <span className="spinner-border spinner-border-sm me-2"></span>
+                                        Cargando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <i className="fas fa-plus-circle me-2"></i>
+                                        Cargar más anuncios ({currentCategory.count - totalLoaded} restantes)
+                                    </>
+                                )}
+                            </button>
+                            <p className="text-muted mt-2">
+                                Página {page - 1} • {totalLoaded} de {currentCategory.count} anuncios
+                            </p>
+                        </motion.div>
+                    )}
+                    
+                    {/* VOLVER A HOME */}
+                    <div className="text-center mt-5">
+                        <Link to="/" className="btn btn-outline-secondary">
+                            <i className="fas fa-arrow-left me-2"></i>
+                            Volver al inicio
+                        </Link>
+                    </div>
+                </>
+            )}
         </div>
-      )}
-
-      {/* Información adicional para categorías populares */}
-      {(categoryName === 'immobilier' || categoryName === 'vehicules') && posts.length === 0 && (
-        <Alert variant="info" className="mt-4">
-          <strong>💡 Conseil:</strong> Les annonces dans cette catégorie apparaîtront 
-          ici dès que des utilisateurs publieront. Essayez de filtrer par wilaya 
-          ou de vérifier les catégories similaires.
-        </Alert>
-      )}
-
-      {/* Estilos */}
-      <style>{`
-        .category-page {
-          animation: fadeIn 0.5s ease;
-          min-height: 70vh;
-        }
-        
-        .category-header {
-          border-bottom: 3px solid #f0f0f0;
-          padding-bottom: 1.5rem;
-        }
-        
-        @keyframes fadeIn {
-          from { 
-            opacity: 0; 
-            transform: translateY(20px); 
-          }
-          to { 
-            opacity: 1; 
-            transform: translateY(0); 
-          }
-        }
-        
-        /* Animación para nuevos posts */
-        .g-4 > * {
-          animation: slideUp 0.4s ease forwards;
-          opacity: 0;
-        }
-        
-        .g-4 > *:nth-child(1) { animation-delay: 0.1s; }
-        .g-4 > *:nth-child(2) { animation-delay: 0.2s; }
-        .g-4 > *:nth-child(3) { animation-delay: 0.3s; }
-        .g-4 > *:nth-child(4) { animation-delay: 0.4s; }
-        
-        @keyframes slideUp {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-          .category-header h1 {
-            font-size: 1.8rem;
-          }
-          
-          .lead {
-            font-size: 1rem;
-          }
-        }
-      `}</style>
-    </Container>
-  );
+    );
 };
 
 export default CategoryPage;

@@ -2,31 +2,30 @@ const router = require('express').Router()
 const postCtrl = require('../controllers/postCtrl')
 const auth = require('../middleware/auth')
 
+// routes/postRouter.js - AGREGAR NUEVAS RUTAS
+// routes/postRouter.js - VERIFICAR QUE ESTÉN ESTAS RUTAS
+ 
+
+// 📌 RUTAS DE POSTS
 router.route('/posts')
-    .post(auth, postCtrl.createPost)
-    .get(  postCtrl.getPosts)
+    .post(auth, postCtrl.createPost)      // POST /api/posts
+    .get(  postCtrl.getPosts);        // GET /api/posts
 
-router.route('/post/:id')
+    router.route('/post/:id')
     .patch(auth, postCtrl.updatePost)
-    .get(  postCtrl.getPost)
+    .get( postCtrl.getPost)
     .delete(auth, postCtrl.deletePost)
-    router.get('/post/:id/similar', postCtrl.getSimilarPosts);
-    router.get('/posts/category/:categorie', postCtrl.getPostsByCategory);
-     
-router.get('/posts/home-categories', postCtrl.getPostsByCategoryHome);
-router.patch('/post/:id/like', auth, postCtrl.likePost)
-router.post('/post/:id/view', auth,postCtrl.viewPost);
-router.patch('/post/:id/unlike', auth, postCtrl.unLikePost)
+// 📌 RUTAS DE CATEGORÍAS (NUEVAS)
+router.get('/posts/category/:category',   postCtrl.getPostsByCategory);
+router.get('/categories/all', postCtrl.getAllCategories);
 
-router.get('/user_posts/:id', auth, postCtrl.getUserPosts)
+// 📌 RUTAS EXISTENTES (verifica que estén)
+ 
+router.get('/user_posts/:id', auth, postCtrl.getUserPosts);
+router.get('/post_discover', auth, postCtrl.getPostsDicover);
+router.patch('/savePost/:id', auth, postCtrl.savePost);
+router.patch('/unSavePost/:id', auth, postCtrl.unSavePost);
+router.get('/getSavePosts', auth, postCtrl.getSavePosts);
 
-router.get('/post_discover', auth, postCtrl.getPostsDicover)
-
-router.patch('/savePost/:id', auth, postCtrl.savePost)
-
-router.patch('/unSavePost/:id', auth, postCtrl.unSavePost)
-
-router.get('/getSavePosts', auth, postCtrl.getSavePosts)
-
-
-module.exports = router
+module.exports = router;
+ 

@@ -13,17 +13,17 @@ const DetailPost = () => {
   const { id } = useParams();
   const dispatch = useDispatch();
 
-  const auth = useSelector(state => state.auth);
+ 
   const detailPost = useSelector(state => state.detailPost.detailPost);
   
   const [post, setPost] = useState(null);
-  const [similarPosts, setSimilarPosts] = useState([]);
+ 
 
   useEffect(() => {
     if (id) {
-      dispatch(getPost({ detailPost, id, auth }));
+      dispatch(getPost({ detailPost, id }));
     }
-  }, [dispatch, id, auth, detailPost]);
+  }, [dispatch, id,   detailPost]);
 
   useEffect(() => {
     const found = detailPost.find(p => p._id === id);

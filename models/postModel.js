@@ -1,17 +1,14 @@
-// models/Post.js - Agrega estos campos si no los tienes
-
+ 
 const mongoose = require('mongoose');
 
 
 const postSchema = new mongoose.Schema({
-  // Campos base (siempre presentes)
   
-  // Categorías
   categorie: { type: String, required: true, index: true },
   subCategory: { type: String, index: true },
   articleType: { type: String }, // Para immobilier
   
-  // Campos dinámicos organizados
+ 
   categorySpecificData: {
       type: Map,
       of: mongoose.Schema.Types.Mixed,

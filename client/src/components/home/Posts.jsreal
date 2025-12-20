@@ -1,0 +1,246 @@
+// components/home/Posts.jsx - VERSIÓN CORREGIDA
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { useLocation } from 'react-router-dom';
+import PostCard from '../postcards/PostCard';
+import LoadIcon from '../../images/loading.gif';
+import LoadMoreBtn from '../LoadMoreBtn';
+import { getPostsByCategory } from '../../redux/actions/postAction';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const Posts = ({ selectedCategory, showCategoryFilter = true, fromCategoryPage = false }) => {
+    const dispatch = useDispatch();
+    const location = useLocation();
+    const { homePosts, auth } = useSelector(state => state);
+    
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [localLoading, setLocalLoading] = useState(false);
+
+    // 📌 DETECTAR SI ESTAMOS EN CATEGORY PAGE
+    const isCategoryPage = location.pathname.startsWith('/category/');
+
+    // 📌 CARGAR POSTS SOLO SI NO ESTAMOS EN CATEGORY PAGE
+    useEffect(() => {
+        // Si estamos en CategoryPage, NO cargar posts aquí (ya los carga CategoryPage)
+        if (isCategoryPage || fromCategoryPage) {
+            console.log('📂 Posts component - Skipping initial load (CategoryPage will handle)');
+            return;
+        }
+
+        // Si estamos en Home, cargar posts
+        const loadPosts = async () => {
+            setLocalLoading(true);
+            try {
+                console.log('🏠 Posts component - Loading posts for category:', selectedCategory);
+                await dispatch(getPostsByCategory(selectedCategory, 1));
+            } catch (error) {
+                console.error('Error loading posts:', error);
+            } finally {
+                setLocalLoading(false);
+            }
+        };
+
+        loadPosts();
+    }, [dispatch, selectedCategory, isCategoryPage, fromCategoryPage]);
+
+    // 📌 OBTENER POSTS A MOSTRAR
+    const displayPosts = useMemo(() => {
+        if (!homePosts.posts || homePosts.posts.length === 0) {
+            return [];
+        }
+
+        // Si estamos en CategoryPage, usar todos los posts
+        if (isCategoryPage || fromCategoryPage) {
+            return homePosts.posts;
+        }
+
+        // Si estamos en Home y es "all", usar todos los posts
+        if (selectedCategory === 'all') {
+            return homePosts.posts;
+        }
+
+        // Filtrar por categoría específica
+        return homePosts.posts.filter(post => 
+            post.categorie && 
+            post.categorie.toLowerCase() === selectedCategory.toLowerCase()
+        );
+    }, [homePosts.posts, selectedCategory, isCategoryPage, fromCategoryPage]);
+
+    // 📌 CARGAR MÁS POSTS
+    const handleLoadMore = async () => {
+        if (loadingMore) return;
+        
+        setLoadingMore(true);
+        try {
+            const nextPage = homePosts.page + 1;
+            console.log(`📥 Loading more posts - Page ${nextPage}, Category: ${selectedCategory}`);
+            await dispatch(getPostsByCategory(selectedCategory, nextPage));
+        } catch (error) {
+            console.error('Error loading more posts:', error);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    // 📌 CALCULAR SI HAY MÁS POSTS
+    const hasMore = homePosts.totalPages > homePosts.page;
+
+    // 📌 LOADING STATE
+    if (localLoading && !isCategoryPage) {
+        return (
+            <div className="text-center py-5">
+                <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+                <p className="mt-2">Cargando anuncios...</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="posts">
+            {/* INFORMACIÓN DE CATEGORÍA */}
+            {!isCategoryPage && selectedCategory !== 'all' && displayPosts.length > 0 && (
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="category-header mb-4"
+                >
+                    <h2 className="h3 fw-bold text-capitalize">
+                        {selectedCategory.replace(/_/g, ' ')}
+                    </h2>
+                    <p className="text-muted">
+                        {displayPosts.length} anuncios disponibles
+                    </p>
+                </motion.div>
+            )}
+
+            {/* GRID DE POSTS */}
+            <AnimatePresence mode="wait">
+                {displayPosts.length === 0 ? (
+                    <motion.div
+                        key="empty-state"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-center py-5"
+                    >
+                        <div className="empty-state-icon display-1 mb-3">
+                            {selectedCategory === 'all' ? '📭' : '📂'}
+                        </div>
+                        <h4 className="text-muted mb-2">
+                            {selectedCategory === 'all' 
+                                ? 'No hay anuncios publicados aún' 
+                                : `No hay anuncios en "${selectedCategory.replace(/_/g, ' ')}"`
+                            }
+                        </h4>
+                        <p className="text-muted">
+                            {selectedCategory === 'all' 
+                                ? 'Sé el primero en crear un anuncio' 
+                                : 'Explora otras categorías o crea el primer anuncio'
+                            }
+                        </p>
+                        {auth.token && (
+                            <motion.div
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                            >
+                                <a href="/create" className="btn btn-primary mt-3">
+                                    <i className="fas fa-plus me-2"></i>
+                                    Crear anuncio
+                                </a>
+                            </motion.div>
+                        )}
+                    </motion.div>
+                ) : (
+                    <motion.div
+                        key="posts-grid"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        {/* CONTADOR DE POSTS */}
+                        <div className="d-flex justify-content-between align-items-center mb-3">
+                            <small className="text-muted">
+                                Mostrando {displayPosts.length} de {homePosts.result || displayPosts.length} anuncios
+                            </small>
+                            {showCategoryFilter && !isCategoryPage && (
+                                <small className="text-muted">
+                                    <i className="fas fa-filter me-1"></i>
+                                    Categoría: {selectedCategory === 'all' ? 'Todas' : selectedCategory}
+                                </small>
+                            )}
+                        </div>
+
+                        {/* GRID DE POSTS */}
+                        <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
+                            {displayPosts.map((post, index) => (
+                                <motion.div
+                                    key={post._id}
+                                    className="col"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: index * 0.05 }}
+                                >
+                                    <PostCard post={post} />
+                                </motion.div>
+                            ))}
+                        </div>
+
+                        {/* BOTÓN "CARGAR MÁS" */}
+                        {hasMore && displayPosts.length > 0 && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center mt-5 pt-3"
+                            >
+                                {loadingMore ? (
+                                    <div className="d-inline-block">
+                                        <img src={LoadIcon} alt="loading" width="30" className="me-2" />
+                                        <span className="text-muted">Cargando más anuncios...</span>
+                                    </div>
+                                ) : (
+                                    <LoadMoreBtn 
+                                        handleLoadMore={handleLoadMore}
+                                        result={homePosts.result || displayPosts.length}
+                                        page={homePosts.page}
+                                    />
+                                )}
+                            </motion.div>
+                        )}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* ESTILOS */}
+            <style jsx>{`
+                .posts {
+                    min-height: 300px;
+                }
+                
+                .category-header {
+                    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                    padding: 20px;
+                    border-radius: 12px;
+                    border-left: 4px solid #4f46e5;
+                }
+                
+                .empty-state-icon {
+                    opacity: 0.6;
+                }
+                
+                @media (max-width: 768px) {
+                    .row-cols-md-3 {
+                        row-cols: 2 !important;
+                    }
+                }
+                
+                @media (max-width: 576px) {
+                    .row-cols-sm-2 {
+                        row-cols: 1 !important;
+                    }
+                }
+            `}</style>
+        </div>
+    );
+};
+
+export default Posts;

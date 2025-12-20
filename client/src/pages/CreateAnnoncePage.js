@@ -1,9 +1,8 @@
-// CreateAnnoncePage.js - VERSIÓN CORREGIDA
 import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Container, Button, Alert, Spinner, ProgressBar } from 'react-bootstrap';
+import { Container, Button, Alert, Spinner, ProgressBar, Card } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // 🔷 REDUX
@@ -13,8 +12,6 @@ import { createPost, updatePost } from '../redux/actions/postAction';
 import CategoryAccordion from '../components/CATEGORIES/CategoryAccordion';
 import DynamicFieldManager from '../components/CATEGORIES/DynamicFieldManager';
 import ImagesStep from '../components/CATEGORIES/camposComun/ImagesStep';
-
-
 
 const CreateAnnoncePage = () => {
   // 🔷 REDUX Y HOOKS
@@ -28,7 +25,7 @@ const CreateAnnoncePage = () => {
   const isEdit = location.state?.isEdit || false;
   const postToEdit = location.state?.postData || null;
 
-  // 🔷 ESTADOS DEL WIZARD
+  // 🔷 ESTADOS DEL FORMULARIO
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     categorie: '',
@@ -41,52 +38,7 @@ const CreateAnnoncePage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [alert, setAlert] = useState({ show: false, message: '', variant: 'info' });
 
-  // 🔷 HANDLER UNIFICADO PARA TODOS LOS CAMPOS
-  const handleInputChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target;
-    const val = type === 'checkbox' ? checked : value;
-
-    // ¿Es un campo base?
-    const BASE_FIELDS = ['categorie', 'subCategory', 'articleType'];
-    if (BASE_FIELDS.includes(name)) {
-      setFormData(prev => ({ ...prev, [name]: val }));
-    } 
-    // ¿Es un campo dinámico?
-    else {
-      setSpecificData(prev => {
-        // Si el valor está vacío, eliminar el campo
-        if (val === '' || val === undefined || val === null) {
-          const { [name]: removed, ...rest } = prev;
-          return rest;
-        }
-        // Si tiene valor, actualizar
-        return { ...prev, [name]: val };
-      });
-    }
-  }, []);
-
-  // 🔷 HANDLER PARA CATEGORÍAS
-  const handleCategoryChange = useCallback((e) => {
-    const { name, value } = e.target;
-    
-    setFormData(prev => {
-      const newData = { ...prev, [name]: value };
-      
-      if (name === 'categorie') {
-        newData.articleType = '';
-        newData.subCategory = '';
-        setCurrentStep(1); // Reset al paso 1 cuando cambia categoría
-      }
-      
-      if (name === 'articleType') {
-        newData.subCategory = '';
-      }
-      
-      return newData;
-    });
-  }, []);
-
-  // 🔷 CARGA DE DATOS PARA EDICIÓN
+  // 🔷 CARGAR DATOS DE EDICIÓN
   useEffect(() => {
     if (isEdit && postToEdit) {
       // 1. CARGAR CAMPOS BASE
@@ -99,7 +51,7 @@ const CreateAnnoncePage = () => {
       // 2. CARGAR CAMPOS DINÁMICOS
       const loadedSpecificData = {};
 
-      // Campos de categorySpecificData
+      // Procesar categorySpecificData
       if (postToEdit.categorySpecificData) {
         try {
           if (postToEdit.categorySpecificData instanceof Map) {
@@ -120,6 +72,14 @@ const CreateAnnoncePage = () => {
         }
       }
 
+      // También cargar campos directos del post
+      const directFields = ['description', 'prix', 'loyer', 'marque', 'modele', 'superficie', 'phone', 'wilaya', 'commune'];
+      directFields.forEach(field => {
+        if (postToEdit[field]) {
+          loadedSpecificData[field] = postToEdit[field];
+        }
+      });
+
       setFormData(loadedBaseData);
       setSpecificData(loadedSpecificData);
 
@@ -135,35 +95,74 @@ const CreateAnnoncePage = () => {
     }
   }, [isEdit, postToEdit]);
 
+  // 🔷 HANDLER PARA TODOS LOS CAMPOS (SIMPLIFICADO)
+  const handleInputChange = useCallback((e) => {
+    const { name, value, type, checked } = e.target;
+    const val = type === 'checkbox' ? checked : value;
+
+    // Definir campos base
+    const BASE_FIELDS = ['categorie', 'subCategory', 'articleType'];
+    
+    if (BASE_FIELDS.includes(name)) {
+      // Es un campo base (categoría)
+      setFormData(prev => {
+        const newData = { ...prev, [name]: val };
+        
+        // Resetear campos dependientes cuando cambia la categoría
+        if (name === 'categorie') {
+          newData.articleType = '';
+          newData.subCategory = '';
+          setCurrentStep(1);
+          setSpecificData({}); // Limpiar datos específicos
+        }
+        
+        if (name === 'articleType') {
+          newData.subCategory = '';
+          setSpecificData({}); // Limpiar datos específicos
+        }
+        
+        return newData;
+      });
+    } else {
+      // Es un campo dinámico
+      setSpecificData(prev => {
+        // Si el valor está vacío, eliminar el campo
+        if (val === '' || val === undefined || val === null) {
+          const { [name]: removed, ...rest } = prev;
+          return rest;
+        }
+        // Si tiene valor, actualizar
+        return { ...prev, [name]: val };
+      });
+    }
+  }, []);
+
+  // 🔷 HANDLER ESPECÍFICO PARA CATEGORÍAS
+  const handleCategoryChange = useCallback((e) => {
+    handleInputChange(e); // Usar el mismo handler
+  }, [handleInputChange]);
+
   // 🔷 MOSTRAR ALERTA
   const showAlertMessage = useCallback((message, variant = 'info') => {
     setAlert({ show: true, message, variant });
     setTimeout(() => setAlert({ show: false, message: '', variant: 'info' }), 5000);
   }, []);
 
-  // 🔷 VALIDAR SI SE PUEDE AVANZAR
+  // 🔷 VALIDACIÓN SIMPLIFICADA - FUNCIONA PARA TODAS LAS CATEGORÍAS
   const canProceedToNextStep = () => {
+    const allData = { ...formData, ...specificData };
+    
     switch(currentStep) {
-      case 1: // Categorías
-        return formData.categorie && formData.subCategory && 
-               (formData.categorie !== 'immobilier' || formData.articleType);
-        
-      case 2: // Descripción
-        // Verificar campos requeridos del paso 2
-        const step2Required = ['description', 'marque', 'modele'];
-        return step2Required.some(field => specificData[field]);
-        
-      case 3: // Precio
-        return specificData.prix || specificData.loyer || specificData.pricePerPerson;
-        
-      case 4: // Contacto (ahora es precio/estado)
-        return true; // No hay campos obligatorios específicos
-        
-      case 5: // Imágenes
+      case 1: // Paso 1: Solo validar categoría
+        const hasCategory = allData.categorie && allData.subCategory;
+        const hasArticleType = allData.categorie !== 'immobilier' || allData.articleType;
+        return hasCategory && hasArticleType;
+      
+      case 5: // Paso 5: Validar imágenes
         return images.length > 0;
-        
-      default:
-        return false;
+      
+      default: // Pasos 2, 3, 4: Permitir siempre
+        return true;
     }
   };
 
@@ -172,34 +171,34 @@ const CreateAnnoncePage = () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
 
-    // ✅ VALIDACIONES FINALES
-    if (images.length === 0) {
-      showAlertMessage("Add at least one photo.", "danger");
+    // VALIDACIONES FINALES
+    if (!formData.categorie || !formData.subCategory) {
+      showAlertMessage("Please select a category and subcategory.", "danger");
       setIsSubmitting(false);
       return;
     }
 
-    if (!formData.categorie || !formData.subCategory) {
-      showAlertMessage("Please complete all required fields.", "danger");
+    if (images.length === 0) {
+      showAlertMessage("Please add at least one image.", "danger");
       setIsSubmitting(false);
       return;
     }
 
     try {
-      // 🎯 PREPARAR DATOS PARA BACKEND
+      // PREPARAR DATOS PARA BACKEND
       const postDataForBackend = {
         ...formData,
         ...specificData
       };
 
-      // 🎯 PREPARAR IMÁGENES
+      // PREPARAR IMÁGENES
       const imagesForBackend = images.map(img => ({
         url: img.url,
         public_id: img.public_id || '',
         isExisting: img.isExisting || false
       }));
 
-      // 🎯 PREPARAR ACTION DATA
+      // PREPARAR ACTION DATA
       const actionData = {
         postData: postDataForBackend,
         images: imagesForBackend,
@@ -213,17 +212,17 @@ const CreateAnnoncePage = () => {
         actionData.socket = socket;
       }
 
-      // 🎯 EJECUTAR ACCIÓN
+      // EJECUTAR ACCIÓN
       const action = isEdit ? updatePost : createPost;
-      await dispatch(action(actionData));
+      const result = await dispatch(action(actionData));
 
-      // 🎯 ÉXITO
+      // ÉXITO
       showAlertMessage(
-        isEdit ? '✅ Publication updated!' : '✅ Publication created!',
+        isEdit ? '✅ Publication updated successfully!' : '✅ Publication created successfully!',
         "success"
       );
 
-      // 🎯 REDIRIGIR
+      // REDIRIGIR
       setTimeout(() => history.push('/'), 1500);
 
     } catch (error) {
@@ -240,18 +239,18 @@ const CreateAnnoncePage = () => {
     socket, dispatch, history, isSubmitting, showAlertMessage
   ]);
 
-  // 🔷 RENDERIZAR PASO ACTUAL - ¡CORREGIDO!
+  // 🔷 RENDERIZAR PASO ACTUAL
   const renderCurrentStep = () => {
     const commonProps = {
       postData: { ...formData, ...specificData },
-      handleChangeInput: handleInputChange, // ¡AQUÍ ESTÁ LA CORRECCIÓN!
+      handleChangeInput: handleInputChange,
       isRTL
     };
 
     const stepVariants = {
-      enter: { opacity: 0, x: 50 },
-      center: { opacity: 1, x: 0 },
-      exit: { opacity: 0, x: -50 }
+      enter: { opacity: 0, y: 20 },
+      center: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -20 }
     };
 
     switch(currentStep) {
@@ -259,7 +258,6 @@ const CreateAnnoncePage = () => {
         return (
           <motion.div
             key="step1"
-            custom={1}
             variants={stepVariants}
             initial="enter"
             animate="center"
@@ -267,16 +265,18 @@ const CreateAnnoncePage = () => {
             className="step-content"
           >
             <div className="step-header mb-4">
-              <h2 className="fw-bold">🏷️ Step 1: Select Category</h2>
-              <p className="text-muted">Choose the category and subcategory for your ad</p>
+              <h2 className="fw-bold">🏷️ {t('step1_title', 'Step 1: Select Category')}</h2>
+              <p className="text-muted">
+                {t('step1_desc', 'Choose the category and subcategory for your ad')}
+              </p>
             </div>
             
-            <div className="card p-4 shadow-sm">
+            <Card className="p-4 shadow-sm border-0">
               <CategoryAccordion
                 postData={formData}
-                handleChangeInput={handleCategoryChange} // Usar handleCategoryChange aquí
+                handleChangeInput={handleCategoryChange}
               />
-            </div>
+            </Card>
           </motion.div>
         );
         
@@ -286,7 +286,6 @@ const CreateAnnoncePage = () => {
         return (
           <motion.div
             key={`step${currentStep}`}
-            custom={1}
             variants={stepVariants}
             initial="enter"
             animate="center"
@@ -309,7 +308,6 @@ const CreateAnnoncePage = () => {
         return (
           <motion.div
             key="step5"
-            custom={1}
             variants={stepVariants}
             initial="enter"
             animate="center"
@@ -333,12 +331,44 @@ const CreateAnnoncePage = () => {
 
   // 🔷 TÍTULOS DE PASOS
   const stepTitles = [
-    { title: 'Category', icon: '🏷️', step: 1 },
-    { title: 'Description', icon: '📝', step: 2 },
-    { title: 'Details', icon: '🔍', step: 3 },
-    { title: 'Price & Condition', icon: '💰', step: 4 },
-    { title: 'Photos', icon: '🖼️', step: 5 }
+    { title: t('step_category', 'Category'), icon: '🏷️', step: 1 },
+    { title: t('step_details', 'Details'), icon: '📝', step: 2 },
+    { title: t('step_specs', 'Specifications'), icon: '🔍', step: 3 },
+    { title: t('step_price', 'Price & Contact'), icon: '💰', step: 4 },
+    { title: t('step_images', 'Photos'), icon: '🖼️', step: 5 }
   ];
+
+  // 🔷 CALCULAR PORCENTAJE DE COMPLETADO
+  const calculateCompletion = () => {
+    const allData = { ...formData, ...specificData };
+    let completedFields = 0;
+    let totalFields = 0;
+    
+    // Campos base obligatorios
+    const baseFields = ['categorie', 'subCategory'];
+    totalFields += baseFields.length;
+    completedFields += baseFields.filter(field => allData[field]).length;
+    
+    // Para immobilier, articleType también es obligatorio
+    if (allData.categorie === 'immobilier') {
+      totalFields += 1;
+      completedFields += allData.articleType ? 1 : 0;
+    }
+    
+    // Campos dinámicos (al menos 3 importantes)
+    const importantFields = ['prix', 'loyer', 'phone', 'marque', 'modele', 'superficie'];
+    totalFields += 3; // Esperamos al menos 3 campos importantes
+    const completedImportant = importantFields.filter(field => allData[field]).length;
+    completedFields += Math.min(completedImportant, 3);
+    
+    // Imágenes (1 punto)
+    totalFields += 1;
+    completedFields += images.length > 0 ? 1 : 0;
+    
+    return Math.min(Math.round((completedFields / totalFields) * 100), 100);
+  };
+
+  const completionPercentage = calculateCompletion();
 
   return (
     <Container className="py-4" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -354,191 +384,338 @@ const CreateAnnoncePage = () => {
               variant={alert.variant} 
               dismissible 
               onClose={() => setAlert({ ...alert, show: false })}
-              className="mb-4"
+              className="mb-4 shadow-sm"
             >
-              {alert.message}
+              <div className="d-flex align-items-center">
+                <i className={`fas fa-${alert.variant === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2`}></i>
+                <span>{alert.message}</span>
+              </div>
             </Alert>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* TÍTULO PRINCIPAL */}
-      <div className="text-center mb-4">
-        <h1 className="fw-bold display-6">
-          {isEdit ? '✏️ Edit Ad' : '➕ Create New Ad'}
-        </h1>
-        <p className="text-muted">Complete all 5 steps to publish your ad</p>
+      {/* CABECERA */}
+      <div className="text-center mb-5">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h1 className="fw-bold display-5 gradient-text mb-3">
+            {isEdit ? '✏️ Edit Your Ad' : '➕ Create New Ad'}
+          </h1>
+          <p className="text-muted lead">
+            {t('create_desc', 'Complete all 5 steps to publish your advertisement')}
+          </p>
+        </motion.div>
       </div>
 
-      {/* PROGRESO */}
+      {/* INDICADOR DE PROGRESO */}
       <div className="mb-5">
-        {/* INDICADORES DE PASO (desktop) */}
-        <div className="d-none d-md-flex justify-content-between mb-4">
-          {stepTitles.map((step) => (
-            <div key={step.step} className="text-center position-relative" style={{ flex: 1 }}>
-              <div className={`step-indicator ${currentStep >= step.step ? 'active' : ''}`}>
-                <div className="step-circle">
-                  <span className="step-icon">{step.icon}</span>
-                </div>
-                <div className="step-title mt-2">
-                  <small className="fw-medium">{step.title}</small>
-                </div>
+        <div className="d-none d-md-flex justify-content-between align-items-center mb-4 position-relative">
+          {stepTitles.map((step, index) => (
+            <React.Fragment key={step.step}>
+              <div className="text-center position-relative z-2" style={{ flex: 1 }}>
+                <motion.button
+                  className={`step-indicator-btn ${currentStep === step.step ? 'active' : ''}`}
+                  onClick={() => setCurrentStep(step.step)}
+                  disabled={!canProceedToNextStep() && currentStep < step.step}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <div className={`step-circle ${currentStep >= step.step ? 'current' : ''}`}>
+                    <span className="step-icon">{step.icon}</span>
+                    <span className="step-number">{step.step}</span>
+                  </div>
+                  <div className="step-title mt-2">
+                    <small className="fw-semibold">{step.title}</small>
+                  </div>
+                </motion.button>
               </div>
               
-              {/* CONECTOR (excepto último) */}
-              {step.step < 5 && (
-                <div className="step-connector"></div>
+              {/* LÍNEA CONECTORA */}
+              {index < stepTitles.length - 1 && (
+                <div className="step-connector">
+                  <div className={`connector-line ${currentStep > step.step ? 'completed' : ''}`}></div>
+                </div>
               )}
-            </div>
+            </React.Fragment>
           ))}
         </div>
 
         {/* BARRA DE PROGRESO */}
-        <div className="mb-3">
+        <div className="progress-section mb-3">
+          <div className="d-flex justify-content-between align-items-center mb-2">
+            <span className="text-muted">
+              <i className="fas fa-tasks me-2"></i>
+              {t('completion', 'Completion')}
+            </span>
+            <span className="fw-bold">{completionPercentage}%</span>
+          </div>
           <ProgressBar 
-            now={(currentStep / 5) * 100} 
+            now={completionPercentage} 
             className="mb-2"
-            style={{ height: '8px', borderRadius: '4px' }}
+            variant="primary"
+            style={{ height: '10px', borderRadius: '5px' }}
           />
           <div className="d-flex justify-content-between">
             <small className="text-muted">
-              Step {currentStep} of 5
+              {t('step_x_of_y', 'Step {{current}} of {{total}}', { current: currentStep, total: 5 })}
             </small>
             <small className="text-muted">
-              {Math.round((currentStep / 5) * 100)}% complete
+              {completionPercentage === 100 ? '✅ Ready to publish!' : 'Continue to complete'}
             </small>
           </div>
         </div>
       </div>
 
       {/* CONTENIDO DEL PASO ACTUAL */}
-      <AnimatePresence mode="wait">
-        {renderCurrentStep()}
-      </AnimatePresence>
+      <motion.div
+        key={currentStep}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card className="border-0 shadow-lg overflow-hidden">
+          <Card.Body className="p-4">
+            <AnimatePresence mode="wait">
+              {renderCurrentStep()}
+            </AnimatePresence>
+          </Card.Body>
+        </Card>
+      </motion.div>
 
       {/* BOTONES DE NAVEGACIÓN */}
-      <div className="d-flex justify-content-between mt-4 pt-3 border-top">
+      <motion.div 
+        className="d-flex justify-content-between mt-4 pt-3 border-top"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
         <Button
           variant="outline-secondary"
+          size="lg"
           onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-          disabled={currentStep === 1}
-          className="px-4 py-2"
+          disabled={currentStep === 1 || isSubmitting}
+          className="px-4 py-2 d-flex align-items-center"
         >
-          ← Previous
+          <i className="fas fa-arrow-left me-2"></i>
+          {t('previous', 'Previous')}
         </Button>
         
         {currentStep < 5 ? (
-          <Button
-            variant="primary"
-            onClick={() => setCurrentStep(prev => Math.min(5, prev + 1))}
-            disabled={!canProceedToNextStep()}
-            className="px-4 py-2"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            Next Step →
-          </Button>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => setCurrentStep(prev => Math.min(5, prev + 1))}
+              disabled={!canProceedToNextStep() || isSubmitting}
+              className="px-4 py-2 d-flex align-items-center"
+            >
+              {t('next_step', 'Next Step')}
+              <i className="fas fa-arrow-right ms-2"></i>
+            </Button>
+          </motion.div>
         ) : (
-          <Button
-            variant="success"
-            size="lg"
-            onClick={handleSubmit}
-            disabled={isSubmitting}
-            className="px-5 py-2"
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
           >
-            {isSubmitting ? (
-              <>
-                <Spinner size="sm" animation="border" className="me-2" />
-                Publishing...
-              </>
-            ) : (
-              <>
-                🚀 Publish Ad
-              </>
-            )}
-          </Button>
+            <Button
+              variant="success"
+              size="lg"
+              onClick={handleSubmit}
+              disabled={isSubmitting}
+              className="px-5 py-2 d-flex align-items-center"
+            >
+              {isSubmitting ? (
+                <>
+                  <Spinner size="sm" animation="border" className="me-2" />
+                  {t('publishing', 'Publishing...')}
+                </>
+              ) : (
+                <>
+                  <i className="fas fa-rocket me-2"></i>
+                  {isEdit ? t('update_ad', 'Update Ad') : t('publish_ad', 'Publish Ad')}
+                </>
+              )}
+            </Button>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
 
-      {/* ESTILOS */}
+      {/* INDICADOR DE ESTADO */}
+      {!canProceedToNextStep() && currentStep < 5 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-3"
+        >
+          <Alert variant="warning" className="py-2">
+            <div className="d-flex align-items-center">
+              <i className="fas fa-info-circle me-2"></i>
+              <small>
+                {currentStep === 1 
+                  ? t('select_category_warning', 'Please select a category and subcategory to continue.')
+                  : t('complete_fields_warning', 'Please complete the required fields to continue.')
+                }
+              </small>
+            </div>
+          </Alert>
+        </motion.div>
+      )}
+
+      {/* ESTILOS CSS */}
       <style jsx>{`
+        .gradient-text {
+          background: linear-gradient(135deg, #4f46e5, #7c3aed, #a78bfa);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+        }
+        
         .step-content {
-          min-height: 400px;
+          min-height: 450px;
         }
         
         .step-header {
           padding-bottom: 20px;
-          margin-bottom: 20px;
+          margin-bottom: 30px;
           border-bottom: 2px solid #f0f0f0;
         }
         
-        .step-indicator {
+        .step-indicator-btn {
+          background: none;
+          border: none;
+          padding: 0;
+          cursor: pointer;
           position: relative;
-          z-index: 1;
+          transition: all 0.3s ease;
+        }
+        
+        .step-indicator-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
         
         .step-circle {
-          width: 60px;
-          height: 60px;
+          width: 70px;
+          height: 70px;
           border-radius: 50%;
-          background: #e9ecef;
+          background: #f8f9fa;
           display: flex;
           align-items: center;
           justify-content: center;
           margin: 0 auto;
           border: 4px solid white;
+          position: relative;
           transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         }
         
-        .step-indicator.active .step-circle {
+        .step-indicator-btn.active .step-circle {
           background: linear-gradient(135deg, #4f46e5, #7c3aed);
-          color: white;
-          box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+          transform: scale(1.1);
+          box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        
+        .step-circle.current {
+          background: linear-gradient(135deg, #a78bfa, #c4b5fd);
         }
         
         .step-icon {
           font-size: 24px;
+          color: #6c757d;
+        }
+        
+        .step-indicator-btn.active .step-icon {
+          color: white;
+        }
+        
+        .step-number {
+          position: absolute;
+          top: -5px;
+          right: -5px;
+          background: #10b981;
+          color: white;
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          font-size: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-weight: bold;
         }
         
         .step-connector {
           position: absolute;
-          top: 30px;
-          left: 60%;
-          right: -40%;
+          top: 35px;
+          left: 50%;
+          right: -50%;
+          height: 2px;
+          z-index: 1;
+        }
+        
+        .connector-line {
           height: 2px;
           background: #e9ecef;
-          z-index: 0;
+          width: 100%;
         }
         
-        .step-indicator.active ~ .step-connector {
-          background: #4f46e5;
+        .connector-line.completed {
+          background: linear-gradient(90deg, #a78bfa, #7c3aed);
         }
         
-        .card {
-          border: none;
+        .progress-section {
+          background: #f8f9fa;
+          padding: 20px;
           border-radius: 12px;
+          border: 1px solid #e9ecef;
         }
         
         .btn-primary {
           background: linear-gradient(135deg, #4f46e5, #7c3aed);
           border: none;
+          font-weight: 600;
         }
         
         .btn-primary:hover {
           background: linear-gradient(135deg, #4338ca, #6d28d9);
         }
         
+        .btn-primary:disabled {
+          background: #6c757d;
+          opacity: 0.7;
+        }
+        
         .btn-success {
           background: linear-gradient(135deg, #10b981, #34d399);
           border: none;
+          font-weight: 600;
         }
         
         .btn-success:hover {
           background: linear-gradient(135deg, #0da271, #2ca67c);
         }
         
+        .btn-outline-secondary {
+          border-width: 2px;
+          font-weight: 600;
+        }
+        
+        .card {
+          border-radius: 16px;
+          overflow: hidden;
+        }
+        
         @media (max-width: 768px) {
           .step-circle {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
           }
           
           .step-icon {
@@ -546,7 +723,32 @@ const CreateAnnoncePage = () => {
           }
           
           .step-title {
-            font-size: 11px;
+            font-size: 12px;
+          }
+          
+          .step-number {
+            width: 20px;
+            height: 20px;
+            font-size: 10px;
+          }
+          
+          .gradient-text {
+            font-size: 2rem;
+          }
+          
+          .card-body {
+            padding: 20px !important;
+          }
+        }
+        
+        @media (max-width: 576px) {
+          .d-flex.justify-content-between {
+            flex-direction: column;
+            gap: 15px;
+          }
+          
+          .btn {
+            width: 100%;
           }
         }
       `}</style>

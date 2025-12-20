@@ -1,3 +1,4 @@
+// CategoryAccordion.js - VERSIÓN ACTUALIZADA CON TODAS LAS SUBCATEGORÍAS
 import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { Accordion, Card, Button, Form, Badge } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
@@ -92,18 +93,125 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     { id: 'voyages', name: t('Voyage', { ns: 'categories' }) }
   ];
 
+  // 🆕 DATOS DE SUBCATEGORÍAS POR CATEGORÍA PRINCIPAL
+  const subcategoriesByCategory = {
+    // Vehículos
+    vehicules: [
+      { id: 'automobiles', name: t('vehicules.categories.voitures', { ns: 'subcategories' }), emoji: '🚗' },
+      { id: 'utilitaires', name: t('vehicules.categories.utilitaire', { ns: 'subcategories' }), emoji: '🚐' },
+      { id: 'motos', name: t('vehicules.categories.motos', { ns: 'subcategories' }), emoji: '🏍️' },
+    ],
+    
+    // Ropa
+    vetements: [
+      { id: 'vetements_homme', name: t('vetements.categories.vetements_homme', { ns: 'subcategories' }), emoji: '👔' },
+      { id: 'vetements_femme', name: t('vetements.categories.vetements_femme', { ns: 'subcategories' }), emoji: '👗' },
+      { id: 'chaussures_homme', name: t('vetements.categories.chaussures_homme', { ns: 'subcategories' }), emoji: '👞' },
+      { id: 'chaussures_femme', name: t('vetements.categories.chaussures_femme', { ns: 'subcategories' }), emoji: '👠' },
+    ],
+    
+    // Teléfonos
+    telephones: [
+      { id: 'smartphones', name: t('telephones.categories.smartphones', { ns: 'subcategories' }), emoji: '📱' },
+      { id: 'telephones_cellulaires', name: t('telephones.categories.telephones_cellulaires', { ns: 'subcategories' }), emoji: '📞' },
+      { id: 'tablettes', name: t('telephones.categories.tablettes', { ns: 'subcategories' }), emoji: '📟' },
+    ],
+    
+    // Informática
+    informatique: [
+      { id: 'ordinateurs_portables', name: t('informatique.categories.ordinateurs_portables', { ns: 'subcategories' }), emoji: '💻' },
+      { id: 'ordinateurs_bureau', name: t('informatique.categories.ordinateurs_bureau', { ns: 'subcategories' }), emoji: '🖥️' },
+      { id: 'serveurs', name: t('informatique.categories.serveurs', { ns: 'subcategories' }), emoji: '🗄️' },
+    ],
+    
+    // Electrodomésticos
+    electromenager: [
+      { id: 'televiseurs', name: t('electromenager.categories.televiseurs', { ns: 'subcategories' }), emoji: '📺' },
+      { id: 'demodulateurs_box_tv', name: t('electromenager.categories.demodulateurs_box_tv', { ns: 'subcategories' }), emoji: '📡' },
+      { id: 'paraboles_switch_tv', name: t('electromenager.categories.paraboles_switch_tv', { ns: 'subcategories' }), emoji: '🛰️' },
+    ],
+    
+    // Piezas de recambio
+    piecesDetachees: [
+      { id: 'pieces_automobiles', name: t('pieces_detachees.categories.pieces_automobiles', { ns: 'subcategories' }), emoji: '🚘' },
+      { id: 'pieces_vehicules', name: t('pieces_detachees.categories.pieces_vehicules', { ns: 'subcategories' }), emoji: '🚙' },
+      { id: 'pieces_moto', name: t('pieces_detachees.categories.pieces_moto', { ns: 'subcategories' }), emoji: '🏍️' },
+    ],
+    
+    // Salud y belleza
+    sante_beaute: [
+      { id: 'cosmetiques_beaute', name: t('sante_beaute.categories.cosmetiques_beaute', { ns: 'subcategories' }), emoji: '💅' },
+      { id: 'parfums_deodorants_femme', name: t('sante_beaute.categories.parfums_deodorants_femme', { ns: 'subcategories' }), emoji: '🌸' },
+      { id: 'parfums_deodorants_homme', name: t('sante_beaute.categories.parfums_deodorants_homme', { ns: 'subcategories' }), emoji: '🧔' },
+      { id: 'parapharmacie_sante', name: t('sante_beaute.categories.parapharmacie_sante', { ns: 'subcategories' }), emoji: '💊' },
+    ],
+    
+    // Muebles
+    meubles: [
+      { id: 'meubles_maison', name: t('meubles.categories.meubles_maison', { ns: 'subcategories' }), emoji: '🛋️' },
+      { id: 'decoration', name: t('meubles.categories.decoration', { ns: 'subcategories' }), emoji: '🖼️' },
+      { id: 'vaisselle', name: t('meubles.categories.vaisselle', { ns: 'subcategories' }), emoji: '🍽️' },
+    ],
+    
+    // Ocio
+    loisirs: [
+      { id: 'animalerie', name: t('loisirs.categories.animalerie', { ns: 'subcategories' }), emoji: '🐕' },
+      { id: 'consoles_jeux_videos', name: t('loisirs.categories.consoles_jeux_videos', { ns: 'subcategories' }), emoji: '🎮' },
+      { id: 'livres_magazines', name: t('loisirs.categories.livres_magazines', { ns: 'subcategories' }), emoji: '📚' },
+    ],
+    
+    // Deporte
+    sport: [
+      { id: 'football', name: t('sport.categories.football', { ns: 'subcategories' }), emoji: '⚽' },
+      { id: 'hand_voley_basket', name: t('sport.categories.hand_voley_basket', { ns: 'subcategories' }), emoji: '🏀' },
+    ],
+    
+    // Alimentación
+    alimentaires: [
+      { id: 'fruits_secs', name: t('alimentaires.categories.fruits_secs', { ns: 'subcategories' }), emoji: '🥜' },
+      { id: 'graines_riz_cereales', name: t('alimentaires.categories.graines_riz_cereales', { ns: 'subcategories' }), emoji: '🌾' },
+      { id: 'aliments_dietetiques', name: t('alimentaires.categories.aliments_dietetiques', { ns: 'subcategories' }), emoji: '🥗' },
+    ],
+    
+    // Servicios
+    services: [
+      { id: 'construction_travaux', name: t('services.categories.construction_travaux', { ns: 'subcategories' }), emoji: '🏗️' },
+      { id: 'ecoles_formations', name: t('services.categories.ecoles_formations', { ns: 'subcategories' }), emoji: '🎓' },
+    ],
+    
+    // Materiales
+    materiaux: [
+      { id: 'materiel_professionnel', name: t('materiaux.categories.materiel_professionnel', { ns: 'subcategories' }), emoji: '🔧' },
+      { id: 'outillage_professionnel', name: t('materiaux.categories.outillage_professionnel', { ns: 'subcategories' }), emoji: '🛠️' },
+      { id: 'materiaux_construction', name: t('materiaux.categories.materiaux_construction', { ns: 'subcategories' }), emoji: '🧱' },
+    ],
+    
+    // Viajes
+    voyages: [
+      { id: 'voyage_organise', name: t('voyages.categories.voyage_organise', { ns: 'subcategories' }), emoji: '✈️' },
+      { id: 'location_vacances', name: t('voyages.categories.location_vacances', { ns: 'subcategories' }), emoji: '🏖️' },
+      { id: 'hajj_omra', name: t('voyages.categories.hajj_omra', { ns: 'subcategories' }), emoji: '🕋' },
+    ],
+    
+    // Empleo
+    emploi: [
+      { id: 'offres_emploi', name: t('offre.property.Offresemploi', { ns: 'subcategories' }), emoji: '💼' },
+      { id: 'demandes_emploi', name: t('offre.property.Demandesemploi', { ns: 'subcategories' }), emoji: '📋' },
+    ]
+  };
+
   // Datos especiales para Immobilier
   const immobilierOperations = [
-    { id: 'vente', name: t('immobilier.operation.vente', { ns: 'subcategories' }) },
-    { id: 'location', name: t('immobilier.operation.location', { ns: 'subcategories' }) },
-    { id: 'location_vacances', name: t('immobilier.operation.location_vacances', { ns: 'subcategories' }) },
+    { id: 'vente', name: t('immobilier.operation.vente', { ns: 'subcategories' }), emoji: '💰' },
+    { id: 'location', name: t('immobilier.operation.location', { ns: 'subcategories' }), emoji: '📅' },
+    { id: 'location_vacances', name: t('immobilier.operation.location_vacances', { ns: 'subcategories' }), emoji: '🏖️' },
   ];
 
   const immobilierProperties = [
-    { id: 'appartement', name: t('immobilier.property.appartement', { ns: 'subcategories' }) },
-    { id: 'villa', name: t('immobilier.property.villa', { ns: 'subcategories' }) },
-    { id: 'terrain', name: t('immobilier.property.terrain', { ns: 'subcategories' }) },
-    { id: 'local', name: t('immobilier.property.local', { ns: 'subcategories' }) },
+    { id: 'appartement', name: t('immobilier.property.appartement', { ns: 'subcategories' }), emoji: '🏢' },
+    { id: 'villa', name: t('immobilier.property.villa', { ns: 'subcategories' }), emoji: '🏡' },
+    { id: 'terrain', name: t('immobilier.property.terrain', { ns: 'subcategories' }), emoji: '🌳' },
+    { id: 'local', name: t('immobilier.property.local', { ns: 'subcategories' }), emoji: '🏢' },
   ];
 
   // Filtrar categorías basadas en búsqueda
@@ -249,6 +357,53 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     );
   };
 
+  // 🆕 RENDERIZAR SUBCATEGORÍAS DIRECTAS (como fallback)
+  const renderDirectSubcategories = (categoryId) => {
+    const subcategories = subcategoriesByCategory[categoryId] || [];
+    
+    if (subcategories.length === 0) {
+      return renderLazySubcategories(categoryId);
+    }
+
+    return (
+      <div className="direct-subcategories mt-2">
+        <div className="level-header mb-2">
+          <h6 className="level-title fw-bold mb-1" style={{ fontSize: '0.95rem' }}>
+            <span className="me-2">📋</span>
+            {getCategoryTitle(categoryId)}
+          </h6>
+          <p className="level-description mb-2" style={{ fontSize: '0.85rem', color: '#6c757d' }}>
+            Sélectionnez une sous-catégorie
+          </p>
+        </div>
+        
+        <div className="subcategories-list">
+          {subcategories.map((subcategory) => (
+            <div 
+              key={subcategory.id}
+              className={`subcategory-item ${localPostData.subCategory === subcategory.id ? 'selected' : ''}`}
+              onClick={() => handleSubcategorySelect(subcategory.id)}
+            >
+              <div className="d-flex align-items-center">
+                <div className="subcategory-emoji me-3">
+                  {subcategory.emoji}
+                </div>
+                <div className="subcategory-info">
+                  <div className="subcategory-name fw-medium" style={{ fontSize: '0.9rem' }}>
+                    {subcategory.name}
+                  </div>
+                </div>
+              </div>
+              {localPostData.subCategory === subcategory.id && (
+                <div className="subcategory-check">✓</div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   // 🔄 Renderizar contenido especial para Immobilier
   const renderImmobilierContent = () => (
     <div className="immobilier-content mt-2">
@@ -273,8 +428,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
               >
                 <div className="d-flex align-items-center">
                   <div className="operation-emoji me-3">
-                    {operation.id === 'vente' ? '💰' : 
-                     operation.id === 'location' ? '📅' : '🏖️'}
+                    {operation.emoji}
                   </div>
                   <div className="operation-info">
                     <div className="operation-name fw-medium" style={{ fontSize: '0.9rem' }}>
@@ -329,9 +483,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
               >
                 <div className="d-flex align-items-center">
                   <div className="property-emoji me-3">
-                    {property.id === 'appartement' ? '🏢' : 
-                     property.id === 'villa' ? '🏡' : 
-                     property.id === 'terrain' ? '🌳' : '🏢'}
+                    {property.emoji}
                   </div>
                   <div className="property-info">
                     <div className="property-name fw-medium" style={{ fontSize: '0.9rem' }}>
@@ -452,7 +604,8 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                     {category.id === 'immobilier' ? (
                       renderImmobilierContent()
                     ) : (
-                      renderLazySubcategories(category.id)
+                      // 🆕 Usar subcategorías directas como fallback
+                      renderDirectSubcategories(category.id)
                     )}
                   </>
                 )}
@@ -499,10 +652,33 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
                     <div className="selection-label" style={{ fontSize: '0.9rem' }}>Opération:</div>
                     <div className="selection-value fw-medium" style={{ fontSize: '0.95rem' }}>
                       <span className="me-2">
-                        {localPostData.articleType === 'vente' ? '💰' : 
-                         localPostData.articleType === 'location' ? '📅' : '🏖️'}
+                        {immobilierOperations.find(op => op.id === localPostData.articleType)?.emoji}
                       </span>
                       {immobilierOperations.find(op => op.id === localPostData.articleType)?.name}
+                    </div>
+                  </div>
+                )}
+                
+                {localPostData.subCategory && (
+                  <div className="selection-item mb-1">
+                    <div className="selection-label" style={{ fontSize: '0.9rem' }}>Sous-catégorie:</div>
+                    <div className="selection-value fw-medium" style={{ fontSize: '0.95rem' }}>
+                      <span className="me-2">
+                        {(() => {
+                          if (localPostData.categorie === 'immobilier') {
+                            return immobilierProperties.find(p => p.id === localPostData.subCategory)?.emoji;
+                          }
+                          const subcats = subcategoriesByCategory[localPostData.categorie];
+                          return subcats?.find(sc => sc.id === localPostData.subCategory)?.emoji;
+                        })()}
+                      </span>
+                      {(() => {
+                        if (localPostData.categorie === 'immobilier') {
+                          return immobilierProperties.find(p => p.id === localPostData.subCategory)?.name;
+                        }
+                        const subcats = subcategoriesByCategory[localPostData.categorie];
+                        return subcats?.find(sc => sc.id === localPostData.subCategory)?.name;
+                      })()}
                     </div>
                   </div>
                 )}
@@ -530,7 +706,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
         </div>
       )}
 
-      {/* Styles CSS actualizados con soporte para lazy loading */}
+      {/* Styles CSS actualizados con soporte para subcategorías directas */}
       <style>{`
         .category-accordion {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -632,6 +808,51 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
           display: flex;
           align-items: center;
           justify-content: center;
+        }
+        
+        /* Subcategorías directas */
+        .direct-subcategories {
+          animation: fadeIn 0.2s ease;
+        }
+        
+        .subcategories-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+        
+        .subcategory-item {
+          padding: 0.875rem 1rem;
+          background-color: white;
+          border-radius: 6px;
+          border: 2px solid transparent;
+          cursor: pointer;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+        
+        .subcategory-item:hover {
+          border-color: #dee2e6;
+          transform: translateY(-1px);
+        }
+        
+        .subcategory-item.selected {
+          border-color: #0d6efd;
+          background-color: #f8f9ff;
+        }
+        
+        .subcategory-emoji {
+          font-size: 1.3rem;
+          min-width: 36px;
+          text-align: center;
+        }
+        
+        .subcategory-check {
+          color: #198754;
+          font-weight: bold;
+          font-size: 1.2rem;
         }
         
         /* Contenido Immobilier */
@@ -755,7 +976,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
             padding: 1rem !important;
           }
           
-          .operation-item, .property-item {
+          .operation-item, .property-item, .subcategory-item {
             padding: 0.75rem;
           }
         }
