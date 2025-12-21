@@ -92,7 +92,36 @@ const postReducer = (state = initialState, action) => {
             };
             
         // ... otros casos se mantienen
-            
+            // redux/reducers/postReducer.js
+case POST_TYPES.GET_CATEGORIES_PAGINATED:
+    console.log('🔄 Reducer - GET_CATEGORIES_PAGINATED:', {
+        page: action.payload.page,
+        categoriesCount: action.payload.categories?.length,
+        total: action.payload.total,
+        hasMore: action.payload.hasMore
+    });
+    
+    if (action.payload.page === 1) {
+        // Primera página: reemplazar
+        return {
+            ...state,
+            categories: action.payload.categories,
+            categoriesPage: action.payload.page,
+            categoriesTotal: action.payload.total,
+            categoriesHasMore: action.payload.hasMore,
+            loading: false
+        };
+    } else {
+        // Página > 1: agregar
+        return {
+            ...state,
+            categories: [...state.categories, ...action.payload.categories],
+            categoriesPage: action.payload.page,
+            categoriesTotal: action.payload.total,
+            categoriesHasMore: action.payload.hasMore,
+            loading: false
+        };
+    }
         default:
             return state;
     }

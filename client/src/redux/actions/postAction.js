@@ -14,7 +14,7 @@ export const POST_TYPES = {
     DELETE_POST: 'DELETE_POST',
     LIKE_POST: 'LIKE_POST',
     UNLIKE_POST: 'UNLIKE_POST',
- 
+    GET_CATEGORIES_PAGINATED: 'GET_CATEGORIES_PAGINATED',
     GET_POSTS_USER: 'GET_POSTS_USER',
 
 
@@ -117,14 +117,21 @@ export const getPostsByCategory = (category, page = 1, filters = {}) => async (d
     }
 };
 // Acción para obtener todas las categorías
-export const getCategories = () => async (dispatch, getState) => {
+// redux/actions/postAction.js - NUEVA ACCIÓN
+export const getCategories = (page = 1, limit = 2) => async (dispatch, getState) => {
     try {
         const { auth } = getState();
-        const res = await getDataAPI('categories/all', auth.token);
+        const res = await getDataAPI(`categories/paginated?page=${page}&limit=${limit}`, auth.token);
         
         dispatch({
-            type: POST_TYPES.GET_CATEGORIES,
-            payload: res.data.categories
+            type: POST_TYPES.GET_CATEGORIES_PAGINATED,
+            payload: {
+                categories: res.data.categories,
+                page: res.data.page,
+                total: res.data.total,
+                totalPages: res.data.totalPages,
+                hasMore: res.data.hasMore
+            }
         });
         
         return res.data;

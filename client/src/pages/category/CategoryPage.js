@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import Posts from '../../components/home/Posts';
 import { getPostsByCategory, getCategories } from '../../redux/actions/postAction';
 import LoadIcon from '../../images/loading.gif';
+import CategorySliderEmoji from '../../components/SlidersHeadrs/CategorySlderEmoji';
 
 const CategoryPage = () => {
     const dispatch = useDispatch();
@@ -122,34 +123,7 @@ const CategoryPage = () => {
                 </ol>
             </nav>
             
-            {/* CABECERA DE CATEGORÍA */}
-            <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="category-header mb-5 p-4 bg-white rounded-3 shadow-sm"
-            >
-                <div className="d-flex align-items-center mb-3">
-                    <div className="category-icon display-2 me-4">
-                        {currentCategory?.emoji || '📁'}
-                    </div>
-                    <div>
-                        <h1 className="fw-bold mb-2">{categoryName}</h1>
-                        <div className="d-flex align-items-center gap-3">
-                            <span className="badge bg-primary px-3 py-2">
-                                {currentCategory?.count || 0} anuncios totales
-                            </span>
-                            <span className="text-muted">
-                                Mostrando {totalLoaded} anuncios
-                            </span>
-                        </div>
-                        <div className="mt-2">
-                            <small className="text-muted">
-                                Categoría en Redux: <code>{homePosts.category}</code>
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            </motion.div>
+        
             
             {/* POSTS */}
             {loading ? (
@@ -160,18 +134,8 @@ const CategoryPage = () => {
             ) : (
                 <>
                     {/* DEBUG: Mostrar info de posts */}
-                    <div className="alert alert-info mb-4">
-                        <div className="d-flex align-items-center">
-                            <i className="fas fa-info-circle me-2"></i>
-                            <div>
-                                <strong>Posts cargados:</strong> {totalLoaded}
-                                {currentCategory && (
-                                    <span className="ms-2">
-                                        ({currentCategory.count - totalLoaded} restantes)
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                    <div >
+                     <CategorySliderEmoji/>
                     </div>
                     
                     {/* COMPONENTE POSTS */}

@@ -29,7 +29,6 @@ const categoriesData = [
 
 const CategorySlider = () => {
   const [isMobile, setIsMobile] = useState(false);
-  const [hoveredId, setHoveredId] = useState(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -91,114 +90,97 @@ const CategorySlider = () => {
     }
   };
 
-  // Renderizar fila de iconos
+  // Renderizar fila de iconos (SIN HOVER)
   const renderIconRow = (row, rowIndex) => {
-    const marginBottom = rowIndex === 0 ? (isMobile ? '4px' : '6px') : '0px';
+    const marginBottom = rowIndex === 0 ? (isMobile ? '8px' : '10px') : '0px';
     
     return (
       <div 
         style={{
           display: 'flex',
           justifyContent: isMobile ? 'flex-start' : 'center',
-          gap: isMobile ? '4px' : '20px', // 🔽 REDUCIDO de 25px a 20px para PCs
-          padding: isMobile ? '4px 8px' : '10px 15px', // 🔽 REDUCIDO padding para PCs
+          gap: isMobile ? '4px' : '20px',
+          padding: isMobile ? '8px 8px' : '12px 15px',
           flexShrink: 0,
           minWidth: isMobile ? 'min-content' : 'auto',
           marginBottom: marginBottom
         }}
       >
-        {row.map((category) => {
-          const isHovered = hoveredId === category.id;
-          
-          return (
-            <Link
-              key={`${category.id}-${rowIndex}`}
-              to={`/category/${category.slug}`}
+        {row.map((category) => (
+          <Link
+            key={`${category.id}-${rowIndex}`}
+            to={`/category/${category.slug}`}
+            style={{
+              textDecoration: 'none',
+              color: 'inherit',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              flexShrink: 0,
+              width: isMobile ? '75px' : '95px' // 🔼 Aumentado para PCs
+            }}
+          >
+            {/* Círculo del icono - SIN EFECTOS HOVER */}
+            <div
               style={{
-                textDecoration: 'none',
-                color: 'inherit',
+                width: isMobile ? '70px' : '85px', // 🔼 Aumentado
+                height: isMobile ? '70px' : '85px', // 🔼 Aumentado
+                borderRadius: '50%',
+                background: `linear-gradient(135deg, ${category.color}20 0%, ${category.color}15 100%)`,
                 display: 'flex',
-                flexDirection: 'column',
                 alignItems: 'center',
-                flexShrink: 0,
-                width: isMobile ? '68px' : '85px' // 🔽 Reducido para PCs
+                justifyContent: 'center',
+                position: 'relative',
+                border: `2px solid ${category.color}30`,
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                marginBottom: '8px',
+                transition: 'transform 0.2s ease' // Solo para touch
               }}
-              onMouseEnter={() => setHoveredId(category.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              onTouchStart={() => setHoveredId(category.id)}
-              onTouchEnd={() => setTimeout(() => setHoveredId(null), 150)}
             >
-              {/* Círculo del icono */}
-              <div
-                style={{
-                  width: isMobile ? '62px' : '75px', // 🔽 Reducido para PCs
-                  height: isMobile ? '62px' : '75px',
-                  borderRadius: '50%',
-                  background: isHovered
-                    ? `linear-gradient(135deg, ${category.color} 0%, ${category.color} 100%)`
-                    : `linear-gradient(135deg, ${category.color}15 0%, ${category.color}08 100%)`,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  position: 'relative',
-                  transition: 'all 0.2s ease',
-                  border: isHovered 
-                    ? `2px solid ${category.color}`
-                    : `2px solid ${category.color}20`,
-                  boxShadow: isHovered
-                    ? `0 6px 20px ${category.color}40`
-                    : '0 3px 10px rgba(0,0,0,0.08)',
-                  transform: isHovered ? 'scale(1.1)' : 'scale(1)',
-                  marginBottom: '6px' // 🔽 Reducido
-                }}
-              >
-                <category.icon 
-                  size={isMobile ? 30 : 36} // 🔽 Reducido para PCs
-                  style={{ 
-                    color: isHovered ? 'white' : category.color,
-                    transition: 'all 0.2s ease'
-                  }} 
-                />
-              </div>
+              <category.icon 
+                size={isMobile ? 34 : 42} // 🔼 Aumentado significativamente
+                style={{ 
+                  color: category.color,
+                }} 
+              />
+            </div>
 
-              {/* Nombre abreviado */}
-              <div style={{
-                textAlign: 'center',
-                width: '100%'
+            {/* Nombre abreviado */}
+            <div style={{
+              textAlign: 'center',
+              width: '100%'
+            }}>
+              <span style={{
+                fontSize: isMobile ? '0.7rem' : '0.8rem', // 🔼 Aumentado ligeramente
+                fontWeight: '600',
+                color: '#444',
+                display: 'block',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                padding: '0 2px'
               }}>
-                <span style={{
-                  fontSize: isMobile ? '0.68rem' : '0.75rem', // 🔽 Reducido para PCs
-                  fontWeight: '600',
-                  color: isHovered ? category.color : '#444',
-                  display: 'block',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  transition: 'all 0.2s ease',
-                  padding: '0 2px'
-                }}>
-                  {category.name.length > 12 ? `${category.name.substring(0, 10)}...` : category.name}
-                </span>
-              </div>
-            </Link>
-          );
-        })}
+                {category.name.length > 12 ? `${category.name.substring(0, 10)}...` : category.name}
+              </span>
+            </div>
+          </Link>
+        ))}
       </div>
     );
   };
 
   return (
     <div ref={containerRef} className="category-grid-container">
-      {/* Card contenedor único - MENOS PADDING/MARGIN */}
+      {/* Card contenedor único */}
       <div style={{
         position: 'relative',
-        maxWidth: '1300px', // 🔽 REDUCIDO de 1400px
+        maxWidth: '1400px',
         margin: '0 auto',
         background: 'white',
-        borderRadius: '18px', // 🔽 Reducido
-        boxShadow: '0 6px 20px rgba(0,0,0,0.06)', // 🔽 Sombras más sutiles
+        borderRadius: '20px',
+        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
         overflow: 'hidden',
-        border: '1px solid rgba(0,0,0,0.04)'
+        border: '1px solid rgba(0,0,0,0.06)'
       }}>
         {/* Contenido con scroll horizontal en mobile */}
         <div
@@ -206,7 +188,7 @@ const CategorySlider = () => {
           onScroll={handleScroll}
           style={{
             display: 'block',
-            padding: isMobile ? '8px 0' : '15px 0', // 🔽 REDUCIDO para PCs
+            padding: isMobile ? '12px 0' : '20px 0', // 🔼 Aumentado padding
             overflowX: isMobile ? 'auto' : 'visible',
             overflowY: 'hidden',
             scrollBehavior: 'smooth',
@@ -214,7 +196,7 @@ const CategorySlider = () => {
             msOverflowStyle: 'none',
             scrollbarWidth: 'none',
             position: 'relative',
-            minHeight: isMobile ? 'auto' : '160px' // 🔽 REDUCIDO para PCs
+            minHeight: isMobile ? 'auto' : '180px' // 🔼 Aumentado
           }}
         >
           {/* Contenedor de filas para centrar botones */}
@@ -229,21 +211,21 @@ const CategorySlider = () => {
           </div>
         </div>
 
-        {/* Botones de scroll solo en mobile - MEJOR CENTRADO Y MÁS ESTILIZADOS */}
+        {/* Botones de scroll solo en mobile */}
         {isMobile && (
           <>
-            {/* Botón izquierdo - ESTILIZADO Y CENTRADO */}
+            {/* Botón izquierdo */}
             {canScrollLeft && (
               <button
                 onClick={scrollLeft}
                 style={{
                   position: 'absolute',
-                  left: '6px',
-                  top: '50%', // CENTRADO VERTICALMENTE
+                  left: '8px',
+                  top: '50%',
                   transform: 'translateY(-50%)',
                   zIndex: 20,
-                  width: '34px',
-                  height: '34px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   border: 'none',
@@ -252,34 +234,26 @@ const CategorySlider = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  color: 'white'
-                }}
-                onTouchStart={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-50%) scale(0.92)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.4)';
-                }}
-                onTouchEnd={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-50%)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                  color: 'white',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <FaChevronLeft size={16} color="white" />
+                <FaChevronLeft size={18} color="white" />
               </button>
             )}
 
-            {/* Botón derecho - ESTILIZADO Y CENTRADO */}
+            {/* Botón derecho */}
             {canScrollRight && (
               <button
                 onClick={scrollRight}
                 style={{
                   position: 'absolute',
-                  right: '6px',
-                  top: '50%', // CENTRADO VERTICALMENTE
+                  right: '8px',
+                  top: '50%',
                   transform: 'translateY(-50%)',
                   zIndex: 20,
-                  width: '34px',
-                  height: '34px',
+                  width: '36px',
+                  height: '36px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   border: 'none',
@@ -288,28 +262,20 @@ const CategorySlider = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  color: 'white'
-                }}
-                onTouchStart={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-50%) scale(0.92)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.4)';
-                }}
-                onTouchEnd={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-50%)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                  color: 'white',
+                  transition: 'all 0.2s ease'
                 }}
               >
-                <FaChevronRight size={16} color="white" />
+                <FaChevronRight size={18} color="white" />
               </button>
             )}
 
-            {/* Indicadores de scroll (dots) - MEJOR ESTILIZADOS */}
+            {/* Indicadores de scroll (dots) */}
             <div style={{
               display: 'flex',
               justifyContent: 'center',
               gap: '6px',
-              padding: '6px 0 10px 0',
+              padding: '8px 0 12px 0',
               position: 'relative',
               zIndex: 10
             }}>
@@ -335,51 +301,37 @@ const CategorySlider = () => {
           </>
         )}
 
-        {/* Footer minimalista - MENOS PADDING */}
+        {/* Footer minimalista */}
         <div style={{
-          padding: isMobile ? '6px 10px' : '8px 15px', // 🔽 REDUCIDO
-          borderTop: '1px solid rgba(0,0,0,0.03)',
-          background: 'rgba(248, 249, 250, 0.3)',
+          padding: isMobile ? '8px 12px' : '10px 20px',
+          borderTop: '1px solid rgba(0,0,0,0.04)',
+          background: 'rgba(248, 249, 250, 0.4)',
           textAlign: 'center'
         }}>
           <div style={{
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '4px', // 🔽 Reducido
-            fontSize: isMobile ? '0.7rem' : '0.75rem', // 🔽 Reducido
+            gap: '6px',
+            fontSize: isMobile ? '0.75rem' : '0.85rem',
             color: '#666',
             fontWeight: '500'
           }}>
-            <span style={{ fontSize: '0.8rem' }}>•</span> {/* 🔽 Reducido */}
-            <span>Toutes catégories</span>
-            <span style={{ fontSize: '0.8rem' }}>•</span>
+           
           </div>
         </div>
       </div>
 
-      {/* Estilos CSS mejorados */}
+      {/* Estilos CSS mejorados (sin hover effects) */}
       <style>{`
         /* Ocultar scrollbar pero mantener funcionalidad */
         .category-grid-container ::-webkit-scrollbar {
           display: none;
         }
         
-        /* Efectos de hover y active mejorados */
+        /* Solo efecto de press para mobile/touch */
         .category-grid-container a:active div:first-child {
-          transform: scale(0.94) !important;
-          transition: transform 0.1s ease !important;
-        }
-        
-        /* Animación de ripple para touch */
-        @keyframes ripple {
-          0% {
-            transform: scale(0);
-            opacity: 0.5;
-          }
-          100% {
-            transform: scale(1);
-            opacity: 0;
-          }
+          transform: scale(0.95);
+          transition: transform 0.1s ease;
         }
         
         /* Prevenir zoom en doble tap */
@@ -393,7 +345,7 @@ const CategorySlider = () => {
           contain: content;
         }
         
-        /* Gradientes en los bordes del scroll (solo mobile) - MEJOR VISUAL */
+        /* Gradientes en los bordes del scroll (solo mobile) */
         @media (max-width: 767px) {
           .category-grid-container > div > div:first-child::before {
             content: '';
@@ -423,48 +375,49 @@ const CategorySlider = () => {
         /* Optimización para pantallas muy pequeñas */
         @media (max-width: 380px) {
           .category-grid-container a {
-            width: 60px !important;
+            width: 65px !important;
           }
           
           .category-grid-container a > div:first-child {
-            width: 52px !important;
-            height: 52px !important;
+            width: 58px !important;
+            height: 58px !important;
           }
           
           .category-grid-container svg {
-            width: 22px !important;
-            height: 22px !important;
+            width: 26px !important;
+            height: 26px !important;
           }
           
           /* Botones más pequeños en pantallas muy pequeñas */
           .category-grid-container button {
-            width: 30px !important;
-            height: 30px !important;
+            width: 32px !important;
+            height: 32px !important;
           }
           
           .category-grid-container button svg {
-            width: 14px !important;
-            height: 14px !important;
+            width: 16px !important;
+            height: 16px !important;
           }
         }
         
-        /* Smooth transitions */
-        .category-grid-container * {
+        /* Smooth transitions solo para elementos necesarios */
+        .category-grid-container button,
+        .category-grid-container a:active div:first-child {
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         /* Mejor visualización en PCs grandes */
         @media (min-width: 1200px) {
           .category-grid-container > div {
-            max-width: 1300px !important;
+            max-width: 1400px !important;
           }
         }
         
-        /* Efecto hover para botones en mobile */
+        /* Sin efectos hover para botones en PCs */
         @media (hover: hover) and (pointer: fine) {
-          .category-grid-container button:hover {
-            transform: translateY(-50%) scale(1.05) !important;
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4) !important;
+          .category-grid-container a div:first-child,
+          .category-grid-container a span {
+            transition: none !important;
           }
         }
       `}</style>

@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.7b903517.css",
-    "main.js": "/static/js/main.c1da9677.js",
+    "main.js": "/static/js/main.c4ae003c.js",
     "static/js/128.3a26d145.chunk.js": "/static/js/128.3a26d145.chunk.js",
     "static/js/953.ca1edf44.chunk.js": "/static/js/953.ca1edf44.chunk.js",
     "static/js/908.c723e73b.chunk.js": "/static/js/908.c723e73b.chunk.js",
@@ -21,17 +21,17 @@
     "static/js/22.bc8e49bd.chunk.js": "/static/js/22.bc8e49bd.chunk.js",
     "static/media/got-it-done-613.mp3": "/static/media/got-it-done-613.89a311f04f29deab239c.mp3",
     "static/media/home.jsmejorqueral": "/static/media/home.e3bcaf8299b3f6b85029.jsmejorqueral",
+    "static/media/CreateAnnoncePage.jskj": "/static/media/CreateAnnoncePage.9eb880eca5179d1af2ba.jskj",
     "static/media/search.jsdeep": "/static/media/search.56534a9f77141bfa8029.jsdeep",
     "static/media/home.jsreal": "/static/media/home.7b3b9a7b856d02f06c33.jsreal",
     "static/media/loading.gif": "/static/media/loading.10625dac567208a8ef3d.gif",
     "static/media/CategoryPage.jsreal": "/static/media/CategoryPage.9b53835b4f0036c38007.jsreal",
     "static/media/CategoriesPage.jsjkj": "/static/media/CategoriesPage.9bad2517b1d3d85f503e.jsjkj",
-    "static/media/CreateAnnoncePage.jskj": "/static/media/CreateAnnoncePage.07a3f2a85203707f6de6.jskj",
     "static/media/componente de busqueda intelegente.jskjkj": "/static/media/componente de busqueda intelegente.1605480da5a53a9bd5b5.jskjkj",
     "index.html": "/index.html",
     "static/media/AnnocesPage.jskjk": "/static/media/AnnocesPage.865013d86c805b1c0db6.jskjk",
     "main.7b903517.css.map": "/static/css/main.7b903517.css.map",
-    "main.c1da9677.js.map": "/static/js/main.c1da9677.js.map",
+    "main.c4ae003c.js.map": "/static/js/main.c4ae003c.js.map",
     "128.3a26d145.chunk.js.map": "/static/js/128.3a26d145.chunk.js.map",
     "953.ca1edf44.chunk.js.map": "/static/js/953.ca1edf44.chunk.js.map",
     "908.c723e73b.chunk.js.map": "/static/js/908.c723e73b.chunk.js.map",
@@ -52,6 +52,6 @@
   },
   "entrypoints": [
     "static/css/main.7b903517.css",
-    "static/js/main.c1da9677.js"
+    "static/js/main.c4ae003c.js"
   ]
 }

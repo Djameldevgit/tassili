@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Container, Button, Alert, Spinner, ProgressBar, Card } from 'react-bootstrap';
+import { Container, Button, Alert, Spinner, ProgressBar, Card, Row, Col } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // 🔷 REDUX
@@ -412,7 +412,7 @@ const CreateAnnoncePage = () => {
       </div>
 
       {/* INDICADOR DE PROGRESO */}
-      <div className="mb-5">
+      <div className="mb-1">
         <div className="d-none d-md-flex justify-content-between align-items-center mb-4 position-relative">
           {stepTitles.map((step, index) => (
             <React.Fragment key={step.step}>
@@ -445,7 +445,7 @@ const CreateAnnoncePage = () => {
         </div>
 
         {/* BARRA DE PROGRESO */}
-        <div className="progress-section mb-3">
+        <div className="progress-section">
           <div className="d-flex justify-content-between align-items-center mb-2">
             <span className="text-muted">
               <i className="fas fa-tasks me-2"></i>
@@ -455,9 +455,9 @@ const CreateAnnoncePage = () => {
           </div>
           <ProgressBar 
             now={completionPercentage} 
-            className="mb-2"
+            className=""
             variant="primary"
-            style={{ height: '10px', borderRadius: '5px' }}
+            style={{ height: '5px', borderRadius: '5px' }}
           />
           <div className="d-flex justify-content-between">
             <small className="text-muted">
@@ -486,66 +486,99 @@ const CreateAnnoncePage = () => {
         </Card>
       </motion.div>
 
-      {/* BOTONES DE NAVEGACIÓN */}
+      {/* 🆕 BOTONES DE NAVEGACIÓN EN LA MISMA FILA */}
       <motion.div 
-        className="d-flex justify-content-between mt-4 pt-3 border-top"
+        className="mt-4 pt-3 border-top"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <Button
-          variant="outline-secondary"
-          size="lg"
-          onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
-          disabled={currentStep === 1 || isSubmitting}
-          className="px-4 py-2 d-flex align-items-center"
-        >
-          <i className="fas fa-arrow-left me-2"></i>
-          {t('previous', 'Previous')}
-        </Button>
-        
-        {currentStep < 5 ? (
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
+        <Row className="g-3">
+          {/* Botón Atrás - Ocupa la mitad izquierda */}
+          <Col xs={6}>
             <Button
-              variant="primary"
+              variant="outline-secondary"
               size="lg"
-              onClick={() => setCurrentStep(prev => Math.min(5, prev + 1))}
-              disabled={!canProceedToNextStep() || isSubmitting}
-              className="px-4 py-2 d-flex align-items-center"
+              onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))}
+              disabled={currentStep === 1 || isSubmitting}
+              className="w-100 py-2 d-flex align-items-center justify-content-center"
             >
-              {t('next_step', 'Next Step')}
-              <i className="fas fa-arrow-right ms-2"></i>
+              <i className="fas fa-arrow-left me-2"></i>
+              {t('previous', 'Previous')}
             </Button>
-          </motion.div>
-        ) : (
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Button
-              variant="success"
-              size="lg"
-              onClick={handleSubmit}
-              disabled={isSubmitting}
-              className="px-5 py-2 d-flex align-items-center"
-            >
-              {isSubmitting ? (
-                <>
-                  <Spinner size="sm" animation="border" className="me-2" />
-                  {t('publishing', 'Publishing...')}
-                </>
-              ) : (
-                <>
-                  <i className="fas fa-rocket me-2"></i>
-                  {isEdit ? t('update_ad', 'Update Ad') : t('publish_ad', 'Publish Ad')}
-                </>
-              )}
-            </Button>
-          </motion.div>
-        )}
+          </Col>
+          
+          {/* Botón Adelante/Publicar - Ocupa la mitad derecha */}
+          <Col xs={6}>
+            {currentStep < 5 ? (
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-100"
+              >
+                <Button
+                  variant="primary"
+                  size="lg"
+                  onClick={() => setCurrentStep(prev => Math.min(5, prev + 1))}
+                  disabled={!canProceedToNextStep() || isSubmitting}
+                  className="w-100 py-2 d-flex align-items-center justify-content-center"
+                >
+                  {t('next_step', 'Next Step')}
+                  <i className="fas fa-arrow-right ms-2"></i>
+                </Button>
+              </motion.div>
+            ) : (
+              <motion.div
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                className="w-100"
+              >
+                <Button
+                  variant="success"
+                  size="lg"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="w-100 py-2 d-flex align-items-center justify-content-center"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Spinner size="sm" animation="border" className="me-2" />
+                      {t('publishing', 'Publishing...')}
+                    </>
+                  ) : (
+                    <>
+                      <i className="fas fa-rocket me-2"></i>
+                      {isEdit ? t('update_ad', 'Update Ad') : t('publish_ad', 'Publish Ad')}
+                    </>
+                  )}
+                </Button>
+              </motion.div>
+            )}
+          </Col>
+        </Row>
       </motion.div>
+
+      {/* 🆕 BOTONES PARA SALTAR PASOS (opcional, debajo de los principales) */}
+      {currentStep === 1 && canProceedToNextStep() && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="mt-3"
+        >
+          <div className="d-flex justify-content-center gap-2">
+            {[2, 3, 4, 5].map(step => (
+              <Button
+                key={step}
+                variant="outline-primary"
+                size="sm"
+                onClick={() => setCurrentStep(step)}
+                className="px-3"
+              >
+                Ir al paso {step}
+              </Button>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* INDICADOR DE ESTADO */}
       {!canProceedToNextStep() && currentStep < 5 && (
@@ -712,6 +745,16 @@ const CreateAnnoncePage = () => {
           overflow: hidden;
         }
         
+        /* 🆕 Estilos para los botones en la misma fila */
+        .btn {
+          transition: all 0.3s ease;
+        }
+        
+        .btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
+        }
+        
         @media (max-width: 768px) {
           .step-circle {
             width: 50px;
@@ -739,16 +782,50 @@ const CreateAnnoncePage = () => {
           .card-body {
             padding: 20px !important;
           }
+          
+          /* 🆕 Ajustes para botones en móvil */
+          .btn {
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+          }
         }
         
         @media (max-width: 576px) {
-          .d-flex.justify-content-between {
-            flex-direction: column;
-            gap: 15px;
+          .row.g-3 {
+            margin-left: -8px;
+            margin-right: -8px;
+          }
+          
+          .col-xs-6 {
+            padding-left: 8px;
+            padding-right: 8px;
           }
           
           .btn {
-            width: 100%;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.9rem;
+          }
+          
+          /* Ocultar botones de salto en móvil muy pequeño */
+          .d-flex.justify-content-center.gap-2 {
+            flex-wrap: wrap;
+            gap: 5px !important;
+          }
+          
+          .d-flex.justify-content-center.gap-2 .btn {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+          }
+        }
+        
+        @media (max-width: 400px) {
+          .btn {
+            font-size: 0.85rem;
+            padding: 0.35rem 0.6rem;
+          }
+          
+          .btn i {
+            font-size: 0.9rem;
           }
         }
       `}</style>

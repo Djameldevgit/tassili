@@ -181,9 +181,14 @@ getPostsByCategory: async (req, res) => {
 },
 
 // 📌 OBTENER TODAS LAS CATEGORÍAS (nuevo)
-getAllCategories: async (req, res) => {
+// backend/controllers/postCtrl.js - NUEVO CONTROLADOR
+getAllCategoriesPaginated: async (req, res) => {
     try {
-        const categories = await Posts.aggregate([
+        const { page = 1, limit = 2 } = req.query; // 2 categorías por página
+        const skip = (page - 1) * limit;
+        
+        // Obtener todas las categorías con conteo
+        const allCategories = await Posts.aggregate([
             { $match: { isActive: true } },
             { $group: { 
                 _id: "$categorie", 
@@ -200,27 +205,42 @@ getAllCategories: async (req, res) => {
             'vetements': '👕',
             'telephones': '📱',
             'services': '🛠️',
-            // ... agrega más
+            'electromenager': '🔌',
+            'piecesDetachees': '⚙️',
+            'alimentaires': '🍎',
+            'sante_beaute': '💄',
+            'meubles': '🛋️',
+            'materiaux': '🧱',
+            'loisirs': '🎮',
+            'emploi': '💼',
+            'sport': '⚽',
+            'voyages': '✈️'
         };
         
-        const categoriesWithEmojis = categories.map(cat => ({
+        const categoriesWithEmojis = allCategories.map(cat => ({
             name: cat._id,
             count: cat.count,
             emoji: categoryEmojis[cat._id] || '📦'
         }));
         
+        // Paginación
+        const totalCategories = categoriesWithEmojis.length;
+        const paginatedCategories = categoriesWithEmojis.slice(skip, skip + parseInt(limit));
+        
         res.json({
             success: true,
-            categories: categoriesWithEmojis
+            categories: paginatedCategories,
+            page: parseInt(page),
+            total: totalCategories,
+            totalPages: Math.ceil(totalCategories / limit),
+            hasMore: skip + paginatedCategories.length < totalCategories
         });
 
     } catch (err) {
-        console.error('❌ Error en getAllCategories:', err);
+        console.error('❌ Error en getAllCategoriesPaginated:', err);
         return res.status(500).json({msg: err.message});
     }
 },
-
-
 
 
 

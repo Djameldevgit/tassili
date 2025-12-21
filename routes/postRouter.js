@@ -17,8 +17,8 @@ router.route('/posts')
     .delete(auth, postCtrl.deletePost)
 // 📌 RUTAS DE CATEGORÍAS (NUEVAS)
 router.get('/posts/category/:category',   postCtrl.getPostsByCategory);
-router.get('/categories/all', postCtrl.getAllCategories);
-
+router.get('/categories/all', postCtrl.getAllCategoriesPaginated);
+router.get('/categories/paginated', postCtrl.getAllCategoriesPaginated); // Nueva
 // 📌 RUTAS EXISTENTES (verifica que estén)
  
 router.get('/user_posts/:id', auth, postCtrl.getUserPosts);
