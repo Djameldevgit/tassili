@@ -73,7 +73,7 @@ const CreateAnnoncePage = () => {
       }
 
       // También cargar campos directos del post
-      const directFields = ['description', 'prix', 'loyer', 'marque', 'modele', 'superficie', 'phone', 'wilaya', 'commune'];
+      const directFields = ['description', 'price', 'loyer', 'marque', 'modele', 'superficie', 'phone', 'wilaya', 'commune'];
       directFields.forEach(field => {
         if (postToEdit[field]) {
           loadedSpecificData[field] = postToEdit[field];
@@ -356,7 +356,7 @@ const CreateAnnoncePage = () => {
     }
     
     // Campos dinámicos (al menos 3 importantes)
-    const importantFields = ['prix', 'loyer', 'phone', 'marque', 'modele', 'superficie'];
+    const importantFields = ['price', 'loyer', 'phone', 'marque', 'modele', 'superficie'];
     totalFields += 3; // Esperamos al menos 3 campos importantes
     const completedImportant = importantFields.filter(field => allData[field]).length;
     completedFields += Math.min(completedImportant, 3);
@@ -478,11 +478,11 @@ const CreateAnnoncePage = () => {
         transition={{ duration: 0.3 }}
       >
         <Card className="border-0 shadow-lg overflow-hidden">
-          <Card.Body className="p-4">
+          
             <AnimatePresence mode="wait">
               {renderCurrentStep()}
             </AnimatePresence>
-          </Card.Body>
+           
         </Card>
       </motion.div>
 

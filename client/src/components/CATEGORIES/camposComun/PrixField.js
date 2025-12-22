@@ -2,7 +2,7 @@ import React from 'react'
 import { Form } from 'react-bootstrap';
 
 import { useTranslation } from 'react-i18next';
-const PrixField = ({ postData, handleChangeInput, isRTL, name = 'prix', label = 'price' }) => {
+const PrixField = ({ postData, handleChangeInput, isRTL, name = 'price', label = 'price' }) => {
   const { t } = useTranslation('camposcomunes');
   
   return (

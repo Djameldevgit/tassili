@@ -19,7 +19,7 @@ router.route('/posts')
 router.get('/posts/category/:category',   postCtrl.getPostsByCategory);
 router.get('/categories/all', postCtrl.getAllCategoriesPaginated);
 router.get('/categories/paginated', postCtrl.getAllCategoriesPaginated); // Nueva
-// 📌 RUTAS EXISTENTES (verifica que estén)
+router.get('/posts/similar', postCtrl.getSimilarPosts);
  
 router.get('/user_posts/:id', auth, postCtrl.getUserPosts);
 router.get('/post_discover', auth, postCtrl.getPostsDicover);

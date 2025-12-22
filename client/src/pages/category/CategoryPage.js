@@ -1,8 +1,17 @@
-// pages/CategoryPage.js - VERSIÓN CORREGIDA
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { 
+    Row, 
+    Col, 
+    Container,
+    Button,
+    Badge,
+    ProgressBar,
+    OverlayTrigger,
+    Tooltip
+} from 'react-bootstrap';
 import Posts from '../../components/home/Posts';
 import { getPostsByCategory, getCategories } from '../../redux/actions/postAction';
 import LoadIcon from '../../images/loading.gif';
@@ -16,6 +25,7 @@ const CategoryPage = () => {
     const [loading, setLoading] = useState(true);
     const [page, setPage] = useState(1);
     const [limit] = useState(12);
+    const scrollContainerRef = useRef(null);
     
     // 📌 DEBUG
     useEffect(() => {
@@ -79,35 +89,42 @@ const CategoryPage = () => {
         }
     };
     
+    // 📌 Función para hacer scroll horizontal con flechas del teclado
+    const scrollHorizontal = (direction) => {
+        if (scrollContainerRef.current) {
+            const scrollAmount = 350;
+            const container = scrollContainerRef.current;
+            
+            if (direction === 'left') {
+                container.scrollLeft -= scrollAmount;
+            } else {
+                container.scrollLeft += scrollAmount;
+            }
+        }
+    };
+    
     // 📌 Contar posts totales cargados
     const totalLoaded = homePosts.posts?.length || 0;
     const hasMore = currentCategory && totalLoaded < currentCategory.count;
     
-    // 📌 Verificar si hay posts después de cargar
-    useEffect(() => {
-        if (!loading && homePosts.posts) {
-            console.log('📊 After loading:', {
-                loading,
-                postsCount: homePosts.posts.length,
-                categoryInState: homePosts.category,
-                requestedCategory: categoryName
-            });
-        }
-    }, [loading, homePosts.posts, homePosts.category, categoryName]);
+    // 📌 Calcular progreso de carga
+    const progressPercentage = currentCategory 
+        ? Math.min((totalLoaded / currentCategory.count) * 100, 100)
+        : 0;
     
     if (!categoryName) {
         return (
-            <div className="text-center py-5">
+            <Container className="text-center py-5">
                 <h4>Categoría no especificada</h4>
                 <Link to="/" className="btn btn-primary">
                     Volver al inicio
                 </Link>
-            </div>
+            </Container>
         );
     }
     
     return (
-        <div className="category-posts-page container py-4">
+        <Container className="category-posts-page py-4">
             {/* BREADCRUMB */}
             <nav aria-label="breadcrumb" className="mb-4">
                 <ol className="breadcrumb">
@@ -119,30 +136,123 @@ const CategoryPage = () => {
                     </li>
                     <li className="breadcrumb-item active" aria-current="page">
                         {categoryName}
+                        {currentCategory && (
+                            <Badge bg="secondary" className="ms-2">
+                                {currentCategory.count} anuncios
+                            </Badge>
+                        )}
                     </li>
                 </ol>
             </nav>
             
-        
+            {/* SLIDER DE CATEGORÍAS */}
+            <div className="mb-4">
+                <CategorySliderEmoji />
+            </div>
             
-            {/* POSTS */}
+            {/* ENCABEZADO DE CATEGORÍA */}
+            <Row className="mb-4 align-items-center">
+                <Col>
+                    <h2 className="mb-0">
+                        <i className="fas fa-tag me-2 text-primary"></i>
+                        {categoryName}
+                    </h2>
+                    <p className="text-muted mb-0">
+                        {currentCategory ? `${totalLoaded} de ${currentCategory.count} anuncios cargados` : 'Cargando...'}
+                    </p>
+                </Col>
+                <Col xs="auto">
+                    <div className="d-flex gap-2">
+                        <OverlayTrigger
+                            placement="top"
+                            overlay={<Tooltip>Desplazar izquierda</Tooltip>}
+                        >
+                            <Button 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => scrollHorizontal('left')}
+                                className="rounded-circle"
+                            >
+                                <i className="fas fa-chevron-left"></i>
+                            </Button>
+                        </OverlayTrigger>
+                        
+                        <OverlayTrigger
+                            placement="top"
+                            overlay={<Tooltip>Desplazar derecha</Tooltip>}
+                        >
+                            <Button 
+                                variant="outline-primary" 
+                                size="sm"
+                                onClick={() => scrollHorizontal('right')}
+                                className="rounded-circle"
+                            >
+                                <i className="fas fa-chevron-right"></i>
+                            </Button>
+                        </OverlayTrigger>
+                    </div>
+                </Col>
+            </Row>
+            
+            {/* BARRA DE PROGRESO */}
+            <ProgressBar 
+                now={progressPercentage} 
+                className="mb-3" 
+                label={`${Math.round(progressPercentage)}% cargado`}
+                variant="primary"
+                animated
+            />
+            
+            {/* POSTS EN FILA HORIZONTAL CON SCROLL */}
             {loading ? (
-                <div className="text-center py-5">
-                    <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
-                    <p className="mt-2">Cargando anuncios de {categoryName}...</p>
-                </div>
+                <Row className="justify-content-center py-5">
+                    <Col xs="auto" className="text-center">
+                        <img src={LoadIcon} alt="loading" />
+                        <p className="mt-2">Cargando anuncios de {categoryName}...</p>
+                    </Col>
+                </Row>
             ) : (
                 <>
-                    {/* DEBUG: Mostrar info de posts */}
-                    <div >
-                     <CategorySliderEmoji/>
+                    {/* CONTENEDOR CON SCROLL HORIZONTAL */}
+                    <div 
+                        ref={scrollContainerRef}
+                        style={{
+                            overflowX: 'auto',
+                            overflowY: 'hidden',
+                            whiteSpace: 'nowrap',
+                            padding: '15px 0',
+                            marginBottom: '30px',
+                            scrollBehavior: 'smooth',
+                            msOverflowStyle: 'none',
+                            scrollbarWidth: 'none'
+                        }}
+                        className="mb-4"
+                    >
+                        <div style={{ display: 'inline-flex', gap: '20px', padding: '0 10px' }}>
+                            <Posts 
+                                selectedCategory={categoryName}
+                                fromCategoryPage={true}
+                                displayMode="horizontal"
+                            />
+                        </div>
                     </div>
                     
-                    {/* COMPONENTE POSTS */}
-                    <Posts 
-                        selectedCategory={categoryName}
-                        fromCategoryPage={true}
-                    />
+                 
+                    
+                    {/* TODOS LOS ANUNCIOS EN GRID */}
+                    <div className="mt-5 pt-4 border-top">
+                        <h4 className="mb-3">
+                            <i className="fas fa-th-large me-2"></i>
+                            Todos los anuncios
+                        </h4>
+                        <Row xs={1} sm={2} md={3} lg={4} className="g-3">
+                            <Posts 
+                                selectedCategory={categoryName}
+                                fromCategoryPage={true}
+                                displayMode="grid"
+                            />
+                        </Row>
+                    </div>
                     
                     {/* PAGINACIÓN */}
                     {hasMore && (
@@ -151,10 +261,12 @@ const CategoryPage = () => {
                             animate={{ opacity: 1 }}
                             className="text-center mt-5 pt-4 border-top"
                         >
-                            <button
-                                className="btn btn-primary btn-lg px-5"
+                            <Button
+                                variant="primary"
+                                size="lg"
                                 onClick={loadMorePosts}
                                 disabled={loading}
+                                className="px-5"
                             >
                                 {loading ? (
                                     <>
@@ -167,7 +279,7 @@ const CategoryPage = () => {
                                         Cargar más anuncios ({currentCategory.count - totalLoaded} restantes)
                                     </>
                                 )}
-                            </button>
+                            </Button>
                             <p className="text-muted mt-2">
                                 Página {page - 1} • {totalLoaded} de {currentCategory.count} anuncios
                             </p>
@@ -175,15 +287,17 @@ const CategoryPage = () => {
                     )}
                     
                     {/* VOLVER A HOME */}
-                    <div className="text-center mt-5">
-                        <Link to="/" className="btn btn-outline-secondary">
-                            <i className="fas fa-arrow-left me-2"></i>
-                            Volver al inicio
-                        </Link>
-                    </div>
+                    <Row className="justify-content-center mt-5">
+                        <Col xs="auto">
+                            <Link to="/" className="btn btn-outline-secondary">
+                                <i className="fas fa-arrow-left me-2"></i>
+                                Volver al inicio
+                            </Link>
+                        </Col>
+                    </Row>
                 </>
             )}
-        </div>
+        </Container>
     );
 };
 

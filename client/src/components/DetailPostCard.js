@@ -1,289 +1,200 @@
-// components/DetailPostCard.js
-import React, { useState, useEffect } from 'react';
-import { Card, Spinner, Row, Col, Button, Alert } from 'react-bootstrap';
-import { getDataAPI } from '../utils/fetchData';
- import PostCard from './PostCard';
- 
- 
-import CardBodyCarousel from './home/post_card/CardBodyCarousel';
-import CardHeader from './home/post_card/CardHeader';
+import React from 'react';
 import DescriptionPost from './home/post_card/DescriptionPost';
+import CardBodyCarousel from './home/post_card/CardBodyCarousel';
+import { Row, Col, Badge, Button } from 'react-bootstrap';
 
 const DetailPostCard = ({ post }) => {
-  const [similarPosts, setSimilarPosts] = useState([]);
-  const [loadingSimilar, setLoadingSimilar] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
-
-  // 1. Cargar posts similares iniciales
-  useEffect(() => {
-    if (post?._id) {
-      fetchSimilarPosts();
+    // Validación básica
+    if (!post) {
+        return (
+            <div className="text-center py-5">
+                <p>No se pudo cargar la información del anuncio</p>
+            </div>
+        );
     }
-  }, [post?._id]);
-
-  // Función para cargar posts similares (ruta: /api/post/:id/similar)
-  const fetchSimilarPosts = async () => {
-    try {
-      setLoadingSimilar(true);
-      setError(null);
-      
-      // Usa getDataAPI en lugar de axios
-      const res = await getDataAPI(`post/${post._id}/similar`);
-      
-      if (res.data && res.data.posts) {
-        setSimilarPosts(res.data.posts);
-        setHasMore(res.data.posts.length >= 6);
-      }
-    } catch (err) {
-      console.error('Error al cargar anuncios similares:', err);
-      setError('No se pudieron cargar los anuncios similaires');
-    } finally {
-      setLoadingSimilar(false);
-    }
-  };
-
-  // 2. Función para "Ver más" (ruta: /api/posts/category/:categorie)
-  const handleLoadMore = async () => {
-    try {
-      setLoadingMore(true);
-      
-      const skip = similarPosts.length;
-      
-      // Usa getDataAPI con parámetros
-      const res = await getDataAPI(
-        `posts/category/${post.categorie}?limit=6&skip=${skip}&excludeId=${post._id}`
-      );
-      
-      if (res.data && res.data.posts) {
-        const newPosts = res.data.posts;
-        setSimilarPosts(prev => [...prev, ...newPosts]);
-        setHasMore(newPosts.length >= 6);
-      }
-    } catch (err) {
-      console.error('Error al cargar más anuncios:', err);
-      setError('Erreur lors du chargement des annonces');
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
-  // 3. Función para explorar la categoría
-  const handleExploreCategory = () => {
-    window.location.href = `/category/${post.categorie}`;
-  };
-
-  // 4. Verificar si realmente no hay posts en la categoría
-  const checkIfCategoryHasPosts = async () => {
-    try {
-      const res = await getDataAPI(`posts/category/${post.categorie}?limit=1`);
-      return res.data && res.data.posts && res.data.posts.length > 0;
-    } catch (err) {
-      return false;
-    }
-  };
-
-  if (!post) return null;
-
-  return (
-    <div className="detail-post-card">
-      {/* Contenedor principal */}
-      <div className="main-content">
-        <CardHeader post={post} />
-        <Card className="shadow-sm border-0 mb-4">
-          <CardBodyCarousel post={post} />
-          
-          <DescriptionPost 
-            post={post}
-            similarPosts={similarPosts}
-            loadingSimilar={loadingSimilar}
-            onLoadMoreSimilar={handleLoadMore}
-            onExploreCategory={handleExploreCategory}
-          />
-        </Card>
-      </div>
-
-      {/* Sección de posts similares */}
-      <div className="similar-posts-section mt-5">
-        {/* Encabezado */}
-        <div className="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
-          <div>
-            <h4 className="mb-0">
-              <span className="me-2">📌</span>
-              Annonces similaires
-              {similarPosts.length > 0 && (
-                <span className="badge bg-primary ms-2">{similarPosts.length}</span>
-              )}
-            </h4>
-            <p className="text-muted small mb-0 mt-1">
-              Autres annonces de la catégorie <strong>{post.categorie}</strong>
-            </p>
-          </div>
-          
-          {similarPosts.length > 0 && hasMore && (
-            <Button 
-              variant="outline-primary" 
-              size="sm"
-              onClick={handleLoadMore}
-              disabled={loadingMore}
-            >
-              {loadingMore ? 'Chargement...' : 'Voir plus'}
-            </Button>
-          )}
-        </div>
-
-        {/* Estado de error */}
-        {error && (
-          <Alert variant="warning" className="mb-4">
-            {error}
-            <Button 
-              variant="outline-warning" 
-              size="sm" 
-              className="ms-3"
-              onClick={fetchSimilarPosts}
-            >
-              Réessayer
-            </Button>
-          </Alert>
-        )}
-
-        {/* Loading inicial */}
-        {loadingSimilar && similarPosts.length === 0 && (
-          <div className="text-center py-5">
-            <Spinner animation="border" variant="primary" />
-            <p className="mt-3 text-muted">Recherche d'annonces similaires...</p>
-          </div>
-        )}
-
-        {/* Grid de posts similares */}
-        {!loadingSimilar && similarPosts.length > 0 && (
-          <>
-            <Row xs={1} md={2} lg={3} className="g-4">
-              {similarPosts.map((similarPost) => (
-                <Col key={similarPost._id}>
-                  <PostCard post={similarPost} />
-                </Col>
-              ))}
-            </Row>
+    
+    return (
+        <div className="detail-post-card">
+            {/* SECCIÓN 1: Carrusel de imágenes */}
+            <div className="mb-4">
+                <CardBodyCarousel post={post} />
+            </div>
             
-            {hasMore && (
-              <div className="text-center mt-4 pt-3 border-top">
-                <Button 
-                  variant="primary" 
-                  onClick={handleLoadMore}
-                  disabled={loadingMore}
-                  className="px-4"
-                >
-                  {loadingMore ? (
-                    <>
-                      <Spinner animation="border" size="sm" className="me-2" />
-                      Chargement...
-                    </>
-                  ) : (
-                    'Voir plus d\'annonces similaires →'
-                  )}
-                </Button>
-              </div>
+            {/* SECCIÓN 2: Información principal */}
+            <div className="post-header mb-4">
+                <Row className="align-items-center">
+                    <Col xs={8}>
+                        <h1 className="h3 mb-2 fw-bold">
+                            {post.titre || 'Sin título'}
+                        </h1>
+                        
+                        <div className="d-flex gap-2 mb-2">
+                            <Badge bg="primary" className="px-3 py-2">
+                                {post.categorie || 'Categoría'}
+                            </Badge>
+                            
+                            {post.subCategory && (
+                                <Badge bg="secondary" className="px-3 py-2">
+                                    {post.subCategory}
+                                </Badge>
+                            )}
+                            
+                            {post.isUrgent && (
+                                <Badge bg="danger" className="px-3 py-2">
+                                    <i className="fas fa-bolt me-1"></i>
+                                    Urgente
+                                </Badge>
+                            )}
+                        </div>
+                    </Col>
+                    
+                    <Col xs={4} className="text-end">
+                        <div className="price-display">
+                            <h2 className="text-primary mb-0">
+                                {post.price ? post.price.toLocaleString() + ' €' : 'Consultar'}
+                            </h2>
+                            <small className="text-muted">Precio</small>
+                        </div>
+                    </Col>
+                </Row>
+            </div>
+            
+            {/* SECCIÓN 3: Información de ubicación y contacto */}
+            <div className="post-info mb-4 p-3 bg-light rounded">
+                <Row>
+                    <Col md={6} className="mb-3 mb-md-0">
+                        <div className="d-flex align-items-center">
+                            <i className="fas fa-map-marker-alt text-muted me-2"></i>
+                            <div>
+                                <strong>Ubicación:</strong>
+                                <div>
+                                    {post.wilaya || 'No especificado'}
+                                    {post.commune && `, ${post.commune}`}
+                                </div>
+                            </div>
+                        </div>
+                    </Col>
+                    
+                    <Col md={6}>
+                        <div className="d-flex align-items-center">
+                            <i className="fas fa-phone text-muted me-2"></i>
+                            <div>
+                                <strong>Contacto:</strong>
+                                <div>
+                                    {post.telephone || 'No disponible'}
+                                </div>
+                            </div>
+                        </div>
+                    </Col>
+                </Row>
+            </div>
+            
+            {/* SECCIÓN 4: Descripción del post */}
+            <div className="post-description mb-4">
+                <h4 className="h5 mb-3">
+                    <i className="fas fa-align-left text-muted me-2"></i>
+                    Descripción
+                </h4>
+                <DescriptionPost post={post} />
+            </div>
+            
+            {/* SECCIÓN 5: Datos específicos de categoría */}
+            {post.categorySpecificData && 
+             Object.keys(post.categorySpecificData).length > 0 && (
+                <div className="category-details mb-4">
+                    <h4 className="h5 mb-3">
+                        <i className="fas fa-list-alt text-muted me-2"></i>
+                        Detalles específicos
+                    </h4>
+                    
+                    <Row className="g-2">
+                        {Object.entries(post.categorySpecificData).map(([key, value]) => (
+                            <Col key={key} xs={12} sm={6} md={4}>
+                                <div className="p-3 border rounded bg-white">
+                                    <div className="text-muted small text-uppercase">
+                                        {formatKey(key)}
+                                    </div>
+                                    <div className="fw-bold mt-1">
+                                        {formatValue(value)}
+                                    </div>
+                                </div>
+                            </Col>
+                        ))}
+                    </Row>
+                </div>
             )}
-          </>
-        )}
+            
+            {/* SECCIÓN 6: Botones de acción */}
+            <div className="post-actions mt-4">
+                <Row className="g-2">
+                    <Col xs={12} md={8}>
+                        <Button 
+                            variant="primary" 
+                            size="lg" 
+                            className="w-100 py-3"
+                            onClick={() => window.location.href = `tel:${post.telephone}`}
+                            disabled={!post.telephone}
+                        >
+                            <i className="fas fa-phone me-2"></i>
+                            {post.telephone ? `Llamar al ${post.telephone}` : 'Teléfono no disponible'}
+                        </Button>
+                    </Col>
+                    
+                    <Col xs={6} md={2}>
+                        <Button 
+                            variant="outline-primary" 
+                            size="lg" 
+                            className="w-100 py-3"
+                            onClick={() => {/* Acción de like */}}
+                        >
+                            <i className="far fa-heart"></i>
+                        </Button>
+                    </Col>
+                    
+                    <Col xs={6} md={2}>
+                        <Button 
+                            variant="outline-primary" 
+                            size="lg" 
+                            className="w-100 py-3"
+                            onClick={() => {/* Acción de guardar */}}
+                        >
+                            <i className="far fa-bookmark"></i>
+                        </Button>
+                    </Col>
+                </Row>
+            </div>
+        </div>
+    );
+};
 
-        {/* Estado vacío - CON MÁS INFORMACIÓN */}
-        {!loadingSimilar && similarPosts.length === 0 && !error && (
-          <Card className="border-0 shadow-sm">
-            <Card.Header className="bg-light border-0">
-              <h5 className="mb-0 d-flex align-items-center">
-                <span className="me-2">📌</span>
-                Annonces similaires
-              </h5>
-            </Card.Header>
-            <Card.Body className="text-center py-5">
-              <div className="mb-3" style={{ fontSize: '3rem' }}>
-                🔍
-              </div>
-              
-              {/* Mensaje dinámico según situación */}
-              {post.categorie === 'immobilier' || post.categorie === 'vehicules' ? (
-                <>
-                  <h6 className="text-muted mb-3">
-                    Aucune annonce similaire pour le moment
-                  </h6>
-                  <p className="text-muted small mb-4">
-                    Nous n'avons pas trouvé d'annonces similaires dans la catégorie 
-                    <strong className="ms-1">"{post.categorie}"</strong>.
-                    <br />
-                    <small className="text-info">
-                      (Cela peut être dû à: 1) Peu d'annonces publiées, 2) Filtres trop spécifiques)
-                    </small>
-                  </p>
-                </>
-              ) : (
-                <>
-                  <h6 className="text-muted mb-3">
-                    Catégorie peu active
-                  </h6>
-                  <p className="text-muted small mb-4">
-                    La catégorie <strong>"{post.categorie}"</strong> ne contient pas encore beaucoup d'annonces.
-                    Soyez le premier à publier régulièrement dans cette catégorie!
-                  </p>
-                </>
-              )}
-              
-              <div className="d-flex justify-content-center gap-3">
-                <Button 
-                  variant="primary" 
-                  onClick={handleExploreCategory}
-                  className="mt-2"
-                >
-                  Explorer la catégorie {post.categorie}
-                </Button>
-                
-                <Button 
-                  variant="outline-secondary" 
-                  onClick={fetchSimilarPosts}
-                  className="mt-2"
-                >
-                  Actualiser la recherche
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
-        )}
-      </div>
+// Función para formatear las claves (ej: "marque" → "Marca")
+const formatKey = (key) => {
+    const translations = {
+        'marque': 'Marca',
+        'model': 'Modelo',
+        'etat': 'Estado',
+        'annee': 'Año',
+        'kilometrage': 'Kilometraje',
+        'carburant': 'Combustible',
+        'boite': 'Caja',
+        'type': 'Tipo',
+        'surface': 'Superficie',
+        'pieces': 'Habitaciones',
+        'chambres': 'Dormitorios',
+        'couleur': 'Color',
+        'taille': 'Talla',
+        'etat': 'Condición'
+    };
+    
+    return translations[key] || key.charAt(0).toUpperCase() + key.slice(1);
+};
 
-      {/* Estilos */}
-      <style>{`
-        .detail-post-card {
-          max-width: 1200px;
-          margin: 0 auto;
-          animation: fadeIn 0.5s ease;
-        }
-        
-        .similar-posts-section h4 {
-          color: #2d3748;
-          font-weight: 600;
-        }
-        
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @media (max-width: 768px) {
-          .similar-posts-section .row {
-            margin: 0 -10px;
-          }
-          
-          .d-flex.justify-content-between {
-            flex-direction: column;
-            align-items: flex-start !important;
-            gap: 1rem;
-          }
-        }
-      `}</style>
-    </div>
-  );
+// Función para formatear los valores
+const formatValue = (value) => {
+    if (typeof value === 'boolean') {
+        return value ? 'Sí' : 'No';
+    }
+    return String(value);
 };
 
 export default DetailPostCard;

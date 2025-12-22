@@ -241,10 +241,86 @@ getAllCategoriesPaginated: async (req, res) => {
         return res.status(500).json({msg: err.message});
     }
 },
+ 
 
-
-
-
+// Función auxiliar para calcular similitud
+// redux/actions/postAction.js
+  getSimilarPosts : (currentPostId) => async (dispatch, getState) => {
+    try {
+        const { auth } = getState();
+        
+        console.log('🔍 Buscando posts similares para ID:', currentPostId);
+        
+        // 1. Primero obtenemos el post actual COMPLETO
+        const postRes = await getDataAPI(`post/${currentPostId}`, auth.token);
+        const currentPost = postRes.data.post;
+        
+        console.log('📋 Datos del post actual para similares:', {
+            id: currentPost._id,
+            categorie: currentPost.categorie,
+            subCategory: currentPost.subCategory,
+            wilaya: currentPost.wilaya,
+            price: currentPost.price
+        });
+        
+        // 2. Construir query para posts similares
+        const params = new URLSearchParams();
+        params.append('categorie', currentPost.categorie);
+        params.append('excludeId', currentPost._id);
+        params.append('limit', '6');
+        
+        // Agregar ubicación si existe
+        if (currentPost.wilaya) {
+            params.append('wilaya', currentPost.wilaya);
+        }
+        
+        // 3. Hacer la petición
+        const url = `posts/similar?${params.toString()}`;
+        console.log('📡 URL de búsqueda:', url);
+        
+        const similarRes = await getDataAPI(url, auth.token);
+        
+        console.log('✅ Posts similares encontrados:', {
+            count: similarRes.data.posts.length,
+            posts: similarRes.data.posts.map(p => ({
+                id: p._id,
+                categorie: p.categorie,
+                titre: p.titre
+            }))
+        });
+        
+        // 4. Guardar en Redux
+        dispatch({
+            type: POST_TYPES.GET_SIMILAR_POSTS,
+            payload: similarRes.data.posts || []
+        });
+        
+        return {
+            success: true,
+            posts: similarRes.data.posts || []
+        };
+        
+    } catch (err) {
+        console.error('❌ Error completo en getSimilarPosts:', {
+            message: err.message,
+            response: err.response.data,
+            status: err.response.status
+        });
+        
+        // En caso de error, devolver array vacío
+        dispatch({
+            type: POST_TYPES.GET_SIMILAR_POSTS,
+            payload: []
+        });
+        
+        return {
+            success: false,
+            posts: [],
+            error: err.message
+        };
+    }
+},
+ 
 
 updatePost: async (req, res) => {
     try {

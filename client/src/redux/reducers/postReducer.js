@@ -11,6 +11,8 @@ const initialState = {
     total: 0,
     totalPages: 1,
     categories: [],
+
+    similarPosts: [],
     currentCategory: 'all'
 };
 
@@ -90,9 +92,16 @@ const postReducer = (state = initialState, action) => {
                 ...state,
                 categories: action.payload
             };
-            
-        // ... otros casos se mantienen
-            // redux/reducers/postReducer.js
+            case POST_TYPES.GET_SIMILAR_POSTS:
+                console.log('🔄 Reducer - GET_SIMILAR_POSTS:', {
+                    postsCount: action.payload?.length
+                });
+                
+                return {
+                    ...state,
+                    similarPosts: action.payload, // Solo guardamos los posts
+                    loading: false
+                };
 case POST_TYPES.GET_CATEGORIES_PAGINATED:
     console.log('🔄 Reducer - GET_CATEGORIES_PAGINATED:', {
         page: action.payload.page,

@@ -2,8 +2,8 @@
 import React, { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import PostCard from '../postcards/PostCard';
-
+import PostCard from '../PostCard';
+ 
 const Posts = ({ selectedCategory, fromCategoryPage = false }) => {
     const location = useLocation();
     const { homePosts } = useSelector(state => state);
@@ -59,14 +59,15 @@ const Posts = ({ selectedCategory, fromCategoryPage = false }) => {
     }
     
     return (
-        <div className="posts">
-            <div className="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div className="post_thumb">
+             
+             
                 {displayPosts.map(post => (
-                    <div key={post._id} className="col">
+                    <div key={post._id} >
                         <PostCard post={post} />
                     </div>
                 ))}
-            </div>
+             
         </div>
     );
 };
