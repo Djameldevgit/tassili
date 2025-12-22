@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { Card, Spinner, Row, Col, Button, Alert } from 'react-bootstrap';
 import { getDataAPI } from '../utils/fetchData';
+ import PostCard from './PostCard';
  
-import DescriptionPost from './descriptionpost/DescriptionPost';
+ 
 import CardBodyCarousel from './home/post_card/CardBodyCarousel';
-import PostCard from './postcards/PostCard';
- 
+import CardHeader from './home/post_card/CardHeader';
+import DescriptionPost from './home/post_card/DescriptionPost';
+
 const DetailPostCard = ({ post }) => {
   const [similarPosts, setSimilarPosts] = useState([]);
   const [loadingSimilar, setLoadingSimilar] = useState(false);
@@ -88,6 +90,7 @@ const DetailPostCard = ({ post }) => {
     <div className="detail-post-card">
       {/* Contenedor principal */}
       <div className="main-content">
+        <CardHeader post={post} />
         <Card className="shadow-sm border-0 mb-4">
           <CardBodyCarousel post={post} />
           

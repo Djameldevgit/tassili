@@ -1,0 +1,323 @@
+// 📁 src/components/CATEGORIES/FieldConfig.js
+
+export const FIELD_CONFIG = {
+    // ============ IMMOBILIER (con estructura avanzada) ============
+    'immobilier': {
+      'vente': {
+        'appartement': {
+          baseFields: ['superficie', 'prix', 'nombrePieces', 'etage', 'ascenseur', 'description'],
+          conditional: {
+            'etage': {
+              visible: true,
+              required: true,
+              dependsOn: [],
+              options: []
+            },
+            'ascenseur': {
+              visible: true,
+              required: false,
+              dependsOn: ['etage'],
+              condition: (postData) => postData.etage && postData.etage > 2,
+              options: ['oui', 'non']
+            }
+          }
+        },
+        'villa': {
+          baseFields: ['superficie', 'prix', 'nombrePieces', 'etages', 'jardin', 'piscine', 'description'],
+          conditional: {
+            'piscine': {
+              visible: true,
+              required: false,
+              dependsOn: ['jardin'],
+              condition: (postData) => postData.jardin === 'oui',
+              options: ['oui', 'non']
+            }
+          }
+        }
+      },
+      'location': {
+        'appartement': {
+          baseFields: ['superficie', 'loyer', 'caution', 'nombrePieces', 'etage', 'description'],
+          conditional: {}
+        }
+      }
+    },
+  
+    // ============ ELECTROMENAGER (estructura avanzada) ============
+    'electromenager': {
+      'televiseurs': {
+        baseFields: ['marque', 'modele', 'tailleEcran', 'typeEcran', 'smartTv', 'etat', 'prix'],
+        conditional: {
+          'resolution': {
+            visible: true,
+            required: false,
+            dependsOn: ['typeEcran'],
+            condition: (postData) => postData.typeEcran === 'led' || postData.typeEcran === 'oled',
+            options: ['4K UHD', 'Full HD', 'HD', '8K']
+          },
+          'connectivite': {
+            visible: true,
+            required: false,
+            dependsOn: ['smartTv'],
+            condition: (postData) => postData.smartTv === 'oui',
+            options: ['wifi', 'ethernet', 'bluetooth', 'hdmi']
+          }
+        }
+      },
+      'refrigerateurs_congelateurs': {
+        baseFields: ['typeAppareil', 'marque', 'modele', 'capacite', 'classeEnergetique', 'etat', 'prix'],
+        conditional: {
+          'typeFroid': {
+            visible: true,
+            required: true,
+            dependsOn: ['typeAppareil'],
+            condition: (postData) => postData.typeAppareil === 'refrigerateur',
+            options: ['statique', 'ventile', 'no_frost']
+          },
+          'dimensions': {
+            visible: true,
+            required: false,
+            dependsOn: [],
+            options: []
+          }
+        }
+      },
+      'machines_laver': {
+        baseFields: ['typeMachine', 'marque', 'modele', 'capacite', 'classeEnergetique', 'etat', 'prix'],
+        conditional: {
+          'vitesseEssorage': {
+            visible: true,
+            required: false,
+            dependsOn: ['typeMachine'],
+            condition: (postData) => postData.typeMachine === 'lavante_sechante',
+            options: ['800', '1000', '1200', '1400']
+          },
+          'programmes': {
+            visible: true,
+            required: false,
+            dependsOn: [],
+            options: []
+          }
+        }
+      },
+      'demodulateurs_box_tv': {
+        baseFields: ['typeAppareil', 'marque', 'modele', 'compatible', 'etat', 'prix'],
+        conditional: {}
+      },
+      'paraboles_switch_tv': {
+        baseFields: ['typeAppareil', 'marque', 'modele', 'diametreParabole', 'compatible', 'etat', 'prix'],
+        conditional: {}
+      },
+      'abonnements_iptv': {
+        baseFields: ['typeAbonnement', 'fournisseur', 'duree', 'nombreChaines', 'prix'],
+        conditional: {}
+      },
+      'cameras_accessories': {
+        baseFields: ['typeAppareil', 'marque', 'modele', 'resolution', 'etat', 'prix'],
+        conditional: {}
+      },
+      'audio': {
+        baseFields: ['typeAppareil', 'marque', 'modele', 'puissance', 'etat', 'prix'],
+        conditional: {}
+      }
+    },
+  
+    // ============ VEHICULES (estructura simple para otras categorías) ============
+    'vehicules': {
+      'automobiles': [
+        'marque', 'modele', 'annee', 'kilometrage', 'carburant', 'boiteVitesse',
+        'puissance', 'couleur', 'etat', 'prix'
+      ],
+      'motos': [
+        'typeMoto', 'marque', 'modele', 'cylindree', 'annee', 'kilometrage',
+        'couleur', 'etat', 'prix'
+      ],
+      'utilitaires': [
+        'marque', 'modele', 'typeUtilitaire', 'annee', 'kilometrage',
+        'chargeUtile', 'couleur', 'etat', 'prix'
+      ]
+    },
+  
+    // ============ TELEPHONES (estructura simple) ============
+    'telephones': {
+      'smartphones': [
+        'marque', 'modele', 'etat', 'capaciteStockage', 'couleur',
+        'systemeExploitation', 'tailleEcran', 'ram', 'batterie', 'reseau',
+        'capteurEmpreinte', 'faceid', 'doubleSim', 'typeChargeur', 'garantie', 'imei'
+      ],
+      'tablettes': [
+        'marque', 'modele', 'etat', 'capaciteStockage', 'couleur',
+        'systemeExploitation', 'tailleEcran', 'ram', 'batterie',
+        'reseau', 'connectivite', 'garantie'
+      ]
+    }
+  };
+  
+  // 🔥 FUNCIÓN INTELIGENTE que maneja ambas estructuras
+  export const getVisibleFields = (mainCategory, subCategory, articleType = null, postData = {}) => {
+    console.log('🔍 FieldConfig.getVisibleFields:', {
+      mainCategory,
+      subCategory,
+      articleType,
+      'postData keys': Object.keys(postData)
+    });
+  
+    if (!mainCategory || !FIELD_CONFIG[mainCategory]) {
+      console.log('⚠️ Categoría no encontrada:', mainCategory);
+      return [];
+    }
+  
+    // Para immobilier (tiene articleType y estructura avanzada)
+    if (mainCategory === 'immobilier' && articleType) {
+      const config = FIELD_CONFIG[mainCategory][articleType]?.[subCategory];
+      if (!config) return [];
+      
+      return getConditionalFields(config, postData);
+    }
+  
+    // Para otras categorías con estructura avanzada (ej: electromenager)
+    const config = FIELD_CONFIG[mainCategory]?.[subCategory];
+    
+    // Si es estructura avanzada (tiene baseFields y conditional)
+    if (config && typeof config === 'object' && config.baseFields) {
+      return getConditionalFields(config, postData);
+    }
+    
+    // Si es estructura simple (array)
+    return config || [];
+  };
+  
+  // 🔥 FUNCIÓN para calcular campos condicionales
+  export const getConditionalFields = (config, postData = {}) => {
+    if (!config || !config.baseFields) return [];
+    
+    const { baseFields, conditional = {} } = config;
+    
+    // Filtrar campos condicionales que deben mostrarse
+    const visibleConditionalFields = Object.entries(conditional)
+      .filter(([fieldName, fieldConfig]) => {
+        // Si no tiene condición, siempre visible
+        if (!fieldConfig.condition) return fieldConfig.visible !== false;
+        
+        // Evaluar condición
+        try {
+          return fieldConfig.condition(postData);
+        } catch (error) {
+          console.error(`❌ Error evaluando condición para ${fieldName}:`, error);
+          return false;
+        }
+      })
+      .map(([fieldName]) => fieldName);
+    
+    return [...baseFields, ...visibleConditionalFields];
+  };
+  
+  // 🔥 FUNCIÓN para obtener configuración completa de un campo
+  export const getFieldConfig = (mainCategory, subCategory, fieldName, articleType = null) => {
+    if (!mainCategory || !FIELD_CONFIG[mainCategory]) return null;
+    
+    let config;
+    
+    // Para immobilier
+    if (mainCategory === 'immobilier' && articleType) {
+      config = FIELD_CONFIG[mainCategory][articleType]?.[subCategory];
+    } 
+    // Para otras categorías
+    else {
+      config = FIELD_CONFIG[mainCategory]?.[subCategory];
+    }
+    
+    if (!config) return null;
+    
+    // Si es estructura avanzada
+    if (config.baseFields) {
+      // Verificar si es campo condicional
+      if (config.conditional && config.conditional[fieldName]) {
+        return {
+          type: 'conditional',
+          ...config.conditional[fieldName]
+        };
+      }
+      
+      // Verificar si es campo base
+      if (config.baseFields.includes(fieldName)) {
+        return {
+          type: 'base',
+          required: true,
+          visible: true
+        };
+      }
+    }
+    
+    // Si es estructura simple
+    if (Array.isArray(config) && config.includes(fieldName)) {
+      return {
+        type: 'base',
+        required: true,
+        visible: true
+      };
+    }
+    
+    return null;
+  };
+  
+  // 🔥 FUNCIÓN para validar si un campo es requerido
+  export const isFieldRequired = (mainCategory, subCategory, fieldName, articleType = null) => {
+    const fieldConfig = getFieldConfig(mainCategory, subCategory, fieldName, articleType);
+    
+    if (!fieldConfig) return false;
+    
+    return fieldConfig.required !== false;
+  };
+  
+  // 🔥 FUNCIÓN para obtener opciones de un campo select
+  export const getFieldOptions = (mainCategory, subCategory, fieldName, articleType = null) => {
+    const fieldConfig = getFieldConfig(mainCategory, subCategory, fieldName, articleType);
+    
+    if (!fieldConfig || !fieldConfig.options) return null;
+    
+    return fieldConfig.options;
+  };
+  
+  // 🔥 FUNCIÓN para verificar dependencias
+  export const getFieldDependencies = (mainCategory, subCategory, fieldName, articleType = null) => {
+    const fieldConfig = getFieldConfig(mainCategory, subCategory, fieldName, articleType);
+    
+    if (!fieldConfig || !fieldConfig.dependsOn) return [];
+    
+    return fieldConfig.dependsOn;
+  };
+  
+  // 🔥 DEBUG: Mostrar toda la configuración
+  export const debugFieldConfig = () => {
+    console.log('🔧 DEBUG FieldConfig - Estructura completa:');
+    
+    Object.entries(FIELD_CONFIG).forEach(([category, config]) => {
+      console.log(`\n📁 ${category}:`);
+      
+      if (category === 'immobilier') {
+        Object.entries(config).forEach(([operation, types]) => {
+          console.log(`  └─ ${operation}:`);
+          Object.entries(types).forEach(([type, typeConfig]) => {
+            console.log(`    └─ ${type}:`);
+            console.log(`      baseFields: ${typeConfig.baseFields?.length || 0} campos`);
+            console.log(`      conditional: ${Object.keys(typeConfig.conditional || {}).length} campos`);
+          });
+        });
+      } else if (typeof config === 'object' && config.televiseurs?.baseFields) {
+        // Estructura avanzada
+        Object.entries(config).forEach(([subCat, subConfig]) => {
+          if (subConfig.baseFields) {
+            console.log(`  └─ ${subCat}: ${subConfig.baseFields.length} base + ${Object.keys(subConfig.conditional || {}).length} condicional`);
+          } else {
+            console.log(`  └─ ${subCat}: ${subConfig.length} campos`);
+          }
+        });
+      } else {
+        // Estructura simple
+        Object.entries(config).forEach(([subCat, fields]) => {
+          console.log(`  └─ ${subCat}: ${fields.length} campos`);
+        });
+      }
+    });
+  };
