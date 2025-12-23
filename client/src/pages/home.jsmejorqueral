@@ -1,525 +1,239 @@
-// pages/Home.js - MARKETPLACE CON POSTS POR CATEGORÍA
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Row, Col, Container, Form, InputGroup } from 'react-bootstrap';
 import { getCategories, getPostsByCategory } from '../redux/actions/postAction';
 import LoadIcon from '../images/loading.gif';
+import HeaderCarousel from '../components/SlidersHeadrs/HeaderCarousel';
+import CategorySlider from '../components/SlidersHeadrs/CategorySlider';
+import PostCard from '../components/PostCard';
 
 const Home = () => {
     const dispatch = useDispatch();
-    const { homePosts, auth } = useSelector(state => state);
-    const [loading, setLoading] = useState(true);
+    const { homePosts } = useSelector(state => state);
     const [searchQuery, setSearchQuery] = useState('');
-    const [expandedCategories, setExpandedCategories] = useState({});
-    const [categoryPosts, setCategoryPosts] = useState({});
-    const [loadingPosts, setLoadingPosts] = useState({});
+    const [loading, setLoading] = useState(true);
+    const [loadingMore, setLoadingMore] = useState(false);
     
-    const categoryRefs = useRef({});
+    const lastCategoryRef = useRef();
 
-    // 📌 Cargar categorías al inicio
+    // 📌 Cargar PRIMERAS 2 categorías al inicio
     useEffect(() => {
-        const loadData = async () => {
+        const loadInitialData = async () => {
             try {
-                console.log('🏠 Marketplace Home - Loading categories...');
-                await dispatch(getCategories());
+                console.log('🏠 Home - Cargando primeras 2 categorías...');
+                await dispatch(getCategories(1, 2));
+                setLoading(false);
             } catch (error) {
                 console.error('Error loading categories:', error);
-            } finally {
                 setLoading(false);
             }
         };
         
-        loadData();
+        loadInitialData();
     }, [dispatch]);
 
-    // 📌 Cargar posts para categorías populares automáticamente
+    // 📌 Cargar 6 posts para cada categoría cargada
     useEffect(() => {
-        if (!loading && homePosts.categories) {
-            const popularCategories = homePosts.categories
-                .filter(cat => cat.count > 0)
-                .slice(0, 3); // Cargar solo 3 categorías al inicio
+        if (!loading && homePosts.categories && homePosts.categories.length > 0) {
+            console.log('📥 Cargando posts para categorías visibles...');
             
-            popularCategories.forEach(async (category) => {
-                await loadCategoryPosts(category.name, 3); // Cargar 3 posts por categoría
+            homePosts.categories.forEach(async (category, index) => {
+                // Solo cargar si no tiene posts ya
+                if (!homePosts.categoryPosts?.[category.name]) {
+                    setTimeout(async () => {
+                        try {
+                            await dispatch(getPostsByCategory(category.name, 1, { limit: 8 }));
+                        } catch (error) {
+                            console.error(`Error loading posts for ${category.name}:`, error);
+                        }
+                    }, index * 300);
+                }
             });
         }
-    }, [loading, homePosts.categories]);
+    }, [loading, homePosts.categories, dispatch]);
 
-    // 📌 Función para cargar posts de una categoría
-    const loadCategoryPosts = async (categoryName, limit = 3) => {
-        if (loadingPosts[categoryName]) return;
+    // 📌 Función para cargar MÁS categorías (scroll infinito)
+    const loadMoreCategories = useCallback(async () => {
+        if (loadingMore || !homePosts.categoriesHasMore) return;
         
-        setLoadingPosts(prev => ({ ...prev, [categoryName]: true }));
-        
+        setLoadingMore(true);
         try {
-            console.log(`📥 Loading ${limit} posts for category: ${categoryName}`);
-            const result = await dispatch(getPostsByCategory(categoryName, 1, { limit }));
+            const nextPage = (homePosts.categoriesPage || 0) + 1;
+            console.log(`📥 Cargando página ${nextPage} de categorías...`);
             
-            setCategoryPosts(prev => ({
-                ...prev,
-                [categoryName]: result.posts || result.data?.posts || []
-            }));
+            await dispatch(getCategories(nextPage, 2));
         } catch (error) {
-            console.error(`Error loading posts for ${categoryName}:`, error);
+            console.error('Error loading more categories:', error);
         } finally {
-            setLoadingPosts(prev => ({ ...prev, [categoryName]: false }));
+            setLoadingMore(false);
         }
-    };
+    }, [dispatch, loadingMore, homePosts.categoriesHasMore, homePosts.categoriesPage]);
 
-    // 📌 Función para expandir/contraer categoría
-    const toggleCategory = (categoryName) => {
-        setExpandedCategories(prev => ({
-            ...prev,
-            [categoryName]: !prev[categoryName]
-        }));
+    // 📌 Observer para scroll infinito
+    useEffect(() => {
+        if (loading || !homePosts.categoriesHasMore) return;
         
-        // Si se expande y no tiene posts cargados, cargarlos
-        if (!expandedCategories[categoryName] && !categoryPosts[categoryName]) {
-            loadCategoryPosts(categoryName, 6);
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && homePosts.categoriesHasMore) {
+                    loadMoreCategories();
+                }
+            },
+            { threshold: 0.5 }
+        );
+        
+        if (lastCategoryRef.current) {
+            observer.observe(lastCategoryRef.current);
         }
-    };
-
-    // 📌 Función para cargar más posts de una categoría
-    const loadMorePosts = async (categoryName) => {
-        const currentPosts = categoryPosts[categoryName] || [];
-        const nextLimit = currentPosts.length + 6;
         
-        await loadCategoryPosts(categoryName, nextLimit);
-    };
+        return () => {
+            if (lastCategoryRef.current) {
+                observer.unobserve(lastCategoryRef.current);
+            }
+        };
+    }, [loading, homePosts.categories, homePosts.categoriesHasMore, loadMoreCategories]);
 
     // 📌 Filtrar categorías por búsqueda
     const filteredCategories = homePosts.categories
         ?.filter(cat => 
-            cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cat.description?.toLowerCase().includes(searchQuery.toLowerCase())
-        )
-        .filter(cat => cat.count > 0) || [];
-
-    // 📌 Scroll a categoría
-    const scrollToCategory = (categoryName) => {
-        if (categoryRefs.current[categoryName]) {
-            categoryRefs.current[categoryName].scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    };
+            cat.name.toLowerCase().includes(searchQuery.toLowerCase())
+        ) || [];
 
     return (
         <div className="marketplace-home">
-            {/* HERO SECTION */}
-            <div className="hero-section text-center py-5 mb-4">
-                <motion.div
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                >
-                    <h1 className="display-4 fw-bold mb-3">
-                        <span className="text-primary">Explora</span>
-                        <span className="text-secondary"> y Descubre</span>
-                    </h1>
-                    <p className="lead mb-4">
-                        Miles de productos y servicios organizados por categorías
-                    </p>
-                    
-                    {/* BARRA DE BÚSQUEDA */}
-                    <div className="search-bar mx-auto mb-4" style={{ maxWidth: '600px' }}>
-                        <div className="input-group input-group-lg shadow-sm">
-                            <span className="input-group-text bg-white border-end-0">
+            <HeaderCarousel/>
+            <CategorySlider/>
+            
+            {/* BARRA DE BÚSQUEDA */}
+            <Container className="my-4">
+                <Row className="justify-content-center">
+                    <Col md={6} lg={5}>
+                        <InputGroup className="shadow-sm">
+                            <InputGroup.Text className="bg-white border-end-0">
                                 <i className="fas fa-search text-muted"></i>
-                            </span>
-                            <input
+                            </InputGroup.Text>
+                            <Form.Control
                                 type="text"
-                                className="form-control border-start-0"
                                 placeholder="Buscar categorías..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                className="border-start-0"
                             />
-                            {searchQuery && (
-                                <button 
-                                    className="btn btn-outline-secondary"
-                                    onClick={() => setSearchQuery('')}
-                                >
-                                    <i className="fas fa-times"></i>
-                                </button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* CATEGORÍAS RÁPIDAS */}
-                    <div className="quick-categories d-flex flex-wrap justify-content-center gap-2 mb-3">
-                        {filteredCategories.slice(0, 8).map(category => (
-                            <button
-                                key={category.name}
-                                className="btn btn-outline-primary btn-sm"
-                                onClick={() => scrollToCategory(category.name)}
-                            >
-                                {category.emoji} {category.name}
-                            </button>
-                        ))}
-                    </div>
-                </motion.div>
-            </div>
+                        </InputGroup>
+                    </Col>
+                </Row>
+            </Container>
 
             {/* CONTENIDO PRINCIPAL */}
-            <div className="container">
+            <Container>
                 {loading ? (
-                    <div className="text-center py-5">
-                        <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
-                        <p className="mt-2">Cargando categorías...</p>
-                    </div>
+                    <Row className="justify-content-center py-5">
+                        <Col xs="auto" className="text-center">
+                            <img src={LoadIcon} alt="loading" />
+                            <p className="mt-2 text-muted">Cargando categorías...</p>
+                        </Col>
+                    </Row>
                 ) : (
                     <div className="categories-container">
-                        {/* LISTA DE CATEGORÍAS CON POSTS */}
-                        {filteredCategories.map((category, categoryIndex) => (
-                            <motion.div
-                                key={category.name}
-                                ref={el => categoryRefs.current[category.name] = el}
-                                initial={{ opacity: 0, y: 30 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: categoryIndex * 0.1 }}
-                                className="category-section mb-5"
-                            >
-                                {/* CABECERA DE CATEGORÍA */}
-                                <div className="category-header d-flex justify-content-between align-items-center mb-4 p-3 bg-light rounded-3">
-                                    <div className="d-flex align-items-center">
-                                        <div className="category-icon display-6 me-3">
-                                            {category.emoji || '📁'}
+                        {/* LISTA DE CATEGORÍAS CON PAGINACIÓN */}
+                        {filteredCategories.map((category, index) => {
+                            const postsForCategory = homePosts.categoryPosts?.[category.name] || [];
+                            const isLastCategory = index === filteredCategories.length - 1;
+                            
+                            return (
+                                <div 
+                                    key={category.name}
+                                    ref={isLastCategory ? lastCategoryRef : null}
+                                    className="category-section mb-5"
+                                >
+                                    {/* HEADER DE CATEGORÍA */}
+                                    <div className="d-flex justify-content-between align-items-center mb-4">
+                                        <div className="d-flex align-items-center">
+                                            <div 
+                                                className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3"
+                                                style={{ 
+                                                    width: '50px', 
+                                                    height: '50px',
+                                                    flexShrink: 0 
+                                                }}
+                                            >
+                                                <span style={{ fontSize: '1.5rem' }}>
+                                                    {category.emoji || '📁'}
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <h2 className="h4 fw-bold mb-1 text-capitalize">
+                                                    {category.name}
+                                                </h2>
+                                                <small className="text-muted">
+                                                    {category.count} anuncios disponibles
+                                                </small>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h2 className="h4 fw-bold mb-1">
-                                                {category.name}
-                                            </h2>
-                                            <p className="text-muted mb-0 small">
-                                                {category.count} anuncios disponibles
-                                            </p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="d-flex gap-2">
-                                        <button
-                                            className="btn btn-outline-primary btn-sm"
-                                            onClick={() => toggleCategory(category.name)}
-                                        >
-                                            {expandedCategories[category.name] ? (
-                                                <>
-                                                    <i className="fas fa-chevron-up me-1"></i>
-                                                    Ver menos
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <i className="fas fa-chevron-down me-1"></i>
-                                                    Ver anuncios
-                                                </>
-                                            )}
-                                        </button>
+                                        
                                         <Link 
                                             to={`/category/${category.name}`}
-                                            className="btn btn-primary btn-sm"
+                                            className="btn btn-outline-primary btn-sm px-3"
                                         >
-                                            Ver todos →
+                                            Ver todos
+                                            <i className="fas fa-arrow-right ms-2"></i>
                                         </Link>
                                     </div>
-                                </div>
 
-                                {/* POSTS DE LA CATEGORÍA */}
-                                <AnimatePresence>
-                                    {expandedCategories[category.name] && (
-                                        <motion.div
-                                            initial={{ opacity: 0, height: 0 }}
-                                            animate={{ opacity: 1, height: 'auto' }}
-                                            exit={{ opacity: 0, height: 0 }}
-                                            className="category-posts"
-                                        >
-                                            {loadingPosts[category.name] ? (
-                                                <div className="text-center py-4">
-                                                    <div className="spinner-border spinner-border-sm text-primary me-2"></div>
-                                                    <span className="text-muted">Cargando anuncios...</span>
+                                    {/* POSTS POR CATEGORÍA CON CLASE post_thumb */}
+                                    {postsForCategory.length > 0 ? (
+                                        <div className="post_thumb">
+                                            {postsForCategory.slice(0, 8).map((post) => (
+                                                <div key={post._id} className="post_thumb_display">
+                                                    <PostCard post={post} />
                                                 </div>
-                                            ) : categoryPosts[category.name] ? (
-                                                <>
-                                                    {/* GRID DE POSTS */}
-                                                    <div className="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
-                                                        {categoryPosts[category.name].map((post, postIndex) => (
-                                                            <motion.div
-                                                                key={post._id}
-                                                                className="col"
-                                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                                animate={{ opacity: 1, scale: 1 }}
-                                                                transition={{ delay: postIndex * 0.05 }}
-                                                            >
-                                                                <PostCardCompact post={post} />
-                                                            </motion.div>
-                                                        ))}
-                                                    </div>
-
-                                                    {/* BOTÓN PARA CARGAR MÁS */}
-                                                    {categoryPosts[category.name].length < category.count && (
-                                                        <div className="text-center mt-4">
-                                                            <button
-                                                                className="btn btn-outline-primary"
-                                                                onClick={() => loadMorePosts(category.name)}
-                                                                disabled={loadingPosts[category.name]}
-                                                            >
-                                                                {loadingPosts[category.name] ? (
-                                                                    <>
-                                                                        <span className="spinner-border spinner-border-sm me-2"></span>
-                                                                        Cargando...
-                                                                    </>
-                                                                ) : (
-                                                                    <>
-                                                                        <i className="fas fa-plus me-2"></i>
-                                                                        Ver más anuncios ({category.count - categoryPosts[category.name].length} disponibles)
-                                                                    </>
-                                                                )}
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            ) : (
-                                                <div className="text-center py-4">
-                                                    <p className="text-muted">
-                                                        <i className="fas fa-box-open me-2"></i>
-                                                        No hay anuncios cargados para esta categoría
-                                                    </p>
-                                                    <button
-                                                        className="btn btn-outline-primary btn-sm"
-                                                        onClick={() => loadCategoryPosts(category.name)}
-                                                    >
-                                                        Cargar anuncios
-                                                    </button>
-                                                </div>
-                                            )}
-                                        </motion.div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <Row className="py-4">
+                                            <Col className="text-center">
+                                                <div className="spinner-border spinner-border-sm text-primary me-2"></div>
+                                                <span className="text-muted">Cargando anuncios de {category.name}...</span>
+                                            </Col>
+                                        </Row>
                                     )}
-                                </AnimatePresence>
-
-                                {/* SEPARADOR */}
-                                {categoryIndex < filteredCategories.length - 1 && (
-                                    <hr className="my-5" />
-                                )}
-                            </motion.div>
-                        ))}
+                                    
+                                    {/* SEPARADOR */}
+                                    {index < filteredCategories.length - 1 && (
+                                        <hr className="my-5" />
+                                    )}
+                                </div>
+                            );
+                        })}
+                        
+                        {/* LOADING MORE INDICATOR */}
+                        {loadingMore && (
+                            <Row className="justify-content-center py-4">
+                                <Col xs="auto" className="text-center">
+                                    <div className="spinner-border spinner-border-sm text-primary me-2"></div>
+                                    <span className="text-muted">Cargando más categorías...</span>
+                                </Col>
+                            </Row>
+                        )}
+                        
+                        {/* NO MORE CATEGORIES MESSAGE */}
+                        {!homePosts.categoriesHasMore && filteredCategories.length > 0 && (
+                            <Row className="justify-content-center py-5">
+                                <Col md={6} className="text-center">
+                                    <div className="alert alert-light border p-3">
+                                        <i className="fas fa-check-circle text-success me-2"></i>
+                                        <span className="text-muted">
+                                            Has visto todas las categorías disponibles
+                                        </span>
+                                    </div>
+                                </Col>
+                            </Row>
+                        )}
                     </div>
                 )}
-
-                {/* ESTADÍSTICAS FINALES */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.5 }}
-                    className="stats-section text-center py-5 mt-5"
-                >
-                    <h3 className="fw-bold mb-4">Nuestro Marketplace en Números</h3>
-                    <div className="row g-4">
-                        <div className="col-md-3 col-6">
-                            <div className="stat-item">
-                                <div className="stat-number display-6 fw-bold text-primary">
-                                    {filteredCategories.length}
-                                </div>
-                                <div className="stat-label text-muted">Categorías</div>
-                            </div>
-                        </div>
-                        <div className="col-md-3 col-6">
-                            <div className="stat-item">
-                                <div className="stat-number display-6 fw-bold text-success">
-                                    {filteredCategories.reduce((sum, cat) => sum + cat.count, 0)}
-                                </div>
-                                <div className="stat-label text-muted">Anuncios</div>
-                            </div>
-                        </div>
-                        <div className="col-md-3 col-6">
-                            <div className="stat-item">
-                                <div className="stat-number display-6 fw-bold text-warning">
-                                    24/7
-                                </div>
-                                <div className="stat-label text-muted">Disponible</div>
-                            </div>
-                        </div>
-                        <div className="col-md-3 col-6">
-                            <div className="stat-item">
-                                <div className="stat-number display-6 fw-bold text-danger">
-                                    100%
-                                </div>
-                                <div className="stat-label text-muted">Gratuito</div>
-                            </div>
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* CTA FINAL */}
-                <div className="cta-section text-center py-5 mb-5 bg-primary text-white rounded-3">
-                    <h2 className="fw-bold mb-3">¿Tienes algo para vender?</h2>
-                    <p className="lead mb-4">
-                        Publica tu anuncio en segundos y empieza a vender
-                    </p>
-                    <Link to="/create" className="btn btn-light btn-lg">
-                        <i className="fas fa-plus me-2"></i>
-                        Crear Anuncio Gratis
-                    </Link>
-                </div>
-            </div>
-
-            {/* ESTILOS */}
-            <style jsx>{`
-                .marketplace-home {
-                    min-height: 100vh;
-                }
-                
-                .hero-section {
-                    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-                    padding: 60px 20px;
-                }
-                
-                .search-bar {
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-                }
-                
-                .category-section {
-                    scroll-margin-top: 20px;
-                }
-                
-                .category-header {
-                    transition: all 0.3s ease;
-                    cursor: pointer;
-                }
-                
-                .category-header:hover {
-                    background: #f0f0f0;
-                    transform: translateX(5px);
-                }
-                
-                .category-posts {
-                    overflow: hidden;
-                }
-                
-                .stat-item {
-                    padding: 20px;
-                    background: white;
-                    border-radius: 12px;
-                    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-                }
-                
-                .cta-section {
-                    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-                }
-                
-                .quick-categories {
-                    max-width: 800px;
-                    margin: 0 auto;
-                }
-                
-                @media (max-width: 768px) {
-                    .hero-section {
-                        padding: 40px 15px;
-                    }
-                    
-                    .hero-section h1 {
-                        font-size: 2.2rem;
-                    }
-                    
-                    .category-header {
-                        flex-direction: column;
-                        align-items: flex-start;
-                        gap: 15px;
-                    }
-                    
-                    .category-header > div:last-child {
-                        align-self: stretch;
-                    }
-                    
-                    .category-header .btn {
-                        width: 100%;
-                    }
-                }
-            `}</style>
+            </Container>
         </div>
-    );
-};
-
-// Componente PostCardCompact para vista previa
-const PostCardCompact = ({ post }) => {
-    return (
-        <Link to={`/post/${post._id}`} className="text-decoration-none">
-            <div className="post-card-compact card border-0 shadow-sm h-100">
-                {/* IMAGEN */}
-                <div className="post-image" style={{
-                    height: '180px',
-                    backgroundImage: `url(${post.images?.[0]?.url || '/default-post.jpg'})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    borderTopLeftRadius: '8px',
-                    borderTopRightRadius: '8px'
-                }}>
-                    {/* BADGE DE CATEGORÍA */}
-                    <div className="position-absolute top-0 start-0 m-2">
-                        <span className="badge bg-dark bg-opacity-75">
-                            {post.categorie}
-                        </span>
-                    </div>
-                    
-                    {/* BADGE DE PRECIO */}
-                    {post.prix && (
-                        <div className="position-absolute bottom-0 end-0 m-2">
-                            <span className="badge bg-primary">
-                                {post.prix} DA
-                            </span>
-                        </div>
-                    )}
-                </div>
-                
-                {/* CONTENIDO */}
-                <div className="card-body p-3">
-                    <h6 className="card-title fw-bold mb-2 text-dark" style={{
-                        display: '-webkit-box',
-                        WebkitLineClamp: 2,
-                        WebkitBoxOrient: 'vertical',
-                        overflow: 'hidden'
-                    }}>
-                        {post.description?.substring(0, 60) || 'Sin título'}...
-                    </h6>
-                    
-                    {/* UBICACIÓN */}
-                    {post.wilaya && (
-                        <div className="d-flex align-items-center text-muted small mb-2">
-                            <i className="fas fa-map-marker-alt me-1"></i>
-                            <span>{post.wilaya}</span>
-                        </div>
-                    )}
-                    
-                    {/* FECHA */}
-                    <div className="d-flex justify-content-between align-items-center">
-                        <small className="text-muted">
-                            <i className="far fa-clock me-1"></i>
-                            {new Date(post.createdAt).toLocaleDateString()}
-                        </small>
-                        <small className="text-primary">
-                            <i className="far fa-eye me-1"></i>
-                            {post.views || 0}
-                        </small>
-                    </div>
-                </div>
-                
-                {/* ESTILOS */}
-                <style jsx>{`
-                    .post-card-compact {
-                        transition: all 0.3s ease;
-                        border-radius: 8px;
-                        overflow: hidden;
-                    }
-                    
-                    .post-card-compact:hover {
-                        transform: translateY(-5px);
-                        box-shadow: 0 10px 25px rgba(0,0,0,0.1) !important;
-                    }
-                    
-                    .post-image {
-                        position: relative;
-                    }
-                `}</style>
-            </div>
-        </Link>
     );
 };
 

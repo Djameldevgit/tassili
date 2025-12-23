@@ -15,7 +15,9 @@ import {
 import Posts from '../../components/home/Posts';
 import { getPostsByCategory, getCategories } from '../../redux/actions/postAction';
 import LoadIcon from '../../images/loading.gif';
-import CategorySliderEmoji from '../../components/SlidersHeadrs/CategorySlderEmoji';
+
+// Importar el slider dinámico actualizado
+import DynamicCategorySlider from '../../components/SlidersHeadrs/DynamicCategorySlider';
 
 const CategoryPage = () => {
     const dispatch = useDispatch();
@@ -42,7 +44,7 @@ const CategoryPage = () => {
     
     // 📌 Obtener información de la categoría
     const currentCategory = homePosts.categories?.find(
-        cat => cat.name === categoryName
+        cat => cat.name === categoryName || cat.slug === categoryName
     );
     
     // 📌 Cargar categorías si no están cargadas
@@ -61,12 +63,20 @@ const CategoryPage = () => {
             console.log(`📂 CategoryPage - Loading posts for: ${categoryName}`);
             
             try {
+                // Intentar cargar por slug primero, luego por nombre
                 const result = await dispatch(getPostsByCategory(categoryName, 1, { limit }));
-                console.log(`✅ CategoryPage - Load result:`, {
-                    success: !!result,
-                    postsCount: result?.posts?.length,
-                    total: result?.total
-                });
+                
+                if (!result || !result.posts || result.posts.length === 0) {
+                    // Si no hay resultados por slug, buscar por nombre
+                    const category = homePosts.categories?.find(
+                        cat => cat.name.toLowerCase() === categoryName.toLowerCase()
+                    );
+                    
+                    if (category) {
+                        await dispatch(getPostsByCategory(category.slug || category.name, 1, { limit }));
+                    }
+                }
+                
                 setPage(2);
             } catch (error) {
                 console.error('❌ CategoryPage - Error loading posts:', error);
@@ -76,7 +86,7 @@ const CategoryPage = () => {
         };
         
         loadCategoryPosts();
-    }, [dispatch, categoryName, limit]);
+    }, [dispatch, categoryName, limit, homePosts.categories]);
     
     // 📌 Cargar más posts
     const loadMorePosts = async () => {
@@ -89,7 +99,7 @@ const CategoryPage = () => {
         }
     };
     
-    // 📌 Función para hacer scroll horizontal con flechas del teclado
+    // 📌 Función para hacer scroll horizontal
     const scrollHorizontal = (direction) => {
         if (scrollContainerRef.current) {
             const scrollAmount = 350;
@@ -145,9 +155,9 @@ const CategoryPage = () => {
                 </ol>
             </nav>
             
-            {/* SLIDER DE CATEGORÍAS */}
-            <div className="mb-4">
-                <CategorySliderEmoji />
+            {/* SLIDER DINÁMICO ACTUALIZADO */}
+            <div className="mb-5">
+                <DynamicCategorySlider categoryName={categoryName} />
             </div>
             
             {/* ENCABEZADO DE CATEGORÍA */}
@@ -155,7 +165,7 @@ const CategoryPage = () => {
                 <Col>
                     <h2 className="mb-0">
                         <i className="fas fa-tag me-2 text-primary"></i>
-                        {categoryName}
+                        {currentCategory?.name || categoryName}
                     </h2>
                     <p className="text-muted mb-0">
                         {currentCategory ? `${totalLoaded} de ${currentCategory.count} anuncios cargados` : 'Cargando...'}
@@ -237,23 +247,7 @@ const CategoryPage = () => {
                         </div>
                     </div>
                     
-                 
-                    
-                    {/* TODOS LOS ANUNCIOS EN GRID */}
-                    <div className="mt-5 pt-4 border-top">
-                        <h4 className="mb-3">
-                            <i className="fas fa-th-large me-2"></i>
-                            Todos los anuncios
-                        </h4>
-                        <Row xs={1} sm={2} md={3} lg={4} className="g-3">
-                            <Posts 
-                                selectedCategory={categoryName}
-                                fromCategoryPage={true}
-                                displayMode="grid"
-                            />
-                        </Row>
-                    </div>
-                    
+                
                     {/* PAGINACIÓN */}
                     {hasMore && (
                         <motion.div
