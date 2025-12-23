@@ -4,14 +4,15 @@ import { useHistory, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Container, Button, Alert, Spinner, ProgressBar, Card, Row, Col } from 'react-bootstrap';
 import { motion, AnimatePresence } from 'framer-motion';
-
+ 
 // 🔷 REDUX
-import { createPost, updatePost } from '../redux/actions/postAction';
-
+import { createPost} from '../redux/actions/postAction';
+ 
 // 🔷 COMPONENTES
 import CategoryAccordion from '../components/CATEGORIES/CategoryAccordion';
 import DynamicFieldManager from '../components/CATEGORIES/DynamicFieldManager';
 import ImagesStep from '../components/CATEGORIES/camposComun/ImagesStep';
+import { updatePost } from '../redux/actions/postAction';
 
 const CreateAnnoncePage = () => {
   // 🔷 REDUX Y HOOKS

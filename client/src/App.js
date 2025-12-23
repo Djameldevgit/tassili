@@ -12,7 +12,7 @@ import Alert from './components/alert/Alert'
 
 import { useSelector, useDispatch } from 'react-redux'
 import { refreshToken } from './redux/actions/authAction'
-import { getCategories, getPosts, getPostsByCategory } from './redux/actions/postAction'
+import { getCategories, getPosts, getPostsByCategory, getSimilarPosts } from './redux/actions/postAction'
 
 import { GLOBALTYPES } from './redux/actions/globalTypes'
 import SocketClient from './SocketClient'
@@ -81,7 +81,7 @@ function App() {
 // 📌 HOOK 2: Cargar datos del usuario (solo autenticado)
 useEffect(() => {
 getPosts()
-
+getSimilarPosts()
   if (auth.token && auth.user) {
       console.log('🔐 User authenticated, loading user data...');
       dispatch(getPrivacySettings(auth.token));

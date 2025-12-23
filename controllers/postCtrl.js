@@ -245,110 +245,205 @@ getAllCategoriesPaginated: async (req, res) => {
 
 // Función auxiliar para calcular similitud
 // redux/actions/postAction.js
-  getSimilarPosts : (currentPostId) => async (dispatch, getState) => {
+ // En tu backend
+ getSimilarPosts : async (req, res) => {
     try {
-        const { auth } = getState();
-        
-        console.log('🔍 Buscando posts similares para ID:', currentPostId);
-        
-        // 1. Primero obtenemos el post actual COMPLETO
-        const postRes = await getDataAPI(`post/${currentPostId}`, auth.token);
-        const currentPost = postRes.data.post;
-        
-        console.log('📋 Datos del post actual para similares:', {
-            id: currentPost._id,
-            categorie: currentPost.categorie,
-            subCategory: currentPost.subCategory,
-            wilaya: currentPost.wilaya,
-            price: currentPost.price
+      console.log('📥 getSimilarPosts recibió:', req.query);
+      
+      const { 
+        categorie,  // ⬅️ Importante: es categorie, no category
+        subCategory, 
+        excludeId, 
+        limit = 6, 
+        page = 1 
+      } = req.query;
+      
+      // Validar
+      if (!categorie || !subCategory) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Se requiere categorie y subCategory' 
         });
-        
-        // 2. Construir query para posts similares
-        const params = new URLSearchParams();
-        params.append('categorie', currentPost.categorie);
-        params.append('excludeId', currentPost._id);
-        params.append('limit', '6');
-        
-        // Agregar ubicación si existe
-        if (currentPost.wilaya) {
-            params.append('wilaya', currentPost.wilaya);
+      }
+  
+      // Construir query
+      let query = { 
+        categorie: categorie.trim(),
+        subCategory: subCategory.trim(),
+        isActive: true
+      };
+      
+      // Excluir post actual
+      if (excludeId && mongoose.Types.ObjectId.isValid(excludeId)) {
+        query._id = { $ne: new mongoose.Types.ObjectId(excludeId) };
+      }
+  
+      // Paginación
+      const skip = (parseInt(page) - 1) * parseInt(limit);
+      
+      // Buscar posts
+      const posts = await Post.find(query)
+        .populate('user', 'name avatar')
+        .populate('likes', '_id name')
+        .sort({ createdAt: -1, isPromoted: -1 })
+        .skip(skip)
+        .limit(parseInt(limit));
+      
+      const total = await Post.countDocuments(query);
+      const totalPages = Math.ceil(total / parseInt(limit));
+      const hasMore = page < totalPages;
+  
+      console.log(`✅ Encontrados ${posts.length} posts de ${total}`);
+  
+      res.json({
+        success: true,
+        posts,
+        total,
+        page: parseInt(page),
+        totalPages,
+        hasMore
+      });
+      
+    } catch (error) {
+      console.error('❌ getSimilarPosts error:', error);
+      res.status(500).json({ 
+        success: false,
+        message: 'Error del servidor', 
+        error: error.message 
+      });
+    }
+  },
+  updatePost: async (req, res) => {
+    try {
+      const { postData, images } = req.body;
+      
+      // 1. Obtener el post actual
+      const oldPost = await Posts.findById(req.params.id);
+      if (!oldPost) {
+        return res.status(400).json({msg: "Ce post n'existe pas."});
+      }
+      
+      // 2. Separar campos base de campos específicos
+      const commonFields = [
+        'categorie', 'subCategory', 'articleType',
+        'title', 'description', 'price',
+        'wilaya', 'commune', 'numeroTelephone',
+      ];
+      
+      const updateData = {};
+      const specificData = {};
+      
+      Object.keys(postData).forEach(key => {
+        if (commonFields.includes(key)) {
+          updateData[key] = postData[key];
+        } else {
+          specificData[key] = postData[key];
         }
-        
-        // 3. Hacer la petición
-        const url = `posts/similar?${params.toString()}`;
-        console.log('📡 URL de búsqueda:', url);
-        
-        const similarRes = await getDataAPI(url, auth.token);
-        
-        console.log('✅ Posts similares encontrados:', {
-            count: similarRes.data.posts.length,
-            posts: similarRes.data.posts.map(p => ({
-                id: p._id,
-                categorie: p.categorie,
-                titre: p.titre
-            }))
-        });
-        
-        // 4. Guardar en Redux
-        dispatch({
-            type: POST_TYPES.GET_SIMILAR_POSTS,
-            payload: similarRes.data.posts || []
-        });
-        
-        return {
-            success: true,
-            posts: similarRes.data.posts || []
-        };
-        
+      });
+      
+      // 3. Añadir categorySpecificData al updateData
+      if (Object.keys(specificData).length > 0) {
+        updateData.categorySpecificData = specificData;
+      }
+      
+      // 4. Añadir imágenes
+      updateData.images = images || postData.images;
+      
+      console.log('🔄 Datos para actualizar:', {
+        updateData,
+        specificDataKeys: Object.keys(specificData)
+      });
+      
+      // 5. Actualizar en MongoDB
+      const post = await Posts.findOneAndUpdate(
+        { _id: req.params.id },
+        { $set: updateData },
+        { new: true, runValidators: true }
+      );
+      
+      // 6. Populate
+      await post.populate('user', 'avatar username');
+      
+      res.json({
+        msg: 'Post modifié avec succès!',
+        newPost: post
+      });
+      
     } catch (err) {
-        console.error('❌ Error completo en getSimilarPosts:', {
-            message: err.message,
-            response: err.response.data,
-            status: err.response.status
-        });
-        
-        // En caso de error, devolver array vacío
-        dispatch({
-            type: POST_TYPES.GET_SIMILAR_POSTS,
-            payload: []
-        });
-        
-        return {
-            success: false,
-            posts: [],
-            error: err.message
-        };
+      console.error('Error en updatePost:', err);
+      return res.status(500).json({msg: err.message});
     }
-},
- 
-
-updatePost: async (req, res) => {
-    try {
-        const { content, images } = req.body
-
-        const post = await Posts.findOneAndUpdate({_id: req.params.id}, {
-            content, images
-        }).populate("user likes", "avatar username fullname")
-        .populate({
-            path: "comments",
-            populate: {
-                path: "user likes",
-                select: "-password"
+  },
+    deletePost: async (req, res) => {
+        try {
+            const postId = req.params.id;
+            const userId = req.user._id;
+    
+            // 1. VERIFICAR SI EL USUARIO ES EL DUEÑO O ADMIN
+            const post = await Posts.findById(postId);
+            
+            if (!post) {
+                return res.status(404).json({msg: 'Post not found'});
             }
-        })
-
-        res.json({
-            msg: "Updated Post!",
-            newPost: {
-                ...post._doc,
-                content, images
+    
+            if (post.user.toString() !== userId.toString() && req.user.role !== 'admin') {
+                return res.status(403).json({msg: 'Not authorized to delete this post'});
             }
-        })
-    } catch (err) {
-        return res.status(500).json({msg: err.message})
-    }
-},
-
+    
+            console.log('🗑️ Eliminando post y sus imágenes:', post.images);
+    
+            // 2. BORRAR TODAS LAS IMÁGENES DEL POST DE CLOUDINARY
+            if (post.images && post.images.length > 0) {
+                for (const image of post.images) {
+                    if (image.public_id) {
+                        try {
+                            await cloudinary.uploader.destroy(image.public_id);
+                            console.log('✅ Imagen borrada de Cloudinary:', image.public_id);
+                        } catch (cloudinaryErr) {
+                            console.error('❌ Error borrando imagen de Cloudinary:', image.public_id, cloudinaryErr);
+                            // Continuar aunque falle una imagen
+                        }
+                    }
+                }
+            }
+    
+            // 3. GUARDAR IDs DE COMMENTS Y LIKES ANTES DE ELIMINAR
+            const commentsToDelete = post.comments || [];
+            const likesToCleanup = post.likes || [];
+    
+            // 4. ELIMINAR EL POST DE MONGODB
+            await Posts.findByIdAndDelete(postId);
+    
+            // 5. LIMPIAR DATOS RELACIONADOS
+            if (commentsToDelete.length > 0) {
+                await Comments.deleteMany({_id: {$in: commentsToDelete}});
+            }
+    
+            // 6. OPCIONAL: Limpiar likes de usuarios
+            if (likesToCleanup.length > 0) {
+                await Users.updateMany(
+                    {_id: {$in: likesToCleanup}},
+                    {$pull: {likes: postId}}
+                );
+            }
+    
+            // 7. OPCIONAL: Eliminar de posts guardados
+            await Users.updateMany(
+                {saved: postId},
+                {$pull: {saved: postId}}
+            );
+    
+            res.json({
+                msg: 'Post deleted successfully!',
+                deletedPostId: postId,
+                deletedImagesCount: post.images ? post.images.length : 0
+            });
+    
+        } catch (err) {
+            console.error('Error in deletePost:', err);
+            return res.status(500).json({msg: err.message});
+        }
+    },
 
 getUserPosts: async (req, res) => {
     try {
@@ -409,23 +504,7 @@ getPostsDicover: async (req, res) => {
         return res.status(500).json({msg: err.message})
     }
 },
-deletePost: async (req, res) => {
-    try {
-        const post = await Posts.findOneAndDelete({_id: req.params.id, user: req.user._id})
-        await Comments.deleteMany({_id: {$in: post.comments }})
-
-        res.json({
-            msg: 'Deleted Post!',
-            newPost: {
-                ...post,
-                user: req.user
-            }
-        })
-
-    } catch (err) {
-        return res.status(500).json({msg: err.message})
-    }
-},
+ 
 savePost: async (req, res) => {
     try {
         const user = await Users.find({_id: req.user._id, saved: req.params.id})

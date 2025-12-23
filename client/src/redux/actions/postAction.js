@@ -21,84 +21,64 @@ export const POST_TYPES = {
     GET_POST: 'GET_POST',
     
     // ✅ SOLO ESTA CONSTANTE NUEVA para posts similares
-    GET_SIMILAR_POSTS: 'GET_SIMILAR_POSTS'
+    SIMILAR_POSTS_SUCCESS: 'SIMILAR_POSTS_SUCCESS',
+    SIMILAR_POSTS_REQUEST:'SIMILAR_POSTS_REQUEST'
 };
 // redux/actions/postAction.js
-export const getSimilarPosts = (currentPostId) => async (dispatch, getState) => {
+
+
+
+
+
+
+
+
+
+export const getSimilarPosts = (filters) => async (dispatch) => {
     try {
-        const { auth } = getState();
-        
-        console.log('🔍 Buscando posts similares para ID:', currentPostId);
-        
-        // 1. Primero obtenemos el post actual COMPLETO
-        const postRes = await getDataAPI(`post/${currentPostId}`, auth.token);
-        const currentPost = postRes.data.post;
-        
-        console.log('📋 Datos del post actual para similares:', {
-            id: currentPost._id,
-            categorie: currentPost.categorie,
-            subCategory: currentPost.subCategory,
-            wilaya: currentPost.wilaya,
-            price: currentPost.price
-        });
-        
-        // 2. Construir query para posts similares
-        const params = new URLSearchParams();
-        params.append('categorie', currentPost.categorie);
-        params.append('excludeId', currentPost._id);
-        params.append('limit', '6');
-        
-        // Agregar ubicación si existe
-        if (currentPost.wilaya) {
-            params.append('wilaya', currentPost.wilaya);
+      dispatch({ type: POST_TYPES.SIMILAR_POSTS_REQUEST });
+      
+      // Construir query params
+      const params = new URLSearchParams();
+      if (filters.category) params.append('category', filters.category);
+      if (filters.subCategory) params.append('subCategory', filters.subCategory);
+      if (filters.excludeId) params.append('excludeId', filters.excludeId);
+      if (filters.limit) params.append('limit', filters.limit);
+      if (filters.page) params.append('page', filters.page);
+      
+      console.log('📤 Action - getSimilarPosts enviando:', {
+        params: params.toString(),
+        filters
+      });
+      
+      const res = await getDataAPI (`posts/similar?${params.toString()}`);
+      
+      console.log('✅ Action - getSimilarPosts respuesta:', {
+        status: res.status,
+        data: res.data,
+        postsCount: res.data.posts?.length,
+        hasMore: res.data.hasMore
+      });
+      
+      // ⚠️ IMPORTANTE: Asegúrate que la respuesta tenga esta estructura
+      dispatch({
+        type: POST_TYPES.SIMILAR_POSTS_SUCCESS,
+        payload: {
+          posts: res.data.posts || [],
+          page: parseInt(filters.page) || 1,
+          totalPages: res.data.totalPages || 1,
+          hasMore: res.data.hasMore || false
         }
-        
-        // 3. Hacer la petición
-        const url = `posts/similar?${params.toString()}`;
-        console.log('📡 URL de búsqueda:', url);
-        
-        const similarRes = await getDataAPI(url, auth.token);
-        
-        console.log('✅ Posts similares encontrados:', {
-            count: similarRes.data.posts?.length,
-            posts: similarRes.data.posts?.map(p => ({
-                id: p._id,
-                categorie: p.categorie,
-                titre: p.titre
-            }))
-        });
-        
-        // 4. Guardar en Redux
-        dispatch({
-            type: POST_TYPES.GET_SIMILAR_POSTS,
-            payload: similarRes.data.posts || []
-        });
-        
-        return {
-            success: true,
-            posts: similarRes.data.posts || []
-        };
-        
-    } catch (err) {
-        console.error('❌ Error completo en getSimilarPosts:', {
-            message: err.message,
-            response: err.response?.data,
-            status: err.response?.status
-        });
-        
-        // En caso de error, devolver array vacío
-        dispatch({
-            type: POST_TYPES.GET_SIMILAR_POSTS,
-            payload: []
-        });
-        
-        return {
-            success: false,
-            posts: [],
-            error: err.message
-        };
+      });
+      
+    } catch (error) {
+      console.error('❌ Action - getSimilarPosts error:', error);
+      dispatch({
+        type: POST_TYPES.SIMILAR_POSTS_FAIL,
+        payload: error.response?.data?.message || error.message
+      });
     }
-};
+  };
 export const getPostsByCategory = (category, page = 1, filters = {}) => async (dispatch, getState) => {
     try {
         const { auth } = getState();

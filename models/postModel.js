@@ -39,5 +39,6 @@ postSchema.index({ 'categorySpecificData.marque': 1 });
 postSchema.index({ 'categorySpecificData.etat': 1 });
 postSchema.index({ price: 1 });
 postSchema.index({ wilaya: 1, commune: 1 });
-
+postSchema.index({ category: 1, subCategory: 1, createdAt: -1 });
+postSchema.index({ category: 1, subCategory: 1, isActive: 1 });
 module.exports = mongoose.model('post', postSchema);
