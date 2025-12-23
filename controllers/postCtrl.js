@@ -89,7 +89,7 @@ createPost: async (req, res) => {
         await newPost.save();
         
         // Populate para respuesta
-        await newPost.populate("user", "avatar username fullname");
+        await newPost.populate("user", "avatar username");
 
         res.json({
             msg: 'Post created successfully!',
@@ -463,7 +463,7 @@ getUserPosts: async (req, res) => {
 getPost: async (req, res) => {
     try {
         const post = await Posts.findById(req.params.id)
-        .populate("user likes", "avatar username fullname followers")
+        .populate("user likes", "avatar username")
         .populate({
             path: "comments",
             populate: {
