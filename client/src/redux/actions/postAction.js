@@ -7,78 +7,103 @@ import { POST_TYPES_APROVE } from './postAproveAction';
 // redux/actions/postAction.js
 export const POST_TYPES = {
     // ... tus constantes existentes (NO LAS CAMBIES)
-    CREATE_POST: 'CREATE_POST',
+    LOADING_POST: 'LOADING_POST',
+    GET_POST: 'GET_POST',
     GET_POSTS: 'GET_POSTS',
     GET_POSTS_BY_CATEGORY: 'GET_POSTS_BY_CATEGORY',
     GET_CATEGORIES: 'GET_CATEGORIES',
-    UPDATE_POST: 'UPDATE_POST',
-    DELETE_POST: 'DELETE_POST',
-    LIKE_POST: 'LIKE_POST',
-    UNLIKE_POST: 'UNLIKE_POST',
     GET_CATEGORIES_PAGINATED: 'GET_CATEGORIES_PAGINATED',
-    GET_POSTS_USER: 'GET_POSTS_USER',
-    LOADING_POST: 'LOADING_POST',
-    GET_POST: 'GET_POST',
+    ERROR_POST: 'ERROR_POST',
     
-    // ✅ SOLO ESTA CONSTANTE NUEVA para posts similares
-    SIMILAR_POSTS_SUCCESS: 'SIMILAR_POSTS_SUCCESS',
-    SIMILAR_POSTS_REQUEST:'SIMILAR_POSTS_REQUEST'
-};
-// redux/actions/postAction.js
-
-
-
-
-
-
-
-
-
-export const getSimilarPosts = (filters) => async (dispatch) => {
+    // ✅ AÑADE ESTOS NUEVOS TYPES
+    GET_SIMILAR_POSTS: 'GET_SIMILAR_POSTS',
+    LOADING_SIMILAR_POSTS: 'LOADING_SIMILAR_POSTS',
+    CLEAR_SIMILAR_POSTS: 'CLEAR_SIMILAR_POSTS'
+}
+ 
+ 
+export const getSimilarPosts = (postId, options = {}) => async (dispatch, getState) => {
     try {
-      dispatch({ type: POST_TYPES.SIMILAR_POSTS_REQUEST });
+      dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: true });
       
-      // Construir query params
-      const params = new URLSearchParams();
-      if (filters.category) params.append('category', filters.category);
-      if (filters.subCategory) params.append('subCategory', filters.subCategory);
-      if (filters.excludeId) params.append('excludeId', filters.excludeId);
-      if (filters.limit) params.append('limit', filters.limit);
-      if (filters.page) params.append('page', filters.page);
+      console.log('🔍 Buscando posts similares para postId:', postId);
       
-      console.log('📤 Action - getSimilarPosts enviando:', {
-        params: params.toString(),
-        filters
+      // Obtener el post detalle del reducer correcto
+      const { detailPost } = getState();
+      let currentPost = detailPost.find(post => post._id === postId);
+      
+      // Si no está en el reducer detailPost, obtenerlo de la API
+      if (!currentPost) {
+        console.log('📥 Post no encontrado en detailPostReducer, obteniendo de API...');
+        
+        const postRes = await getDataAPI(`post/${postId}`);
+        currentPost = postRes.data;
+        
+        // Guardar en el detailPostReducer
+        dispatch({ 
+          type: POST_TYPES.GET_POST, 
+          payload: currentPost 
+        });
+      }
+      
+      // Verificar que tenemos los datos necesarios
+      if (!currentPost?.categorie || !currentPost?.subCategory) {
+        console.error('❌ Post no tiene categorie o subCategory:', currentPost);
+        throw new Error('El post no tiene la información necesaria para buscar similares');
+      }
+      
+      console.log('📋 Datos del post para búsqueda:', {
+        categorie: currentPost.categorie,
+        subCategory: currentPost.subCategory,
+        id: currentPost._id
       });
       
-      const res = await getDataAPI (`posts/similar?${params.toString()}`);
+      // Construir params para TU endpoint existente
+      const params = new URLSearchParams({
+        categorie: currentPost.categorie,
+        subCategory: currentPost.subCategory,
+        excludeId: postId,
+        limit: options.limit || 6,
+        page: options.page || 1
+      }).toString();
       
-      console.log('✅ Action - getSimilarPosts respuesta:', {
-        status: res.status,
-        data: res.data,
-        postsCount: res.data.posts?.length,
-        hasMore: res.data.hasMore
-      });
+      console.log('🌐 Llamando endpoint:', `/posts/similar?${params}`);
       
-      // ⚠️ IMPORTANTE: Asegúrate que la respuesta tenga esta estructura
-      dispatch({
-        type: POST_TYPES.SIMILAR_POSTS_SUCCESS,
+      // Llamar a TU endpoint existente
+      const res = await getDataAPI(`posts/similar?${params}`);
+      
+      console.log(`✅ Posts similares encontrados: ${res.data.posts?.length || 0}`);
+      
+      // Despachar al postReducer (no al detailPostReducer)
+      dispatch({ 
+        type: POST_TYPES.GET_SIMILAR_POSTS, 
         payload: {
           posts: res.data.posts || [],
-          page: parseInt(filters.page) || 1,
+          total: res.data.total || 0,
+          page: res.data.page || 1,
           totalPages: res.data.totalPages || 1,
-          hasMore: res.data.hasMore || false
+          hasMore: res.data.hasMore || false,
+          currentPostId: postId  // Para referencia
         }
       });
       
-    } catch (error) {
-      console.error('❌ Action - getSimilarPosts error:', error);
-      dispatch({
-        type: POST_TYPES.SIMILAR_POSTS_FAIL,
-        payload: error.response?.data?.message || error.message
+    } catch (err) {
+      console.error('❌ Error en getSimilarPosts:', err);
+      dispatch({ 
+        type: POST_TYPES.ERROR_POST, 
+        payload: {
+          message: err.response?.data?.message || err.message || 'Error al cargar posts similares',
+          action: 'getSimilarPosts'
+        }
       });
+      dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: false });
     }
   };
+  
+  export const clearSimilarPosts = () => (dispatch) => {
+    dispatch({ type: POST_TYPES.CLEAR_SIMILAR_POSTS });
+  };
+ 
 export const getPostsByCategory = (category, page = 1, filters = {}) => async (dispatch, getState) => {
     try {
         const { auth } = getState();

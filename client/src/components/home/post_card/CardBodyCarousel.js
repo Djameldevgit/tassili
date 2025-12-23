@@ -11,27 +11,36 @@ const CardBodyCarousel = ({ post }) => {
     const [saved, setSaved] = useState(false);
     const [saveLoad, setSaveLoad] = useState(false);
     const [showModal, setShowModal] = useState(false);
-    
-    const { languageReducer } = useSelector((state) => state);
+
+    const { languageReducer, auth, socket } = useSelector((state) => state);
     const { t } = useTranslation();
     const history = useHistory();
-    const { auth, socket } = useSelector(state => state);
     const dispatch = useDispatch();
 
+    // ✅ Manejo seguro de likes
     useEffect(() => {
-        if (auth.user && post.likes.find(like => like._id === auth.user._id)) {
+        if (auth.user && post?.likes?.find(like => like._id === auth.user._id)) {
             setIsLike(true);
         } else {
             setIsLike(false);
         }
-    }, [post.likes, auth.user]);
+    }, [post?.likes, auth.user]);
+
+    // ✅ Manejo seguro de guardado
+    useEffect(() => {
+        if (auth.user && auth.user.saved?.includes(post?._id)) {
+            setSaved(true);
+        } else {
+            setSaved(false);
+        }
+    }, [auth.user, post?._id]);
 
     const handleLike = async () => {
         if (!auth.token) return setShowModal(true);
         if (loadLike) return;
 
         setLoadLike(true);
-        dispatch(likePost({ post, auth, socket, t, languageReducer }));
+        await dispatch(likePost({ post, auth, socket, t, languageReducer }));
         setLoadLike(false);
     };
 
@@ -40,17 +49,9 @@ const CardBodyCarousel = ({ post }) => {
         if (loadLike) return;
 
         setLoadLike(true);
-        dispatch(unLikePost({ post, auth, socket, t, languageReducer }));
+        await dispatch(unLikePost({ post, auth, socket, t, languageReducer }));
         setLoadLike(false);
     };
-
-    useEffect(() => {
-        if (auth.user && auth.user.saved.find(id => id === post._id)) {
-            setSaved(true);
-        } else {
-            setSaved(false);
-        }
-    }, [auth.user, post._id]);
 
     const handleSavePost = async () => {
         if (!auth.token) return setShowModal(true);
@@ -70,11 +71,16 @@ const CardBodyCarousel = ({ post }) => {
         setSaveLoad(false);
     };
 
+    if (!post) return null; // Seguridad si post es undefined
+
+    const images = post.images || []; // Siempre un array
+
     return (
         <div>
             <div className="card_body">
-                {post.images.length > 0 && (
+                {images.length > 0 && (
                     <div className="carousel-container" style={{ position: 'relative' }}>
+                        {/* Guardado */}
                         <div
                             style={{
                                 position: 'absolute',
@@ -102,6 +108,7 @@ const CardBodyCarousel = ({ post }) => {
                             </span>
                         </div>
 
+                        {/* Likes */}
                         <div
                             style={{
                                 position: 'absolute',
@@ -121,7 +128,7 @@ const CardBodyCarousel = ({ post }) => {
                                     marginRight: '5px',
                                 }}
                             >
-                                {post.likes.length}
+                                {post.likes?.length || 0}
                             </span>
 
                             <div
@@ -148,22 +155,27 @@ const CardBodyCarousel = ({ post }) => {
                             </div>
                         </div>
 
+                        {/* Carousel */}
                         <div className="card">
-                <div className="card__image" onClick={() => history.push(`/post/${post._id}`)}>
-                    <Carousel images={post.images} id={post._id} />
-                </div>
+                            <div
+                                className="card__image"
+                                onClick={() => history.push(`/post/${post._id}`)}
+                            >
+                                <Carousel images={images} id={post._id} />
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
 
+            {/* Modal Login/Register */}
             {showModal && (
                 <div className="modal">
                     <div className="modal-content">
                         <h4>{t("title", { lng: languageReducer.language })}</h4>
                         <p>{t("message", { lng: languageReducer.language })}</p>
                         <div className="modal-buttons">
-                            <button onClick={() => history.push("/login")}> 
+                            <button onClick={() => history.push("/login")}>
                                 {t("login", { lng: languageReducer.language })}
                             </button>
                             <button onClick={() => history.push("/register")}>

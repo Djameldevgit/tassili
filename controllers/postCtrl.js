@@ -282,7 +282,7 @@ getAllCategoriesPaginated: async (req, res) => {
       const skip = (parseInt(page) - 1) * parseInt(limit);
       
       // Buscar posts
-      const posts = await Post.find(query)
+      const posts = await Posts.find(query)
         .populate('user', 'name avatar')
         .populate('likes', '_id name')
         .sort({ createdAt: -1, isPromoted: -1 })
