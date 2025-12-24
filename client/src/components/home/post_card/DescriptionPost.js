@@ -188,7 +188,7 @@ const DescriptionPost = ({ post }) => {
             'telephones': '📱',
             'informatique': '💻',
             'electromenager': '🔌',
-            'sante_beaute': '💄',
+            'santebeaute': '💄',
             'meubles': '🛋️',
             'alimentaires': '🍎',
             'materiaux': '🧱',

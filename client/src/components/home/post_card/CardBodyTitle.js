@@ -119,13 +119,10 @@ const CardBodyTitle = ({ post }) => {
         setShowDropdown(false);
     };
 
-    const handleDeletePost = async () => {
-        if (!auth.user) { setShowAuthModal(true); return; }
-        if (window.confirm(t('post.deleteConfirmation', 'Êtes-vous sûr de vouloir supprimer cette publication?'))) {
-            setIsDeleting(true);
-            try { await dispatch(deletePost({ post, auth, socket })); }
-            catch (error) { console.error('Error al eliminar el post:', error); }
-            finally { setIsDeleting(false); setShowDropdown(false); }
+    const handleDeletePost = () => {
+        if (window.confirm("Are you sure want to delete this posthhhhhh?")) {
+            dispatch(deletePost({ post, auth, socket }));
+            history.push("/");
         }
     };
 

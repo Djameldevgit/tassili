@@ -10,6 +10,8 @@ export const POST_TYPES = {
     LOADING_POST: 'LOADING_POST',
     GET_POST: 'GET_POST',
     GET_POSTS: 'GET_POSTS',
+    GET_POST: 'GET_POST',
+    DELETE_POST: 'DELETE_POST',
     GET_POSTS_BY_CATEGORY: 'GET_POSTS_BY_CATEGORY',
     GET_CATEGORIES: 'GET_CATEGORIES',
     GET_CATEGORIES_PAGINATED: 'GET_CATEGORIES_PAGINATED',
@@ -269,6 +271,50 @@ export const createPost = ({
         })
     }
 }
+
+export const updatePost = ({
+    postData,
+    images, 
+    auth, 
+    status
+}) => async (dispatch) => {
+    let media = []
+    
+    // ✅ CORREGIDO: Filtrar por isExisting en lugar de url
+    const imgNewUrl = images.filter(img => !img.isExisting)  // ← Nuevas imágenes
+    const imgOldUrl = images.filter(img => img.isExisting)   // ← Imágenes existentes
+
+    try {
+        dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: true } });
+        
+        if (imgNewUrl.length > 0) {
+            console.log('🆕 Subiendo nuevas imágenes:', imgNewUrl);
+            media = await imageUpload(imgNewUrl);
+        }
+
+        // ✅ Combinar imágenes antiguas + nuevas subidas
+        const allImages = [...imgOldUrl, ...media];
+        console.log('📸 Todas las imágenes para update:', allImages);
+
+        const res = await patchDataAPI(`post/${status._id}`, { 
+            postData: {
+                ...postData,
+                content: postData.description || postData.content
+            },
+            images: allImages 
+        }, auth.token);
+
+        dispatch({ type: POST_TYPES.UPDATE_POST, payload: res.data.newPost });
+        dispatch({ type: GLOBALTYPES.ALERT, payload: { success: res.data.msg } });
+        
+    } catch (err) {
+        dispatch({
+            type: GLOBALTYPES.ALERT,
+            payload: { error: err.response?.data?.msg || 'Échec de la mise à jour accion' }
+        });
+    }
+}
+
 export const getPosts = () => async (dispatch) => {
     try {
         dispatch({ type: POST_TYPES.LOADING_POST, payload: true })
@@ -355,34 +401,7 @@ export const likePost = ({post, auth, socket}) => async (dispatch) => {
         })
     }
 }
-export const updatePost = ({content, images, auth, status}) => async (dispatch) => {
-    let media = []
-    const imgNewUrl = images.filter(img => !img.url)
-    const imgOldUrl = images.filter(img => img.url)
-
-    if(status.content === content 
-        && imgNewUrl.length === 0
-        && imgOldUrl.length === status.images.length
-    ) return;
-
-    try {
-        dispatch({ type: GLOBALTYPES.ALERT, payload: {loading: true} })
-        if(imgNewUrl.length > 0) media = await imageUpload(imgNewUrl)
-
-        const res = await patchDataAPI(`post/${status._id}`, { 
-            content, images: [...imgOldUrl, ...media] 
-        }, auth.token)
-
-        dispatch({ type: POST_TYPES.UPDATE_POST, payload: res.data.newPost })
-
-        dispatch({ type: GLOBALTYPES.ALERT, payload: {success: res.data.msg} })
-    } catch (err) {
-        dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err.response.data.msg}
-        })
-    }
-}
+ 
 export const unLikePost = ({post, auth, socket}) => async (dispatch) => {
     const newPost = {...post, likes: post.likes.filter(like => like._id !== auth.user._id)}
     dispatch({ type: POST_TYPES.UPDATE_POST, payload: newPost})

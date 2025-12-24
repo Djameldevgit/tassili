@@ -75,7 +75,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     'piecesDetachees': '⚙️',
     'vetements': '👕',
     'alimentaires': '🍎',
-    'sante_beaute': '💄',
+    'santebeaute': '💄',
     'meubles': '🛋️',
     'services': '🛠️',
     'materiaux': '🧱',
@@ -95,7 +95,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     { id: 'piecesDetachees', name: t('piecesDetachees', { ns: 'categories' }) },
     { id: 'vetements', name: t('vetements', { ns: 'categories' }) },
     { id: 'alimentaires', name: t('Alimentaires', { ns: 'categories' }) },
-    { id: 'sante_beaute', name: t('sante_beaute', { ns: 'categories' }) },
+    { id: 'santebeaute', name: t('sante_beaute', { ns: 'categories' }) },
     { id: 'meubles', name: t('meubles', { ns: 'categories' }) },
     { id: 'services', name: t('Services', { ns: 'categories' }) },
     { id: 'materiaux', name: t('Materiaux', { ns: 'categories' }) },
@@ -222,7 +222,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     ],
     
     // Salud y belleza
-    sante_beaute: [
+    santebeaute: [
       { id: 'cosmetiques_beaute', name: t('sante_beaute.categories.cosmetiques_beaute'), icon: <span style={{ fontSize: '24px', color: '#e83e8c' }}>💄</span>, color: 'pink', emoji: '💄' },
       { id: 'parfums_deodorants_femme', name: t('sante_beaute.categories.parfums_deodorants_femme'), icon: <span style={{ fontSize: '24px', color: '#dc3545' }}>🌸</span>, color: 'danger', emoji: '🌸' },
       { id: 'parfums_deodorants_homme', name: t('sante_beaute.categories.parfums_deodorants_homme'), icon: <span style={{ fontSize: '24px', color: '#007bff' }}>🌿</span>, color: 'primary', emoji: '🌿' },
@@ -474,7 +474,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
       informatique: InformatiqueSubcategories,
       electromenager: ElectromenagerSubcategories,
       piecesDetachees: PiecesDetacheesSubcategories,
-      sante_beaute: SanteBeauteSubcategories,
+      santebeaute: SanteBeauteSubcategories,
       meubles: MeublesSubcategories,
       loisirs: LoisirsSubcategories,
       sport: SportSubcategories,
@@ -688,7 +688,7 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
       'informatique': t('type_computer', { ns: 'subcategories' }),
       'electromenager': t('type_appliance', { ns: 'subcategories' }),
       'piecesDetachees': t('type_pieces_detachees', { ns: 'subcategories' }),
-      'sante_beaute': t('type_sante_beautee', { ns: 'subcategories' }),
+      'santebeaute': t('type_sante_beautee', { ns: 'subcategories' }),
       'meubles': t('type_meubles', { ns: 'subcategories' }),
       'loisirs': t('type_loisirs', { ns: 'subcategories' }),
       'emploi': t('type_emploi', { ns: 'subcategories' }),

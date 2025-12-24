@@ -87,7 +87,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
     'santebeaute': {
       component: SliderSanteBeaute,
       variations: [
-        'santebeaute', 'santé & beauté', 'sante_beaute',
+        'santebeaute', 'santé & beauté', 'santebeaute',
         'salud-belleza', 'beauty', 'cosmeticos', 'cosmétiques',
         'beauté', 'healthbeauty', 'salud y belleza', 'cosmetics',
         'santé & beauté', 'sante et beaute'

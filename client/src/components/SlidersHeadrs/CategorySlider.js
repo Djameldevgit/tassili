@@ -11,12 +11,12 @@ const categoriesData = [
   { id: 1, name: 'Boutiques', slug: 'boutiques', icon: FaStore, color: '#667eea' },
   { id: 2, name: 'Immobilier', slug: 'immobilier', icon: FaHome, color: '#f093fb' },
   { id: 3, name: 'Automobiles & Véhicules', slug: 'automobiles', icon: FaCar, color: '#f5576c' },
-  { id: 4, name: 'Pièces détachées', slug: 'pieces-detachees', icon: FaTools, color: '#48c6ef' },
+  { id: 4, name: 'Pièces détachées', slug: 'piecesDetachees', icon: FaTools, color: '#48c6ef' },
   { id: 5, name: 'Téléphones & Accessoires', slug: 'telephones', icon: FaMobileAlt, color: '#6a11cb' },
   { id: 6, name: 'Informatique', slug: 'informatique', icon: FaLaptop, color: '#37ecba' },
   { id: 7, name: 'Électroménager & Électronique', slug: 'electromenager', icon: FaTv, color: '#ff9a9e' },
   { id: 8, name: 'Vêtements & Mode', slug: 'vetements', icon: FaTshirt, color: '#a18cd1' },
-  { id: 9, name: 'Santé & Beauté', slug: 'sante-beaute', icon: FaHeart, color: '#fbc2eb' },
+  { id: 9, name: 'Santé & Beauté', slug: 'santebeaute', icon: FaHeart, color: '#fbc2eb' },
   { id: 10, name: 'Meubles & Maison', slug: 'meubles', icon: FaCouch, color: '#667eea' },
   { id: 11, name: 'Loisirs & Divertissements', slug: 'loisirs', icon: FaGamepad, color: '#f093fb' },
   { id: 12, name: 'Sport', slug: 'sport', icon: FaFutbol, color: '#f5576c' },
@@ -92,7 +92,7 @@ const CategorySlider = () => {
 
   // Renderizar fila de iconos (SIN HOVER)
   const renderIconRow = (row, rowIndex) => {
-    const marginBottom = rowIndex === 0 ? (isMobile ? '8px' : '10px') : '0px';
+    const marginBottom = rowIndex === 0 ? (isMobile ? '1px' : '2px') : '0px';
     
     return (
       <div 
@@ -301,24 +301,8 @@ const CategorySlider = () => {
           </>
         )}
 
-        {/* Footer minimalista */}
-        <div style={{
-          padding: isMobile ? '8px 12px' : '10px 20px',
-          borderTop: '1px solid rgba(0,0,0,0.04)',
-          background: 'rgba(248, 249, 250, 0.4)',
-          textAlign: 'center'
-        }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: isMobile ? '0.75rem' : '0.85rem',
-            color: '#666',
-            fontWeight: '500'
-          }}>
-           
-          </div>
-        </div>
+         {/* Footer minimalista */}
+      
       </div>
 
       {/* Estilos CSS mejorados (sin hover effects) */}

@@ -30,7 +30,7 @@ const CATEGORY_COMPONENTS = {
   'informatique': InformatiqueFields,
   'electromenager': ElectromenagerFields,
   'pieces_detachees': PiecesDetacheesFields,
-  'sante_beaute': SanteBeauteFields,
+  'santebeaute': SanteBeauteFields,
   'meubles': MeublesFields,
   'loisirs': LoisirsFields,
   'sport': SportFields,

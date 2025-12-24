@@ -197,32 +197,7 @@ const SliderImmobiler = () => {
         overflow: 'hidden',
         border: '1px solid rgba(0,0,0,0.06)'
       }}>
-        {/* Título de la sección */}
-        <div style={{
-          padding: isMobile ? '15px 12px 5px' : '20px 20px 10px',
-          borderBottom: '1px solid rgba(0,0,0,0.04)',
-          background: 'linear-gradient(135deg, #667eea10 0%, #764ba210 100%)'
-        }}>
-          <h3 style={{
-            margin: 0,
-            fontSize: isMobile ? '1.1rem' : '1.3rem',
-            fontWeight: '700',
-            color: '#2d3748',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px'
-          }}>
-            <span style={{ fontSize: '1.2em' }}>🏠</span>
-            {isMobile ? 'Immobilier' : 'Toutes les catégories immobilières'}
-          </h3>
-          <p style={{
-            margin: '4px 0 0 0',
-            fontSize: isMobile ? '0.75rem' : '0.85rem',
-            color: '#666'
-          }}>
-            Découvrez nos catégories de biens immobiliers
-          </p>
-        </div>
+    
 
         {/* Contenido con scroll horizontal en mobile */}
         <div

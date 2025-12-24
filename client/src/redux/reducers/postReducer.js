@@ -1,6 +1,6 @@
 // redux/reducers/postReducer.js - VERSIÓN COMPLETA Y ACTUALIZADA
 import { POST_TYPES } from '../actions/postAction';
-
+import { EditData, DeleteData } from '../actions/globalTypes'
 const initialState = {
     loading: false,
     posts: [],
@@ -224,7 +224,16 @@ const postReducer = (state = initialState, action) => {
                 similarLoading: false,
                 currentSimilarPostId: null
             };
-            
+            case POST_TYPES.UPDATE_POST:
+                return {
+                    ...state,
+                    posts: EditData(state.posts, action.payload._id, action.payload)
+                };
+            case POST_TYPES.DELETE_POST:
+                return {
+                    ...state,
+                    posts: DeleteData(state.posts, action.payload._id)
+                };
         // ==================== LOADING Y ERROR ====================
         case POST_TYPES.LOADING_POST:
             console.log('⏳ Reducer - LOADING_POST:', action.payload);

@@ -39,7 +39,7 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
     { id: 'piecesDetachees', name: t('categories:piecesDetachees', 'Pieces Detachees') },
     { id: 'vetements', name: t('categories:vetements', 'Vêtements & Mode') },
     { id: 'alimentaires', name: t('categories:Alimentaires', 'Alimentaires') },
-    { id: 'sante_beaute', name: t('categories:sante_beaute', 'Santé & Beauté') },
+    { id: 'santebeaute', name: t('categories:sante_beaute', 'Santé & Beauté') },
     { id: 'meubles', name: t('categories:meubles', 'Meubles & Maison') },
     { id: 'services', name: t('categories:Services', 'Services') },
     { id: 'materiaux', name: t('categories:Materiaux', 'Materiaux') },
@@ -89,7 +89,7 @@ const CategoriesAndSubCategory = ({ postData, handleChangeInput }) => {
       { id: 'pieces_moto', name: t('subcategories:pieces_detachees.categories.pieces_moto') },
     ],
     // Sante Beaute
-    'sante_beaute': [
+    'santebeaute': [
       { id: 'cosmetiques_beaute', name: t('subcategories:sante_beaute.categories.cosmetiques_beaute') },
       { id: 'parfums_deodorants_femme', name: t('subcategories:sante_beaute.categories.parfums_deodorants_femme') },
       { id: 'parfums_deodorants_homme', name: t('subcategories:sante_beaute.categories.parfums_deodorants_homme') },

@@ -451,7 +451,7 @@ const Subcategories = ({ postData, handleChangeInput }) => {
         return electromenagerCategories;
       case 'piecesDetachees':
         return piecesDetacheesCategories;
-      case 'sante_beaute':
+      case 'santebeaute':
         return santeBeauteCategories;
       case 'meubles':
         return meublesCategories;

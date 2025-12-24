@@ -15,7 +15,7 @@ const CardBodyDescription = ({ post }) => {
     'piecesDetachees': '⚙️',
     'vetements': '👕',
     'alimentaires': '🍎',
-    'sante_beaute': '💄',
+    'santebeaute': '💄',
     'meubles': '🛋️',
     'services': '🛠️',
     'materiaux': '🧱',
@@ -92,7 +92,7 @@ const CardBodyDescription = ({ post }) => {
         { key: 'matiere', label: 'Matière', icon: '🧵' },
         { key: 'sexe', label: 'Sexe', icon: '👤' }
       ],
-      sante_beaute: [
+      santebeaute: [
         { key: 'marque', label: 'Marque', icon: '🏷️' },
         { key: 'typeProduit', label: 'Type produit', icon: '💄' },
         { key: 'dateExpiration', label: 'Date expiration', icon: '📅' },

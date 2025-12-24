@@ -17,7 +17,7 @@ const CategorySection = ({ categoryName, posts, emoji }) => {
         'piecesDetachees': '⚙️',
         'vetements': '👕',
         'alimentaires': '🍎',
-        'sante_beaute': '💄',
+        'santebeaute': '💄',
         'meubles': '🛋️',
         'services': '🛠️',
         'materiaux': '🧱',

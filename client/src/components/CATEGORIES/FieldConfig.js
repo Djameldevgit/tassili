@@ -338,7 +338,7 @@ export const FIELD_CONFIG = {
   },
 
   // ============ SANTE & BEAUTE ============
-  'sante_beaute': {
+  'santebeaute': {
     'cosmetiques_beaute': [
       'typeProduit', 'marque', 'modele', 'typeCosmetique', 'typePeau',
       'contenance', 'utilisation', 'datePeremption', 'etat', 'prix'

@@ -156,12 +156,12 @@ const CategoryPage = () => {
             </nav>
             
             {/* SLIDER DINÁMICO ACTUALIZADO */}
-            <div className="mb-5">
+            <div>
                 <DynamicCategorySlider categoryName={categoryName} />
             </div>
             
             {/* ENCABEZADO DE CATEGORÍA */}
-            <Row className="mb-4 align-items-center">
+            <Row className="mb-2 align-items-center">
                 <Col>
                     <h2 className="mb-0">
                         <i className="fas fa-tag me-2 text-primary"></i>

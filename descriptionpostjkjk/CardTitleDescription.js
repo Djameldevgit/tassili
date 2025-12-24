@@ -15,7 +15,7 @@ const CardTitleDescription = ({ post }) => {
     'piecesDetachees': '⚙️',
     'vetements': '👕',
     'alimentaires': '🍎',
-    'sante_beaute': '💄',
+    'santebeaute': '💄',
     'meubles': '🛋️',
     'services': '🛠️',
     'materiaux': '🧱',

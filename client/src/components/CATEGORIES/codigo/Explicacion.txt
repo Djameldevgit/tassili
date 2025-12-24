@@ -57,7 +57,7 @@ src/
             ├── MateriauxField.js
             ├── AlimentairesField.js
             ├── TelephonesField.js
-            ├── SanteBeautyField.js
+            ├── SanteBeauteField.js
             ├── PieceDetache.js
             ├── MuebleField.js
             ├── Emploi.js

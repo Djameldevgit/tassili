@@ -129,7 +129,7 @@ const TailleField = ({
       },
       
       // 💄 SANTÉ & BEAUTÉ
-      sante_beaute: {
+      santebeaute: {
         produits_beaute: ['30ml', '50ml', '100ml', '200ml', '500ml'],
         parfums: ['30ml', '50ml', '75ml', '100ml'],
         complements_alimentaires: ['30 capsules', '60 capsules', '90 capsules'],
@@ -192,7 +192,7 @@ const TailleField = ({
     const sizeCategories = {
       select: ['vetements', 'sport', 'electromenager', 'informatique', 'telephones', 
                'automobiles', 'meubles', 'voyages', 'pieces_detachees'],
-      number: ['materiaux', 'alimentaires', 'sante_beaute'],
+      number: ['materiaux', 'alimentaires', 'santebeaute'],
       text: ['loisirs', 'services', 'emploi']
     };
     
@@ -298,7 +298,7 @@ const TailleField = ({
       sport: 'cm',
       materiaux: 'cm',
       alimentaires: 'kg',
-      sante_beaute: 'ml',
+      santebeaute: 'ml',
       default: 'cm'
     };
     

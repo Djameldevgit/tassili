@@ -259,7 +259,7 @@ const MarqueField = ({
     },
   
     // ============ 💄 SANTÉ & BEAUTÉ ============
-    'sante_beaute': {
+    'santebeaute': {
       'cosmetiques': [
         'L\'Oréal', 'Nivea', 'Garnier', 'Maybelline', 'MAC', 'Estée Lauder',
         'Clinique', 'Lancôme', 'Dior', 'Chanel', 'Yves Saint Laurent', 'Shiseido',

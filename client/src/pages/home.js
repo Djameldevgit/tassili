@@ -106,7 +106,7 @@ const Home = () => {
             <CategorySlider/>
             
             {/* BARRA DE BÚSQUEDA */}
-            <Container className="my-4">
+            <Container className='mb-3'>
                 <Row className="justify-content-center">
                     <Col md={6} lg={5}>
                         <InputGroup className="shadow-sm">
@@ -115,7 +115,7 @@ const Home = () => {
                             </InputGroup.Text>
                             <Form.Control
                                 type="text"
-                                placeholder="Buscar categorías..."
+                                placeholder="Rechercher categoríes..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="border-start-0"
@@ -131,7 +131,7 @@ const Home = () => {
                     <Row className="justify-content-center py-5">
                         <Col xs="auto" className="text-center">
                             <img src={LoadIcon} alt="loading" />
-                            <p className="mt-2 text-muted">Cargando categorías...</p>
+                            <p className="mt-2 text-muted">Telecharge categoríes...</p>
                         </Col>
                     </Row>
                 ) : (
@@ -167,7 +167,7 @@ const Home = () => {
                                                     {category.name}
                                                 </h2>
                                                 <small className="text-muted">
-                                                    {category.count} anuncios disponibles
+                                                    {category.count} annonces disponibles
                                                 </small>
                                             </div>
                                         </div>
@@ -176,7 +176,7 @@ const Home = () => {
                                             to={`/category/${category.name}`}
                                             className="btn btn-outline-primary btn-sm px-3"
                                         >
-                                            Ver todos
+                                            voir toutes
                                             <i className="fas fa-arrow-right ms-2"></i>
                                         </Link>
                                     </div>
@@ -194,7 +194,7 @@ const Home = () => {
                                         <Row className="py-4">
                                             <Col className="text-center">
                                                 <div className="spinner-border spinner-border-sm text-primary me-2"></div>
-                                                <span className="text-muted">Cargando anuncios de {category.name}...</span>
+                                                <span className="text-muted">Telecharge annonces de {category.name}...</span>
                                             </Col>
                                         </Row>
                                     )}
@@ -212,7 +212,7 @@ const Home = () => {
                             <Row className="justify-content-center py-4">
                                 <Col xs="auto" className="text-center">
                                     <div className="spinner-border spinner-border-sm text-primary me-2"></div>
-                                    <span className="text-muted">Cargando más categorías...</span>
+                                    <span className="text-muted">Telecharge plus categoríes...</span>
                                 </Col>
                             </Row>
                         )}
@@ -224,7 +224,7 @@ const Home = () => {
                                     <div className="alert alert-light border p-3">
                                         <i className="fas fa-check-circle text-success me-2"></i>
                                         <span className="text-muted">
-                                            Has visto todas las categorías disponibles
+                                            Vous avez vue toutes les categoríes disponible
                                         </span>
                                     </div>
                                 </Col>

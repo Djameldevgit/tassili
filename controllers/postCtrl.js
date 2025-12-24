@@ -208,7 +208,7 @@ getAllCategoriesPaginated: async (req, res) => {
             'electromenager': '🔌',
             'piecesDetachees': '⚙️',
             'alimentaires': '🍎',
-            'sante_beaute': '💄',
+            'santebeaute': '💄',
             'meubles': '🛋️',
             'materiaux': '🧱',
             'loisirs': '🎮',
@@ -374,76 +374,76 @@ getAllCategoriesPaginated: async (req, res) => {
       return res.status(500).json({msg: err.message});
     }
   },
-    deletePost: async (req, res) => {
-        try {
-            const postId = req.params.id;
-            const userId = req.user._id;
-    
-            // 1. VERIFICAR SI EL USUARIO ES EL DUEÑO O ADMIN
-            const post = await Posts.findById(postId);
-            
-            if (!post) {
-                return res.status(404).json({msg: 'Post not found'});
-            }
-    
-            if (post.user.toString() !== userId.toString() && req.user.role !== 'admin') {
-                return res.status(403).json({msg: 'Not authorized to delete this post'});
-            }
-    
-            console.log('🗑️ Eliminando post y sus imágenes:', post.images);
-    
-            // 2. BORRAR TODAS LAS IMÁGENES DEL POST DE CLOUDINARY
-            if (post.images && post.images.length > 0) {
-                for (const image of post.images) {
-                    if (image.public_id) {
-                        try {
-                            await cloudinary.uploader.destroy(image.public_id);
-                            console.log('✅ Imagen borrada de Cloudinary:', image.public_id);
-                        } catch (cloudinaryErr) {
-                            console.error('❌ Error borrando imagen de Cloudinary:', image.public_id, cloudinaryErr);
-                            // Continuar aunque falle una imagen
-                        }
+  deletePost: async (req, res) => {
+    try {
+        const postId = req.params.id;
+        const userId = req.user._id;
+
+        // 1. VERIFICAR SI EL USUARIO ES EL DUEÑO O ADMIN
+        const post = await Posts.findById(postId);
+        
+        if (!post) {
+            return res.status(404).json({msg: 'Post not found'});
+        }
+
+        if (post.user.toString() !== userId.toString() && req.user.role !== 'admin') {
+            return res.status(403).json({msg: 'Not authorized to delete this post'});
+        }
+
+        console.log('🗑️ Eliminando post y sus imágenes:', post.images);
+
+        // 2. BORRAR TODAS LAS IMÁGENES DEL POST DE CLOUDINARY
+        if (post.images && post.images.length > 0) {
+            for (const image of post.images) {
+                if (image.public_id) {
+                    try {
+                        await cloudinary.uploader.destroy(image.public_id);
+                        console.log('✅ Imagen borrada de Cloudinary:', image.public_id);
+                    } catch (cloudinaryErr) {
+                        console.error('❌ Error borrando imagen de Cloudinary:', image.public_id, cloudinaryErr);
+                        // Continuar aunque falle una imagen
                     }
                 }
             }
-    
-            // 3. GUARDAR IDs DE COMMENTS Y LIKES ANTES DE ELIMINAR
-            const commentsToDelete = post.comments || [];
-            const likesToCleanup = post.likes || [];
-    
-            // 4. ELIMINAR EL POST DE MONGODB
-            await Posts.findByIdAndDelete(postId);
-    
-            // 5. LIMPIAR DATOS RELACIONADOS
-            if (commentsToDelete.length > 0) {
-                await Comments.deleteMany({_id: {$in: commentsToDelete}});
-            }
-    
-            // 6. OPCIONAL: Limpiar likes de usuarios
-            if (likesToCleanup.length > 0) {
-                await Users.updateMany(
-                    {_id: {$in: likesToCleanup}},
-                    {$pull: {likes: postId}}
-                );
-            }
-    
-            // 7. OPCIONAL: Eliminar de posts guardados
-            await Users.updateMany(
-                {saved: postId},
-                {$pull: {saved: postId}}
-            );
-    
-            res.json({
-                msg: 'Post deleted successfully!',
-                deletedPostId: postId,
-                deletedImagesCount: post.images ? post.images.length : 0
-            });
-    
-        } catch (err) {
-            console.error('Error in deletePost:', err);
-            return res.status(500).json({msg: err.message});
         }
-    },
+
+        // 3. GUARDAR IDs DE COMMENTS Y LIKES ANTES DE ELIMINAR
+        const commentsToDelete = post.comments || [];
+        const likesToCleanup = post.likes || [];
+
+        // 4. ELIMINAR EL POST DE MONGODB
+        await Posts.findByIdAndDelete(postId);
+
+        // 5. LIMPIAR DATOS RELACIONADOS
+        if (commentsToDelete.length > 0) {
+            await Comments.deleteMany({_id: {$in: commentsToDelete}});
+        }
+
+        // 6. OPCIONAL: Limpiar likes de usuarios
+        if (likesToCleanup.length > 0) {
+            await Users.updateMany(
+                {_id: {$in: likesToCleanup}},
+                {$pull: {likes: postId}}
+            );
+        }
+
+        // 7. OPCIONAL: Eliminar de posts guardados
+        await Users.updateMany(
+            {saved: postId},
+            {$pull: {saved: postId}}
+        );
+
+        res.json({
+            msg: 'Post deleted successfully!',
+            deletedPostId: postId,
+            deletedImagesCount: post.images ? post.images.length : 0
+        });
+
+    } catch (err) {
+        console.error('Error in deletePost:', err);
+        return res.status(500).json({msg: err.message});
+    }
+},
 
 getUserPosts: async (req, res) => {
     try {
