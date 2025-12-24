@@ -39,6 +39,7 @@ import Message from './pages/message';
 import Navbar2 from './components/header/Navbar2';
 import CreateAnnoncePage from './pages/CreateAnnoncePage';
 import CategoryPage from './pages/category/CategoryPage';
+import SubcategoryPage from './pages/SubcategoryPage';
  
 function App() {
   const { auth, status, modal, languageReducer } = useSelector(state => state)
@@ -172,7 +173,7 @@ getSimilarPosts()
               component={auth.token ? ActivatePage : Login}
             />
             <Route exact path="/category/:categoryName" component={CategoryPage} />
- 
+            <Route  exact path="/:categoryName/:subcategoryId" component={SubcategoryPage} />
  
  
        

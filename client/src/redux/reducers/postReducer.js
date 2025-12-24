@@ -250,7 +250,18 @@ const postReducer = (state = initialState, action) => {
                 loading: false,
                 similarLoading: false
             };
-            
+            // En redux/reducers/postReducer.js
+case POST_TYPES.GET_SUBCATEGORY_POSTS:
+    return {
+        ...state,
+        posts: action.payload.page === 1 
+            ? action.payload.posts 
+            : [...state.posts, ...action.payload.posts],
+        category: action.payload.category,
+        subcategory: action.payload.subcategory,
+        page: action.payload.page,
+        total: action.payload.total
+    };
         default:
             return state;
     }

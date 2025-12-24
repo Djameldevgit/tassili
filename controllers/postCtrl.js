@@ -1,3 +1,6 @@
+ 
+const mongoose = require('mongoose');
+
 const Posts = require('../models/postModel')
 const Comments = require('../models/commentModel')
 const Users = require('../models/userModel')
@@ -246,19 +249,19 @@ getAllCategoriesPaginated: async (req, res) => {
 // Función auxiliar para calcular similitud
 // redux/actions/postAction.js
  // En tu backend
- getSimilarPosts : async (req, res) => {
+ getSimilarPosts: async (req, res) => {
     try {
       console.log('📥 getSimilarPosts recibió:', req.query);
       
       const { 
-        categorie,  // ⬅️ Importante: es categorie, no category
+        categorie,
         subCategory, 
         excludeId, 
         limit = 6, 
         page = 1 
       } = req.query;
       
-      // Validar
+      // Validación mejorada
       if (!categorie || !subCategory) {
         return res.status(400).json({ 
           success: false,
@@ -266,6 +269,9 @@ getAllCategoriesPaginated: async (req, res) => {
         });
       }
   
+      // Importar el modelo CORRECTAMENTE
+      
+      
       // Construir query
       let query = { 
         categorie: categorie.trim(),
@@ -278,6 +284,8 @@ getAllCategoriesPaginated: async (req, res) => {
         query._id = { $ne: new mongoose.Types.ObjectId(excludeId) };
       }
   
+      console.log('🔍 Query de búsqueda:', query);
+      
       // Paginación
       const skip = (parseInt(page) - 1) * parseInt(limit);
       
@@ -285,16 +293,16 @@ getAllCategoriesPaginated: async (req, res) => {
       const posts = await Posts.find(query)
         .populate('user', 'name avatar')
         .populate('likes', '_id name')
-        .sort({ createdAt: -1, isPromoted: -1 })
+        .sort({ isPromoted: -1, isUrgent: -1, createdAt: -1 })
         .skip(skip)
         .limit(parseInt(limit));
       
-      const total = await Post.countDocuments(query);
+      const total = await Posts.countDocuments(query);
       const totalPages = Math.ceil(total / parseInt(limit));
       const hasMore = page < totalPages;
   
       console.log(`✅ Encontrados ${posts.length} posts de ${total}`);
-  
+      
       res.json({
         success: true,
         posts,
@@ -305,11 +313,12 @@ getAllCategoriesPaginated: async (req, res) => {
       });
       
     } catch (error) {
-      console.error('❌ getSimilarPosts error:', error);
+      console.error('❌ getSimilarPosts error completo:', error);
       res.status(500).json({ 
         success: false,
         message: 'Error del servidor', 
-        error: error.message 
+        error: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       });
     }
   },

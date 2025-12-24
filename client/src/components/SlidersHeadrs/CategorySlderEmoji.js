@@ -6,7 +6,7 @@ import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 const categoriesData = [
   { id: 1, name: 'Boutiques', slug: 'boutiques', emoji: '🏪', color: '#667eea' },
   { id: 2, name: 'Immobilier', slug: 'immobilier', emoji: '🏠', color: '#f093fb' },
-  { id: 3, name: 'Automobiles & Véhicules', slug: 'automobiles', emoji: '🚗', color: '#f5576c' },
+  { id: 3, name: 'Automobiles & Véhicules', slug: 'vehicules', emoji: '🚗', color: '#f5576c' },
   { id: 4, name: 'Pièces détachées', slug: 'pieces-detachees', emoji: '🔧', color: '#48c6ef' },
   { id: 5, name: 'Téléphones & Accessoires', slug: 'telephones', emoji: '📱', color: '#6a11cb' },
   { id: 6, name: 'Informatique', slug: 'informatique', emoji: '💻', color: '#37ecba' },

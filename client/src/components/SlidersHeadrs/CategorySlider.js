@@ -10,7 +10,7 @@ import { FaStore, FaHome, FaCar, FaTools, FaMobileAlt,
 const categoriesData = [
   { id: 1, name: 'Boutiques', slug: 'boutiques', icon: FaStore, color: '#667eea' },
   { id: 2, name: 'Immobilier', slug: 'immobilier', icon: FaHome, color: '#f093fb' },
-  { id: 3, name: 'Automobiles & Véhicules', slug: 'automobiles', icon: FaCar, color: '#f5576c' },
+  { id: 3, name: 'Automobiles & Véhicules', slug: 'vehicules', icon: FaCar, color: '#f5576c' },
   { id: 4, name: 'Pièces détachées', slug: 'piecesDetachees', icon: FaTools, color: '#48c6ef' },
   { id: 5, name: 'Téléphones & Accessoires', slug: 'telephones', icon: FaMobileAlt, color: '#6a11cb' },
   { id: 6, name: 'Informatique', slug: 'informatique', icon: FaLaptop, color: '#37ecba' },

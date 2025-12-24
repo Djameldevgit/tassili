@@ -14,6 +14,7 @@ export const POST_TYPES = {
     DELETE_POST: 'DELETE_POST',
     GET_POSTS_BY_CATEGORY: 'GET_POSTS_BY_CATEGORY',
     GET_CATEGORIES: 'GET_CATEGORIES',
+    GET_SUBCATEGORY_POSTS:'GET_SUBCATEGORY_POSTS',
     GET_CATEGORIES_PAGINATED: 'GET_CATEGORIES_PAGINATED',
     ERROR_POST: 'ERROR_POST',
     
@@ -24,43 +25,69 @@ export const POST_TYPES = {
 }
  
  
+// En tu action getSimilarPosts
 export const getSimilarPosts = (postId, options = {}) => async (dispatch, getState) => {
     try {
       dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: true });
       
-      console.log('🔍 Buscando posts similares para postId:', postId);
+      console.log('🔍 ======= INICIO BÚSQUEDA SIMILARES =======');
+      console.log('📌 Post ID objetivo:', postId);
       
-      // Obtener el post detalle del reducer correcto
+      // Obtener el post...
       const { detailPost } = getState();
       let currentPost = detailPost.find(post => post._id === postId);
       
-      // Si no está en el reducer detailPost, obtenerlo de la API
-      if (!currentPost) {
-        console.log('📥 Post no encontrado en detailPostReducer, obteniendo de API...');
-        
-        const postRes = await getDataAPI(`post/${postId}`);
-        currentPost = postRes.data;
-        
-        // Guardar en el detailPostReducer
-        dispatch({ 
-          type: POST_TYPES.GET_POST, 
-          payload: currentPost 
-        });
-      }
-      
-      // Verificar que tenemos los datos necesarios
-      if (!currentPost?.categorie || !currentPost?.subCategory) {
-        console.error('❌ Post no tiene categorie o subCategory:', currentPost);
-        throw new Error('El post no tiene la información necesaria para buscar similares');
-      }
-      
-      console.log('📋 Datos del post para búsqueda:', {
-        categorie: currentPost.categorie,
-        subCategory: currentPost.subCategory,
-        id: currentPost._id
+      // DEPURACIÓN: Ver qué hay en detailPost
+      console.log('📊 Estado detailPost:', {
+        tieneData: !!detailPost,
+        esArray: Array.isArray(detailPost),
+        length: detailPost?.length,
+        postsIds: detailPost?.map(p => p._id)
       });
       
-      // Construir params para TU endpoint existente
+      // Si no encontramos en detailPost, buscar en otros reducers
+      if (!currentPost) {
+        const { post } = getState(); // <-- También revisar el postReducer
+        if (post && post._id === postId) {
+          currentPost = post;
+          console.log('✅ Post encontrado en postReducer');
+        } else {
+          console.log('📥 Post no encontrado en reducers, obteniendo de API...');
+          const postRes = await getDataAPI(`post/${postId}`);
+          currentPost = postRes.data;
+        }
+      }
+      
+      // VERIFICAR DATOS DEL POST
+      console.log('📋 Datos completos del post:', currentPost);
+      console.log('🔍 Campos clave:', {
+        tieneCategorie: !!currentPost?.categorie,
+        categorie: currentPost?.categorie,
+        tieneSubCategory: !!currentPost?.subCategory,
+        subCategory: currentPost?.subCategory,
+        id: currentPost?._id
+      });
+      
+      // Validación crítica
+      if (!currentPost?.categorie || !currentPost?.subCategory) {
+        console.error('❌ FALTAN DATOS PARA BÚSQUEDA:', {
+          categorie: currentPost?.categorie,
+          subCategory: currentPost?.subCategory,
+          postCompleto: currentPost
+        });
+        
+        dispatch({ 
+          type: POST_TYPES.ERROR_POST, 
+          payload: {
+            message: 'El post no tiene categoría o subcategoría definida',
+            action: 'getSimilarPosts'
+          }
+        });
+        dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: false });
+        return;
+      }
+      
+      // Construir params
       const params = new URLSearchParams({
         categorie: currentPost.categorie,
         subCategory: currentPost.subCategory,
@@ -69,36 +96,33 @@ export const getSimilarPosts = (postId, options = {}) => async (dispatch, getSta
         page: options.page || 1
       }).toString();
       
-      console.log('🌐 Llamando endpoint:', `/posts/similar?${params}`);
+      console.log('🌐 Llamando endpoint con params:', `/posts/similar?${params}`);
       
-      // Llamar a TU endpoint existente
+      // Llamada a API
       const res = await getDataAPI(`posts/similar?${params}`);
       
-      console.log(`✅ Posts similares encontrados: ${res.data.posts?.length || 0}`);
-      
-      // Despachar al postReducer (no al detailPostReducer)
-      dispatch({ 
-        type: POST_TYPES.GET_SIMILAR_POSTS, 
-        payload: {
-          posts: res.data.posts || [],
-          total: res.data.total || 0,
-          page: res.data.page || 1,
-          totalPages: res.data.totalPages || 1,
-          hasMore: res.data.hasMore || false,
-          currentPostId: postId  // Para referencia
-        }
+      console.log('📦 Respuesta completa de API:', res);
+      console.log('📊 Datos recibidos:', {
+        success: res.data.success,
+        postsCount: res.data.posts?.length,
+        total: res.data.total,
+        message: res.data.message
       });
+      
+      if (!res.data.success) {
+        throw new Error(res.data.message || 'Error en la respuesta del servidor');
+      }
+      
+      // Continuar con el dispatch...
       
     } catch (err) {
-      console.error('❌ Error en getSimilarPosts:', err);
-      dispatch({ 
-        type: POST_TYPES.ERROR_POST, 
-        payload: {
-          message: err.response?.data?.message || err.message || 'Error al cargar posts similares',
-          action: 'getSimilarPosts'
-        }
+      console.error('❌ ERROR COMPLETO en getSimilarPosts:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        config: err.response?.config
       });
-      dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: false });
+      // Manejo de error...
     }
   };
   
@@ -219,7 +243,41 @@ export const getCategories = (page = 1, limit = 2) => async (dispatch, getState)
         throw err;
     }
 };
-
+// En redux/actions/postAction.js
+export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, options = {}) => 
+    async (dispatch) => {
+    try {
+        dispatch({ type: GLOBALTYPES.LOADING, payload: true });
+        
+        const limit = options.limit || 9;
+        const skip = (page - 1) * limit;
+        
+        const res = await getDataAPI(
+            `posts?category=${categoryName}&subcategory=${subcategoryId}&limit=${limit}&skip=${skip}`
+        );
+        
+        dispatch({
+            type: POST_TYPES.GET_SUBCATEGORY_POSTS,
+            payload: {
+                posts: res.data.posts,
+                category: categoryName,
+                subcategory: subcategoryId,
+                page: page,
+                total: res.data.total
+            }
+        });
+        
+        dispatch({ type: GLOBALTYPES.LOADING, payload: false });
+        return res.data;
+    } catch (err) {
+        dispatch({
+            type: GLOBALTYPES.ALERT,
+            payload: { error: err.response.data.msg }
+        });
+        dispatch({ type: GLOBALTYPES.LOADING, payload: false });
+        throw err;
+    }
+};
 // Acción para crear post (ya la tienes, pero asegurar que guarda categoría)
 // actions/postAction.js - createPost actualizada
 export const createPost = ({ 
