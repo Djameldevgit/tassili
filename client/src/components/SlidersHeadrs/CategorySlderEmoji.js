@@ -32,6 +32,11 @@ const CategorySliderEmoji = () => {
   const scrollRef = useRef(null);
   const rowsContainerRef = useRef(null);
 
+  // Calcular distribución en dos filas (50% en cada fila)
+  const halfIndex = Math.ceil(categoriesData.length / 2);
+  const firstRow = categoriesData.slice(0, halfIndex);
+  const secondRow = categoriesData.slice(halfIndex);
+
   // Configuración responsive
   useEffect(() => {
     const handleResize = () => {
@@ -50,11 +55,6 @@ const CategorySliderEmoji = () => {
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
-
-  // Configuración inicial de filas
-  const itemsPerRow = isMobile ? 8 : 9;
-  const firstRow = categoriesData.slice(0, itemsPerRow);
-  const secondRow = categoriesData.slice(itemsPerRow);
 
   // Actualizar estado de botones de scroll
   const updateScrollButtons = () => {
@@ -86,20 +86,18 @@ const CategorySliderEmoji = () => {
     }
   };
 
-  // Renderizar fila de emojis (SIN HOVER)
+  // Renderizar fila de emojis
   const renderEmojiRow = (row, rowIndex) => {
-    const marginBottom = rowIndex === 0 ? (isMobile ? '8px' : '10px') : '0px';
-    
     return (
       <div 
         style={{
           display: 'flex',
-          justifyContent: isMobile ? 'flex-start' : 'center',
-          gap: isMobile ? '4px' : '20px',
-          padding: isMobile ? '8px 8px' : '12px 15px',
+          justifyContent: isMobile ? 'flex-start' : 'space-around',
+          gap: isMobile ? '12px' : '5px',
+          padding: isMobile ? '6px 12px' : '8px 5px',
           flexShrink: 0,
           minWidth: isMobile ? 'min-content' : 'auto',
-          marginBottom: marginBottom
+          width: '100%'
         }}
       >
         {row.map((category) => (
@@ -113,31 +111,39 @@ const CategorySliderEmoji = () => {
               flexDirection: 'column',
               alignItems: 'center',
               flexShrink: 0,
-              width: isMobile ? '75px' : '95px'
+              width: isMobile ? '80px' : '95px',
+              flex: '1 1 0%',
+              minWidth: '70px',
+              maxWidth: '110px'
             }}
           >
-            {/* Círculo del emoji - SIN EFECTOS HOVER */}
+            {/* Círculo del emoji - ICONO MÁS GRANDE */}
             <div
               style={{
-                width: isMobile ? '70px' : '85px',
-                height: isMobile ? '70px' : '85px',
+                width: isMobile ? '64px' : '70px',
+                height: isMobile ? '64px' : '70px',
                 borderRadius: '50%',
-                background: `linear-gradient(135deg, ${category.color}15 0%, ${category.color}10 100%)`,
+                background: `linear-gradient(135deg, ${category.color} 0%, ${category.color}99 100%)`,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 position: 'relative',
-                border: `2px solid ${category.color}20`,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                marginBottom: '8px',
-                transition: 'transform 0.2s ease'
+                boxShadow: '0 4px 12px rgba(0,0,0,0.12)',
+                marginBottom: '6px',
+                padding: '2px'
               }}
             >
+              {/* Icono que ocupa todo el espacio */}
               <span 
                 style={{ 
-                  fontSize: isMobile ? '2.2rem' : '2.5rem', // Tamaño emoji
+                  fontSize: isMobile ? '2.8rem' : '3.2rem', // Icono mucho más grande
                   lineHeight: 1,
-                  filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.1))'
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%',
+                  textAlign: 'center'
                 }}
               >
                 {category.emoji}
@@ -150,17 +156,17 @@ const CategorySliderEmoji = () => {
               width: '100%'
             }}>
               <span style={{
-                fontSize: isMobile ? '0.7rem' : '0.8rem',
+                fontSize: isMobile ? '0.7rem' : '0.75rem',
                 fontWeight: '600',
-                color: '#444',
+                color: '#333',
                 display: 'block',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
                 padding: '0 2px',
-                lineHeight: '1.2'
+                lineHeight: '1.1'
               }}>
-                {category.name.length > 12 ? `${category.name.substring(0, 10)}...` : category.name}
+                {category.name.length > 15 ? `${category.name.substring(0, 13)}...` : category.name}
               </span>
             </div>
           </Link>
@@ -171,16 +177,18 @@ const CategorySliderEmoji = () => {
 
   return (
     <div ref={containerRef} className="category-grid-container">
-      {/* Card contenedor único */}
+      {/* Card contenedor CON MÁRGENES REDUCIDOS */}
       <div style={{
         position: 'relative',
         maxWidth: '1400px',
         margin: '0 auto',
         background: 'white',
-        borderRadius: '20px',
-        boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+        borderRadius: '16px',
+        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
         overflow: 'hidden',
-        border: '1px solid rgba(0,0,0,0.06)'
+        border: '1px solid rgba(0,0,0,0.06)',
+        marginTop: '0', // Quitar margen superior
+        marginBottom: '0' // Quitar margen inferior
       }}>
         {/* Contenido con scroll horizontal en mobile */}
         <div
@@ -188,18 +196,17 @@ const CategorySliderEmoji = () => {
           onScroll={handleScroll}
           style={{
             display: 'block',
-            padding: isMobile ? '12px 0' : '20px 0',
+            padding: isMobile ? '8px 0' : '10px 0', // Padding reducido
             overflowX: isMobile ? 'auto' : 'visible',
             overflowY: 'hidden',
             scrollBehavior: 'smooth',
             WebkitOverflowScrolling: 'touch',
             msOverflowStyle: 'none',
             scrollbarWidth: 'none',
-            position: 'relative',
-            minHeight: isMobile ? 'auto' : '180px'
+            position: 'relative'
           }}
         >
-          {/* Contenedor de filas para centrar botones */}
+          {/* Contenedor de filas */}
           <div ref={rowsContainerRef} style={{
             position: 'relative'
           }}>
@@ -220,25 +227,24 @@ const CategorySliderEmoji = () => {
                 onClick={scrollLeft}
                 style={{
                   position: 'absolute',
-                  left: '8px',
+                  left: '6px',
                   top: '50%',
                   transform: 'translateY(-50%)',
                   zIndex: 20,
-                  width: '36px',
-                  height: '36px',
+                  width: '32px',
+                  height: '32px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   border: 'none',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  color: 'white',
-                  transition: 'all 0.2s ease'
+                  color: 'white'
                 }}
               >
-                <FaChevronLeft size={18} color="white" />
+                <FaChevronLeft size={16} color="white" />
               </button>
             )}
 
@@ -248,25 +254,24 @@ const CategorySliderEmoji = () => {
                 onClick={scrollRight}
                 style={{
                   position: 'absolute',
-                  right: '8px',
+                  right: '6px',
                   top: '50%',
                   transform: 'translateY(-50%)',
                   zIndex: 20,
-                  width: '36px',
-                  height: '36px',
+                  width: '32px',
+                  height: '32px',
                   borderRadius: '50%',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   border: 'none',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)',
+                  boxShadow: '0 2px 8px rgba(102, 126, 234, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  color: 'white',
-                  transition: 'all 0.2s ease'
+                  color: 'white'
                 }}
               >
-                <FaChevronRight size={18} color="white" />
+                <FaChevronRight size={16} color="white" />
               </button>
             )}
 
@@ -275,11 +280,11 @@ const CategorySliderEmoji = () => {
               display: 'flex',
               justifyContent: 'center',
               gap: '6px',
-              padding: '8px 0 12px 0',
+              padding: '4px 0 8px 0',
               position: 'relative',
               zIndex: 10
             }}>
-              {[0, 1, 2].map((dot, index) => {
+              {[0, 1].map((dot, index) => {
                 const isActive = index === Math.floor(scrollPosition / 300);
                 return (
                   <div
@@ -291,8 +296,7 @@ const CategorySliderEmoji = () => {
                       background: isActive 
                         ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
                         : '#e0e0e0',
-                      transition: 'all 0.3s ease',
-                      transform: isActive ? 'scale(1.1)' : 'scale(1)'
+                      transition: 'all 0.3s ease'
                     }}
                   />
                 );
@@ -303,10 +307,11 @@ const CategorySliderEmoji = () => {
 
         {/* Footer minimalista */}
         <div style={{
-          padding: isMobile ? '8px 12px' : '10px 20px',
+          padding: isMobile ? '6px 12px' : '8px 20px',
           borderTop: '1px solid rgba(0,0,0,0.04)',
           background: 'rgba(248, 249, 250, 0.4)',
-          textAlign: 'center'
+          textAlign: 'center',
+          display: 'none' // Ocultado para ahorrar espacio
         }}>
           <div style={{
             display: 'inline-flex',
@@ -321,7 +326,7 @@ const CategorySliderEmoji = () => {
         </div>
       </div>
 
-      {/* Estilos CSS */}
+      {/* Estilos CSS simplificados */}
       <style>{`
         /* Ocultar scrollbar pero mantener funcionalidad */
         .category-grid-container ::-webkit-scrollbar {
@@ -331,7 +336,6 @@ const CategorySliderEmoji = () => {
         /* Solo efecto de press para mobile/touch */
         .category-grid-container a:active div:first-child {
           transform: scale(0.95);
-          transition: transform 0.1s ease;
         }
         
         /* Prevenir zoom en doble tap */
@@ -379,44 +383,23 @@ const CategorySliderEmoji = () => {
           }
           
           .category-grid-container a > div:first-child {
-            width: 58px !important;
-            height: 58px !important;
+            width: 56px !important;
+            height: 56px !important;
           }
           
           .category-grid-container a > div:first-child span {
-            font-size: 1.8rem !important;
+            font-size: 2.2rem !important;
           }
           
           /* Botones más pequeños en pantallas muy pequeñas */
           .category-grid-container button {
-            width: 32px !important;
-            height: 32px !important;
+            width: 28px !important;
+            height: 28px !important;
           }
           
           .category-grid-container button svg {
-            width: 16px !important;
-            height: 16px !important;
-          }
-        }
-        
-        /* Smooth transitions solo para elementos necesarios */
-        .category-grid-container button,
-        .category-grid-container a:active div:first-child {
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Mejor visualización en PCs grandes */
-        @media (min-width: 1200px) {
-          .category-grid-container > div {
-            max-width: 1400px !important;
-          }
-        }
-        
-        /* Sin efectos hover para PCs */
-        @media (hover: hover) and (pointer: fine) {
-          .category-grid-container a div:first-child,
-          .category-grid-container a span {
-            transition: none !important;
+            width: 14px !important;
+            height: 14px !important;
           }
         }
         
@@ -424,6 +407,14 @@ const CategorySliderEmoji = () => {
         .category-grid-container span[role="img"] {
           display: inline-block;
           font-style: normal;
+        }
+        
+        /* Distribución uniforme en desktop */
+        @media (min-width: 768px) {
+          .category-grid-container a {
+            flex: 1 !important;
+            min-width: 0 !important;
+          }
         }
       `}</style>
     </div>
