@@ -27,7 +27,12 @@ const initialState = {
     categoriesHasMore: false,
     
     currentCategory: 'all',
-    error: null
+    error: null,
+    category: null,
+    subcategory: null, // <-- AÑADIR ESTE CAMPO
+    categories: [],
+    categoryPosts: {}, // Posts por categoría
+    // ... otros campo
 };
 
 const postReducer = (state = initialState, action) => {
@@ -262,6 +267,80 @@ case POST_TYPES.GET_SUBCATEGORY_POSTS:
         page: action.payload.page,
         total: action.payload.total
     };
+
+
+
+ 
+    case POST_TYPES.GET_CATEGORIES_PAGINATED:
+        const existingCategories = state.categories || [];
+        const newCategories = action.payload.categories || [];
+        
+        // Evitar duplicados
+        const uniqueCategories = [...existingCategories];
+        newCategories.forEach(newCat => {
+            if (!uniqueCategories.find(cat => cat.name === newCat.name)) {
+                uniqueCategories.push(newCat);
+            }
+        });
+        
+        return {
+            ...state,
+            categories: uniqueCategories,
+            categoriesPage: action.payload.page,
+            categoriesTotal: action.payload.total,
+            categoriesHasMore: action.payload.hasMore
+        };
+        
+        case POST_TYPES.GET_IMMOBILIER_POSTS:
+            console.log('🏠 Reducer - GET_IMMOBILIER_POSTS:', {
+                operation: action.payload.operation,
+                postsCount: action.payload.posts?.length,
+                page: action.payload.page,
+                total: action.payload.total,
+                propertyType: action.payload.propertyType
+            });
+            
+            const { 
+                operation, 
+                posts: immoPosts, 
+                page: immoPage, 
+                total: immoTotal,
+                propertyType 
+            } = action.payload;
+            
+            // Determinar si hay más páginas
+            const immoHasMore = immoPosts?.length > 0 && 
+                (state.immobilierPage * 12) < immoTotal;
+            
+            // Si es página 1 o operación diferente, reemplazar
+            if (immoPage === 1 || operation !== state.immobilierOperation) {
+                return {
+                    ...state,
+                    immobilierPosts: immoPosts || [],
+                    immobilierOperation: operation,
+                    immobilierPage: immoPage,
+                    immobilierTotal: immoTotal || 0,
+                    immobilierHasMore: immoHasMore,
+                    immobilierPropertyType: propertyType || null,
+                    result: immoTotal || immoPosts?.length || 0,
+                    loading: false
+                };
+            }
+            
+            // Si es la misma operación y página > 1, agregar posts
+            return {
+                ...state,
+                immobilierPosts: [...state.immobilierPosts, ...(immoPosts || [])],
+                immobilierPage: immoPage,
+                immobilierHasMore: immoHasMore,
+                result: state.result + (immoPosts?.length || 0),
+                loading: false
+            };
+
+
+
+
+
         default:
             return state;
     }

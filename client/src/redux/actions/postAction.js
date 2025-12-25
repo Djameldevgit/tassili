@@ -17,7 +17,8 @@ export const POST_TYPES = {
     GET_SUBCATEGORY_POSTS:'GET_SUBCATEGORY_POSTS',
     GET_CATEGORIES_PAGINATED: 'GET_CATEGORIES_PAGINATED',
     ERROR_POST: 'ERROR_POST',
-    
+    GET_IMMOBILIER_POSTS: 'GET_IMMOBILIER_POSTS',
+    CLEAR_IMMOBILIER_POSTS: 'CLEAR_IMMOBILIER_POSTS',
     // ✅ AÑADE ESTOS NUEVOS TYPES
     GET_SIMILAR_POSTS: 'GET_SIMILAR_POSTS',
     LOADING_SIMILAR_POSTS: 'LOADING_SIMILAR_POSTS',
@@ -129,7 +130,31 @@ export const getSimilarPosts = (postId, options = {}) => async (dispatch, getSta
   export const clearSimilarPosts = () => (dispatch) => {
     dispatch({ type: POST_TYPES.CLEAR_SIMILAR_POSTS });
   };
- 
+  export const getCategories = (page = 1, limit = 2) => async (dispatch, getState) => {
+    try {
+        const { auth } = getState();
+        const res = await getDataAPI(`categories/paginated?page=${page}&limit=${limit}`, auth.token);
+        
+        dispatch({
+            type: POST_TYPES.GET_CATEGORIES_PAGINATED,
+            payload: {
+                categories: res.data.categories,
+                page: res.data.page,
+                total: res.data.total,
+                totalPages: res.data.totalPages,
+                hasMore: res.data.hasMore
+            }
+        });
+        
+        return res.data;
+    } catch (err) {
+        dispatch({
+            type: 'ALERT',
+            payload: { error: err.response?.data?.msg || 'Error al cargar categorías' }
+        });
+        throw err;
+    }
+};
 export const getPostsByCategory = (category, page = 1, filters = {}) => async (dispatch, getState) => {
     try {
         const { auth } = getState();
@@ -216,34 +241,8 @@ export const getPostsByCategory = (category, page = 1, filters = {}) => async (d
         };
     }
 };
-// Acción para obtener todas las categorías
-// redux/actions/postAction.js - NUEVA ACCIÓN
-export const getCategories = (page = 1, limit = 2) => async (dispatch, getState) => {
-    try {
-        const { auth } = getState();
-        const res = await getDataAPI(`categories/paginated?page=${page}&limit=${limit}`, auth.token);
-        
-        dispatch({
-            type: POST_TYPES.GET_CATEGORIES_PAGINATED,
-            payload: {
-                categories: res.data.categories,
-                page: res.data.page,
-                total: res.data.total,
-                totalPages: res.data.totalPages,
-                hasMore: res.data.hasMore
-            }
-        });
-        
-        return res.data;
-    } catch (err) {
-        dispatch({
-            type: 'ALERT',
-            payload: { error: err.response?.data?.msg || 'Error al cargar categorías' }
-        });
-        throw err;
-    }
-};
-// En redux/actions/postAction.js
+ 
+// redux/actions/postAction.js
 export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, options = {}) => 
     async (dispatch) => {
     try {
@@ -252,9 +251,21 @@ export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, opt
         const limit = options.limit || 9;
         const skip = (page - 1) * limit;
         
+        // ✅ CORRECCIÓN: URL correcta según tu backend
+        const encodedCategory = encodeURIComponent(categoryName);
+        const encodedSubcategory = encodeURIComponent(subcategoryId);
+        
         const res = await getDataAPI(
-            `posts?category=${categoryName}&subcategory=${subcategoryId}&limit=${limit}&skip=${skip}`
+            `posts/category/${encodedCategory}/subcategory/${encodedSubcategory}?limit=${limit}&skip=${skip}`
         );
+        
+        console.log('✅ getPostsBySubcategory SUCCESS:', {
+            category: categoryName,
+            subcategory: subcategoryId,
+            page: page,
+            posts: res.data.posts?.length,
+            total: res.data.total
+        });
         
         dispatch({
             type: POST_TYPES.GET_SUBCATEGORY_POSTS,
@@ -263,17 +274,31 @@ export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, opt
                 category: categoryName,
                 subcategory: subcategoryId,
                 page: page,
-                total: res.data.total
+                total: res.data.total,
+                result: res.data.total || res.data.posts?.length || 0
             }
         });
         
         dispatch({ type: GLOBALTYPES.LOADING, payload: false });
         return res.data;
+        
     } catch (err) {
+        console.error('❌ ERROR in getPostsBySubcategory:', {
+            category: categoryName,
+            subcategory: subcategoryId,
+            error: err.message,
+            response: err.response?.data,
+            status: err.response?.status,
+            url: err.config?.url
+        });
+        
         dispatch({
             type: GLOBALTYPES.ALERT,
-            payload: { error: err.response.data.msg }
+            payload: { 
+                error: err.response?.data?.msg || 'Error al cargar posts de subcategoría' 
+            }
         });
+        
         dispatch({ type: GLOBALTYPES.LOADING, payload: false });
         throw err;
     }
@@ -329,7 +354,113 @@ export const createPost = ({
         })
     }
 }
-
+/*export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, options = {}) => 
+    async (dispatch, getState) => {
+    try {
+        dispatch({ type: GLOBALTYPES.LOADING, payload: true });
+        
+        const { auth } = getState();
+        const limit = options.limit || 9;
+        
+        // URL encode para manejar espacios y caracteres especiales
+        const encodedCategory = encodeURIComponent(categoryName);
+        const encodedSubcategory = encodeURIComponent(subcategoryId);
+        
+        const res = await getDataAPI(
+            `posts/category/${encodedCategory}/subcategory/${encodedSubcategory}?page=${page}&limit=${limit}`,
+            auth.token
+        );
+        
+        console.log(`✅ Subcategoría ${subcategoryId} - Posts cargados:`, res.data.posts?.length);
+        
+        dispatch({
+            type: POST_TYPES.GET_SUBCATEGORY_POSTS,
+            payload: {
+                posts: res.data.posts,
+                category: categoryName,
+                subcategory: subcategoryId,
+                page: page,
+                total: res.data.total,
+                hasMore: res.data.hasMore
+            }
+        });
+        
+        dispatch({ type: GLOBALTYPES.LOADING, payload: false });
+        return res.data;
+        
+    } catch (err) {
+        console.error('❌ Error en getPostsBySubcategory action:', err);
+        dispatch({
+            type: GLOBALTYPES.ALERT,
+            payload: { 
+                error: err.response?.data?.msg || 'Error al cargar subcategoría' 
+            }
+        });
+        dispatch({ type: GLOBALTYPES.LOADING, payload: false });
+        throw err;
+    }
+};
+*/
+// redux/actions/postAction.js
+export const getPostsByImmobilierOperation = (operationId, page = 1, options = {}) => 
+    async (dispatch) => {
+    try {
+        dispatch({ type: GLOBALTYPES.LOADING, payload: true });
+        
+        const limit = options.limit || 9;
+        const skip = (page - 1) * limit;
+        
+        // Nueva API para immobiler
+        const res = await getDataAPI(
+            `posts/category/immobilier/operation/${operationId}?limit=${limit}&skip=${skip}`
+        );
+        
+        dispatch({
+            type: POST_TYPES.GET_IMMOBILIER_POSTS,
+            payload: {
+                posts: res.data.posts,
+                operation: operationId,
+                page: page,
+                total: res.data.total
+            }
+        });
+        
+        dispatch({ type: GLOBALTYPES.LOADING, payload: false });
+        return res.data;
+    } catch (err) {
+        dispatch({
+            type: GLOBALTYPES.ALERT,
+            payload: { error: err.response?.data?.msg || 'Error al cargar posts de immobiler' }
+        });
+        dispatch({ type: GLOBALTYPES.LOADING, payload: false });
+        throw err;
+    }
+};
+export const getSubCategories = (categoryName) => async (dispatch, getState) => {
+    try {
+        const { auth } = getState();
+        const encodedCategory = encodeURIComponent(categoryName);
+        
+        const res = await getDataAPI(
+            `categories/${encodedCategory}/subcategories`,
+            auth.token
+        );
+        
+        dispatch({
+            type: 'GET_SUBCATEGORIES',
+            payload: {
+                category: categoryName,
+                subcategories: res.data.subcategories
+            }
+        });
+        
+        return res.data;
+        
+    } catch (err) {
+        console.error('Error obteniendo subcategorías:', err);
+        throw err;
+    }
+};
 export const updatePost = ({
     postData,
     images, 

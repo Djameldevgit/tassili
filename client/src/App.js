@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
+import { BrowserRouter as Router, Route, Switch,Redirect } from 'react-router-dom'
 import i18n from './i18n';
 import { io } from 'socket.io-client';
 import PageRender from './customRouter/PageRender'
@@ -38,8 +38,10 @@ import Message from './pages/message';
 
 import Navbar2 from './components/header/Navbar2';
 import CreateAnnoncePage from './pages/CreateAnnoncePage';
-import CategoryPage from './pages/category/CategoryPage';
-import SubcategoryPage from './pages/SubcategoryPage';
+import CategoryPage from './pages/categorySubCategory/CategoryPage';
+import SubcategoryPage from './pages/categorySubCategory/SubcategoryPage';
+import PropertyPage from './pages/categorySubCategory/PropertyPage';
+import ImmobilerOperationPage from './pages/categorySubCategory/ImmobilerOperationPage';
  
 function App() {
   const { auth, status, modal, languageReducer } = useSelector(state => state)
@@ -172,11 +174,36 @@ getSimilarPosts()
               path="/user/activate/:activation_token"
               component={auth.token ? ActivatePage : Login}
             />
-            <Route exact path="/category/:categoryName" component={CategoryPage} />
-            <Route  exact path="/:categoryName/:subcategoryId" component={SubcategoryPage} />
- 
- 
-       
+   {/* Immobiler con estructura especial */}
+   <Route exact path="/immobilier" component={CategoryPage} />
+  <Route exact path="/immobilier/:operationId" component={ImmobilerOperationPage} />
+  <Route exact path="/category/immobilier/:operationId/:propertyId" component={SubcategoryPage} />
+  
+  {/* Otras categorías normales */}
+  <Route exact path="/category/:categoryName" component={CategoryPage} />
+  <Route exact path="/category/:categoryName/:subcategoryId" component={SubcategoryPage} />
+  
+  {/* Redirecciones */}
+  <Route exact path="/:categoryName" 
+    render={(props) => {
+      // No redirigir immobiler
+      if (props.match.params.categoryName === 'immobilier') {
+        return null; // Ya está manejado arriba
+      }
+      return <Redirect to={`/category/${props.match.params.categoryName}`} />;
+    }} 
+  />
+  
+  <Route exact path="/:categoryName/:subcategoryId" 
+    render={(props) => {
+      // No redirigir rutas de immobiler
+      if (props.match.params.categoryName === 'immobilier') {
+        return <Redirect to={`/category/immobilier/${props.match.params.subcategoryId}`} />;
+      }
+      return <Redirect to={`/category/${props.match.params.categoryName}/${props.match.params.subcategoryId}`} />;
+    }} 
+  />
+  
             <PrivateRouter exact path="/profile" component={PageRender} />
             <PrivateRouter exact path="/mes-annonces" component={PageRender} />
             <PrivateRouter exact path="/creer-annonce" component={PageRender} />

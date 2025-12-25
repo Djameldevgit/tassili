@@ -1,34 +1,42 @@
- 
+
 const mongoose = require('mongoose');
 
 
 const postSchema = new mongoose.Schema({
-  
+
   categorie: { type: String, required: true, index: true },
   subCategory: { type: String, index: true },
   articleType: { type: String }, // Para immobilier
-  
- 
+
+
   categorySpecificData: {
-      type: Map,
-      of: mongoose.Schema.Types.Mixed,
-      default: {}
+    type: Map,
+    of: mongoose.Schema.Types.Mixed,
+    default: {}
   },
-  
+
+  operationType: {
+    type: String,
+    default: ''
+  },
+  propertyType: {
+    type: String,
+    default: ''
+  },
   // Campos indexados para búsqueda rápida
   searchKeywords: [{ type: String, index: true }],
-  
+
   // Metadatos
   images: [{ url: String, public_id: String }],
   user: { type: mongoose.Types.ObjectId, ref: 'user', index: true },
   likes: [{ type: mongoose.Types.ObjectId, ref: 'user' }],
-  
+
   // Nuevos campos para similares
   isActive: { type: Boolean, default: true, index: true },
   isPromoted: { type: Boolean, default: false },
   isUrgent: { type: Boolean, default: false },
   views: { type: Number, default: 0 }
-  
+
 }, { timestamps: true });
 
 // Índices compuestos para búsqueda eficiente de similares

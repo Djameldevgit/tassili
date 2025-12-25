@@ -17,10 +17,15 @@ router.route('/posts')
     .delete(auth, postCtrl.deletePost)
 // 📌 RUTAS DE CATEGORÍAS (NUEVAS)
 router.get('/posts/category/:category',   postCtrl.getPostsByCategory);
+
+router.get('/posts/similar', postCtrl.getSimilarPosts);
+
 router.get('/categories/all', postCtrl.getAllCategoriesPaginated);
 router.get('/categories/paginated', postCtrl.getAllCategoriesPaginated); // Nueva
-router.get('/posts/similar', postCtrl.getSimilarPosts);
- 
+ router.get('/posts/category/:category/subcategory/:subcategory', postCtrl.getPostsBySubcategory);
+ router.get('/categories/:category/subcategories', postCtrl.getSubCategoriesByCategory);
+ // backend/routes/postRouter.js
+router.get('/posts/category/immobilier/operation/:operationId', postCtrl.getPostsByImmobilierOperation);
 router.get('/user_posts/:id', auth, postCtrl.getUserPosts);
 router.get('/post_discover', auth, postCtrl.getPostsDicover);
 router.patch('/savePost/:id', auth, postCtrl.savePost);

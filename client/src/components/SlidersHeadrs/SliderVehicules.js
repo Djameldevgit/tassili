@@ -91,7 +91,7 @@ const SliderVehicule = () => {
     }
   };
 
-  // Renderizar fila de emojis (SIN HOVER)
+  // Renderizar fila de emojis
   const renderEmojiRow = (row, rowIndex) => {
     const marginBottom = rowIndex === 0 ? (isMobile ? '8px' : '10px') : '0px';
     
@@ -113,7 +113,11 @@ const SliderVehicule = () => {
           return (
             <Link
               key={`${category.id}-${rowIndex}`}
+              // ✅ CORRECCIÓN: Cambiado según tu configuración de rutas
+              // Si tu ruta es: /:categoryName/:subcategoryId
               to={`/vehicules/${category.id}`}
+              // O si es: /category/:categoryName/:subcategoryId
+              // to={`/category/vehicules/${category.id}`}
               style={{
                 textDecoration: 'none',
                 color: 'inherit',
@@ -124,7 +128,7 @@ const SliderVehicule = () => {
                 width: isMobile ? '85px' : '110px'
               }}
             >
-              {/* Círculo del emoji - SIN EFECTOS HOVER */}
+              {/* Círculo del emoji */}
               <div
                 style={{
                   width: isMobile ? '70px' : '85px',
@@ -337,7 +341,7 @@ const SliderVehicule = () => {
           </>
         )}
 
-        {/* Footer minimalista */}
+        {/* Footer - ACTUALIZADO con la ruta correcta */}
         <div style={{
           padding: isMobile ? '8px 12px' : '10px 20px',
           borderTop: '1px solid rgba(0,0,0,0.04)',
@@ -345,7 +349,8 @@ const SliderVehicule = () => {
           textAlign: 'center'
         }}>
           <Link 
-            to="/vehicules"
+            // ✅ CORRECCIÓN: Usar la misma estructura de rutas
+            to="/category/vehicules"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -390,33 +395,6 @@ const SliderVehicule = () => {
           contain: content;
         }
         
-        /* Gradientes en los bordes del scroll (solo mobile) */
-        @media (max-width: 767px) {
-          .vehicules-slider-container > div > div:nth-child(2)::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 20px;
-            height: 100%;
-            background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
-            pointer-events: none;
-            z-index: 15;
-          }
-          
-          .vehicules-slider-container > div > div:nth-child(2)::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 20px;
-            height: 100%;
-            background: linear-gradient(to left, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 100%);
-            pointer-events: none;
-            z-index: 15;
-          }
-        }
-        
         /* Optimización para pantallas muy pequeñas */
         @media (max-width: 380px) {
           .vehicules-slider-container a {
@@ -431,44 +409,6 @@ const SliderVehicule = () => {
           .vehicules-slider-container a > div:first-child span {
             font-size: 1.8rem !important;
           }
-          
-          /* Botones más pequeños en pantallas muy pequeñas */
-          .vehicules-slider-container button {
-            width: 32px !important;
-            height: 32px !important;
-          }
-          
-          .vehicules-slider-container button svg {
-            width: 16px !important;
-            height: 16px !important;
-          }
-        }
-        
-        /* Smooth transitions solo para elementos necesarios */
-        .vehicules-slider-container button,
-        .vehicules-slider-container a:active div:first-child {
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        /* Mejor visualización en PCs grandes */
-        @media (min-width: 1200px) {
-          .vehicules-slider-container > div {
-            max-width: 1200px !important;
-          }
-        }
-        
-        /* Sin efectos hover para PCs */
-        @media (hover: hover) and (pointer: fine) {
-          .vehicules-slider-container a div:first-child,
-          .vehicules-slider-container a span {
-            transition: none !important;
-          }
-        }
-        
-        /* Asegurar que los emojis se muestren correctamente */
-        .vehicules-slider-container span[role="img"] {
-          display: inline-block;
-          font-style: normal;
         }
       `}</style>
     </div>

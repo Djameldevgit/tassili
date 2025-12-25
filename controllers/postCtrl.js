@@ -245,11 +245,122 @@ getAllCategoriesPaginated: async (req, res) => {
     }
 },
  
+ 
+ getPostsBySubcategory :async (req, res) => {
+    try {
+        const { category, subcategory } = req.params;
+        const { page = 1, limit = 9 } = req.query;
+        const skip = (page - 1) * limit;
+        
+        console.log(`🔍 Buscando posts: ${category}/${subcategory}, página ${page}`);
+        
+        const query = { 
+            categorie: category,
+            subCategory: subcategory,
+            isActive: true 
+        };
+        
+        const [posts, total] = await Promise.all([
+            Posts.find(query)
+                .skip(skip)
+                .limit(parseInt(limit))
+                .sort({ isPromoted: -1, isUrgent: -1, createdAt: -1 })
+                .populate("user", "avatar username"),
+            Posts.countDocuments(query)
+        ]);
+        
+        res.json({
+            success: true,
+            posts,
+            total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            hasMore: skip + posts.length < total
+        });
 
-// Función auxiliar para calcular similitud
-// redux/actions/postAction.js
- // En tu backend
- getSimilarPosts: async (req, res) => {
+    } catch (err) {
+        console.error('❌ Error en getPostsBySubcategory:', err);
+        return res.status(500).json({msg: err.message});
+    }
+},
+
+// 📌 OBTENER SUBCATEGORÍAS DE UNA CATEGORÍA (NUEVO)
+ getSubCategoriesByCategory :async (req, res) => {
+    try {
+        const { category } = req.params;
+        
+        // Buscar todas las subcategorías únicas para esta categoría
+        const subcategories = await Posts.aggregate([
+            { 
+                $match: { 
+                    categorie: category,
+                    subCategory: { $exists: true, $ne: "" }
+                } 
+            },
+            { 
+                $group: { 
+                    _id: "$subCategory",
+                    count: { $sum: 1 }
+                } 
+            },
+            { $sort: { count: -1 } }
+        ]);
+        
+        res.json({
+            success: true,
+            subcategories: subcategories.map(sub => ({
+                id: sub._id,
+                name: sub._id,
+                count: sub.count
+            }))
+        });
+
+    } catch (err) {
+        console.error('❌ Error en getSubCategoriesByCategory:', err);
+        return res.status(500).json({msg: err.message});
+    }
+},
+// backend/controllers/postCtrl.js
+// backend/controllers/postCtrl.js
+getPostsByImmobilierOperation: async (req, res) => {
+    try {
+        const { operationId } = req.params;
+        const { page = 1, limit = 9 } = req.query;
+        const skip = (page - 1) * limit;
+        
+        console.log(`🔍 Buscando posts de immobiler: operación ${operationId}`);
+        
+        // Buscar posts con operationType = operationId
+        const query = { 
+            categorie: 'immobilier',
+            operationType: operationId, // ¡Nuevo campo necesario!
+            isActive: true 
+        };
+        
+        const [posts, total] = await Promise.all([
+            Posts.find(query)
+                .skip(skip)
+                .limit(parseInt(limit))
+                .sort({ isPromoted: -1, isUrgent: -1, createdAt: -1 })
+                .populate("user", "avatar username"),
+            Posts.countDocuments(query)
+        ]);
+        
+        res.json({
+            success: true,
+            posts,
+            total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            hasMore: skip + posts.length < total
+        });
+
+    } catch (err) {
+        console.error('❌ Error en getPostsByImmobilierOperation:', err);
+        return res.status(500).json({msg: err.message});
+    }
+},
+getSimilarPosts: async (req, res) => {
     try {
       console.log('📥 getSimilarPosts recibió:', req.query);
       
@@ -322,6 +433,71 @@ getAllCategoriesPaginated: async (req, res) => {
       });
     }
   },
+
+ getPosts : async (req, res) => {
+    try {
+        const { 
+            page = 1, 
+            limit = 9, 
+            category, 
+            subcategory,  // ← NUEVO PARÁMETRO
+            ...filters 
+        } = req.query;
+        
+        const skip = (page - 1) * limit;
+        
+        // Construir query base
+        let query = { isActive: true };
+        
+        // Filtrar por categoría
+        if (category && category !== 'all') {
+            query.categorie = category;
+        }
+        
+        // Filtrar por subcategoría (NUEVO)
+        if (subcategory && subcategory !== 'all') {
+            query.subCategory = subcategory;
+        }
+        
+        // Aplicar otros filtros del categorySpecificData
+        if (filters) {
+            Object.entries(filters).forEach(([key, value]) => {
+                if (value && key.startsWith('spec_')) {
+                    const field = key.replace('spec_', '');
+                    query[`categorySpecificData.${field}`] = value;
+                }
+            });
+        }
+        
+        console.log('🔍 Query final:', query);
+        
+        // Obtener posts
+        const posts = await Posts.find(query)
+            .skip(skip)
+            .limit(parseInt(limit))
+            .sort({ isPromoted: -1, isUrgent: -1, createdAt: -1 })
+            .populate("user", "avatar username");
+        
+        // Contar total
+        const total = await Posts.countDocuments(query);
+        
+        res.json({
+            success: true,
+            result: posts.length,
+            total,
+            page: parseInt(page),
+            totalPages: Math.ceil(total / limit),
+            hasMore: skip + posts.length < total,
+            posts
+        });
+
+    } catch (err) {
+        console.error('❌ Error en getPosts:', err);
+        return res.status(500).json({msg: err.message});
+    }
+},
+
+
   updatePost: async (req, res) => {
     try {
       const { postData, images } = req.body;

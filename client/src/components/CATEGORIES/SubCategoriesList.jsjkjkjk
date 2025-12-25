@@ -1,0 +1,39 @@
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { getSubCategories } from '../redux/actions/postAction';
+import { Link } from 'react-router-dom';
+
+const SubCategoriesList = ({ categoryName }) => {
+    const dispatch = useDispatch();
+    const { subcategories } = useSelector(state => state.homePosts || {});
+    
+    useEffect(() => {
+        if (categoryName) {
+            dispatch(getSubCategories(categoryName));
+        }
+    }, [categoryName, dispatch]);
+    
+    const categorySubs = subcategories?.[categoryName] || [];
+    
+    if (categorySubs.length === 0) return null;
+    
+    return (
+        <div className="subcategories-section mt-3">
+            <h6 className="text-muted mb-2">Subcategorías:</h6>
+            <div className="d-flex flex-wrap gap-2">
+                {categorySubs.map(sub => (
+                    <Link
+                        key={sub.id}
+                        to={`/category/${categoryName}/${sub.id}`}
+                        className="badge bg-light text-dark text-decoration-none border p-2"
+                        title={`${sub.count} anuncios`}
+                    >
+                        {sub.name} <span className="text-primary">({sub.count})</span>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+export default SubCategoriesList;

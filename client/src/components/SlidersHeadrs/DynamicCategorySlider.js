@@ -8,13 +8,15 @@ import SliderSanteBeaute from './SliderSanteBeaute';
 import SliderMeubles from './SliderMuebles';
 import SliderLoisirs from './SliderLoisir';
 import CategorySliderEmoji from './CategorySlderEmoji';
-import  SliderSport from './SliderSport';
-import  SliderAlimentaires from './SliderAlimentaires';
+import SliderSport from './SliderSport';
+import SliderAlimentaires from './SliderAlimentaires';
 import SliderServices from './SliderServices';
 import SliderMateriaux from './SliderMateriaux';
 import SliderVoyages from './SliderVoyages';
- import SliderEmploi from './SliderEmploi';
-import SliderImmobiler from './SliderImmobiler';
+import SliderEmploi from './SliderEmploi';
+import SliderImmobilerOperations from './SliderImmobilerOperations';
+import SliderImmobilerProperties from './SliderImmobilersProperties';
+ 
 const DynamicCategorySlider = ({ categoryName }) => {
   // Base de datos de coincidencias de categorías - COMPLETA Y ACTUALIZADA
   const categoryDatabase = {
@@ -176,20 +178,40 @@ const DynamicCategorySlider = ({ categoryName }) => {
         'employment', 'trabajo', 'work',
         'empleos', 'travail', 'empleos'
       ]
-    },
-
-    // Immobilier
-    'immobilier': {
-      component: SliderImmobiler,
-      variations: [
-        'immobilier', 'real estate', 'bienes raíces',
-        'inmobiliaria', 'realty', 'property',
-        'propiedades', 'properties', 'vivienda'
-      ]
     }
   };
 
-  // Función para normalizar texto - MEJORADA
+  // Base de datos especial para immobiler con dos niveles
+  const immobilierDatabase = {
+    // Operaciones (primer nivel)
+    'operations': {
+      component: SliderImmobilerOperations,
+      variations: ['immobilier']
+    },
+    // Tipos de propiedades (segundo nivel)
+    'vente': {
+      component: SliderImmobilerProperties,
+      displayName: 'Vente'
+    },
+    'location': {
+      component: SliderImmobilerProperties,
+      displayName: 'Location'
+    },
+    'location_vacances': {
+      component: SliderImmobilerProperties,
+      displayName: 'Location Vacances'
+    },
+    'cherche_location': {
+      component: SliderImmobilerProperties,
+      displayName: 'Cherche Location'
+    },
+    'cherche_achat': {
+      component: SliderImmobilerProperties,
+      displayName: 'Cherche Achat'
+    }
+  };
+
+  // Función para normalizar texto
   const normalizeText = (text) => {
     if (!text) return '';
     
@@ -197,92 +219,87 @@ const DynamicCategorySlider = ({ categoryName }) => {
       .toLowerCase()
       .trim()
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '') // Eliminar acentos
-      .replace(/[^\w\s]/gi, '') // Eliminar caracteres especiales
-      .replace(/\s+/g, ''); // Eliminar espacios
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^\w\s]/gi, '')
+      .replace(/\s+/g, '');
   };
 
-  // Función para buscar categoría mejorada con keywords específicos
+  // Función para determinar si estamos en un caso de immobiler
+  const isImmobilierCase = (category) => {
+    const normalized = normalizeText(category);
+    
+    // Verificar si es immobiler directamente
+    if (normalized === 'immobilier') return { isImmobilier: true, level: 'operations' };
+    
+    // Verificar operaciones de immobiler
+    const immobilierOperations = ['vente', 'location', 'location_vacances', 'cherche_location', 'cherche_achat'];
+    if (immobilierOperations.includes(normalized)) {
+      return { isImmobilier: true, level: 'property', operation: normalized };
+    }
+    
+    return { isImmobilier: false };
+  };
+
+  // Función para buscar categoría
   const findCategory = (category) => {
     if (!category) return null;
     
     const normalizedCategory = normalizeText(category);
     
-    // Palabras clave para cada categoría principal - ACTUALIZADA
-    const categoryKeywords = {
-      'vehicules': ['auto', 'car', 'moto', 'bike', 'vehicle', 'voiture', 'coche', 'automobile'],
-      'vetements': ['cloth', 'wear', 'shoe', 'dress', 'shirt', 'pantalon', 'vestimenta', 'ropa', 'moda'],
-      'telephones': ['phone', 'mobile', 'cell', 'smartphone', 'teléfono', 'telefono', 'celular'],
-      'informatique': ['computer', 'tech', 'laptop', 'pc', 'ordenador', 'computadora', 'informática'],
-      'electromenager': ['appliance', 'tv', 'fridge', 'washing', 'electrodoméstico', 'electrodomestico', 'electro'],
-      'piecesdetachees': ['part', 'piece', 'spare', 'component', 'pieza', 'repuesto', 'recambio'],
-      'santebeaute': ['beauty', 'health', 'cosmetic', 'parfum', 'belleza', 'salud', 'cosmético'],
-      'meubles': ['furniture', 'table', 'chair', 'sofa', 'bed', 'mueble', 'mobiliario', 'decoración'],
-      'loisirs': ['hobby', 'game', 'sport', 'music', 'book', 'ocio', 'entretenimiento', 'diversión'],
-      'sport': ['deporte', 'sports', 'football', 'basketball', 'tennis', 'fitness', 'ejercicio'],
-      'alimentaires': ['food', 'alimento', 'comida', 'grocery', 'supermarket', 'épicerie', 'alimentación'],
-      'services': ['service', 'servicio', 'professional', 'profesional', 'trabajo', 'work'],
-      'materiaux': ['material', 'equipment', 'tools', 'construction', 'herramientas', 'construcción'],
-      'voyages': ['travel', 'trip', 'tour', 'vacation', 'viaje', 'turismo', 'vacaciones'],
-      'emploi': ['job', 'work', 'employment', 'trabajo', 'empleo', 'career', 'carrera'],
-      'immobilier': ['realestate', 'property', 'house', 'apartment', 'inmobiliaria', 'propiedad', 'casa']
-    };
-    
-    // 1. Buscar coincidencia exacta en las claves principales
-    if (categoryDatabase[normalizedCategory]) {
-      return categoryDatabase[normalizedCategory].component;
+    // 1. Verificar si es un caso especial de immobiler
+    const immobilierCheck = isImmobilierCase(normalizedCategory);
+    if (immobilierCheck.isImmobilier) {
+      if (immobilierCheck.level === 'operations') {
+        return {
+          component: immobilierDatabase.operations.component,
+          isImmobilier: true,
+          level: 'operations'
+        };
+      } else if (immobilierCheck.level === 'property' && immobilierCheck.operation) {
+        return {
+          component: immobilierDatabase[immobilierCheck.operation]?.component || SliderImmobilerProperties,
+          isImmobilier: true,
+          level: 'property',
+          operation: immobilierCheck.operation
+        };
+      }
     }
     
-    // 2. Buscar en todas las categorías por variaciones
+    // 2. Buscar en categorías normales (para otras categorías)
+    if (categoryDatabase[normalizedCategory]) {
+      return {
+        component: categoryDatabase[normalizedCategory].component,
+        isImmobilier: false
+      };
+    }
+    
+    // 3. Buscar por variaciones
     for (const [key, data] of Object.entries(categoryDatabase)) {
-      // Verificar si el nombre coincide exactamente
       if (normalizeText(key) === normalizedCategory) {
-        return data.component;
+        return {
+          component: data.component,
+          isImmobilier: false
+        };
       }
       
-      // Verificar variaciones exactas
       const hasExactVariation = data.variations.some(variation => 
         normalizeText(variation) === normalizedCategory
       );
       
       if (hasExactVariation) {
-        return data.component;
-      }
-      
-      // Verificar coincidencias parciales (más flexible)
-      const hasPartialMatch = data.variations.some(variation => {
-        const normalizedVariation = normalizeText(variation);
-        return normalizedCategory.includes(normalizedVariation) ||
-               normalizedVariation.includes(normalizedCategory);
-      });
-      
-      if (hasPartialMatch) {
-        return data.component;
-      }
-      
-      // 3. Verificar por palabras clave si no hay coincidencia exacta
-      if (categoryKeywords[key]) {
-        const hasKeyword = categoryKeywords[key].some(keyword => 
-          normalizedCategory.includes(keyword)
-        );
-        
-        if (hasKeyword) {
-          return data.component;
-        }
-      }
-      
-      // 4. Verificar si la categoría contiene el nombre principal
-      if (normalizedCategory.includes(key) || key.includes(normalizedCategory)) {
-        return data.component;
+        return {
+          component: data.component,
+          isImmobilier: false
+        };
       }
     }
     
     return null;
   };
 
-  const SelectedSlider = findCategory(categoryName);
+  const categoryInfo = findCategory(categoryName);
 
-  if (!SelectedSlider) {
+  if (!categoryInfo) {
     // Mostrar slider general
     return (
       <div className="dynamic-slider-container">
@@ -297,15 +314,50 @@ const DynamicCategorySlider = ({ categoryName }) => {
     );
   }
 
+  // Determinar el título según el tipo de categoría
+  const getTitle = () => {
+    if (categoryInfo.isImmobilier) {
+      if (categoryInfo.level === 'operations') {
+        return 'Type de transaction immobilière';
+      } else if (categoryInfo.level === 'property') {
+        const operationName = categoryInfo.operation 
+          ? immobilierDatabase[categoryInfo.operation]?.displayName || categoryInfo.operation
+          : 'Immobilier';
+        return `Type de bien pour ${operationName}`;
+      }
+    }
+    return `Subcategorías de ${categoryName}`;
+  };
+
+  // Determinar el icono según el tipo
+  const getIcon = () => {
+    if (categoryInfo.isImmobilier) {
+      return categoryInfo.level === 'operations' ? '🏠' : '🏘️';
+    }
+    return 'fas fa-layer-group';
+  };
+
   return (
     <div className="dynamic-slider-container">
       <div className="slider-info mb-3">
         <h5 className="text-primary">
-          <i className="fas fa-layer-group me-2"></i>
-          Subcategorías de {categoryName}
+          {categoryInfo.isImmobilier && typeof getIcon() === 'string' ? (
+            <span style={{ fontSize: '1.2em', marginRight: '8px' }}>
+              {getIcon()}
+            </span>
+          ) : (
+            <i className={`${getIcon()} me-2`}></i>
+          )}
+          {getTitle()}
         </h5>
       </div>
-      <SelectedSlider />
+      
+      {/* Renderizar el componente adecuado */}
+      {categoryInfo.isImmobilier ? (
+        <categoryInfo.component />
+      ) : (
+        <categoryInfo.component />
+      )}
     </div>
   );
 };
