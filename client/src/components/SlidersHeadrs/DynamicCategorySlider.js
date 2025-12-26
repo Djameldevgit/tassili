@@ -17,6 +17,8 @@ import SliderEmploi from './SliderEmploi';
 import SliderImmobilerOperations from './SliderImmobilerOperations';
 import SliderImmobilerProperties from './SliderImmobilersProperties';
  
+import SliderStores from './SliderStores';
+
 const DynamicCategorySlider = ({ categoryName }) => {
   // Base de datos de coincidencias de categorías - COMPLETA Y ACTUALIZADA
   const categoryDatabase = {
@@ -30,7 +32,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
         'automobiles & véhicules', 'automobiles et véhicules'
       ]
     },
-    
+
     // Vestimenta
     'vetements': {
       component: SliderVetements,
@@ -41,7 +43,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
         'vêtements & mode', 'vetements et mode'
       ]
     },
-    
+
     // Teléfonos
     'telephones': {
       component: SliderTelephones,
@@ -178,7 +180,24 @@ const DynamicCategorySlider = ({ categoryName }) => {
         'employment', 'trabajo', 'work',
         'empleos', 'travail', 'empleos'
       ]
+    },
+
+    'stores': {
+      component: SliderStores,
+      variations: [
+        'stores', 'store', 'boutiques', 'boutique',
+        'tiendas', 'tienda', 'shops', 'shop',
+        'magasins', 'magasin', 'comercios', 'comercio',
+        'negocios', 'negocio', 'businesses', 'business',
+        'empresas', 'empresa', 'marques', 'marque',
+        'brands', 'brand', 'marcas', 'marca'
+      ]
     }
+
+
+
+
+
   };
 
   // Base de datos especial para immobiler con dos niveles
@@ -210,11 +229,10 @@ const DynamicCategorySlider = ({ categoryName }) => {
       displayName: 'Cherche Achat'
     }
   };
-
   // Función para normalizar texto
   const normalizeText = (text) => {
     if (!text) return '';
-    
+
     return text
       .toLowerCase()
       .trim()
@@ -227,25 +245,25 @@ const DynamicCategorySlider = ({ categoryName }) => {
   // Función para determinar si estamos en un caso de immobiler
   const isImmobilierCase = (category) => {
     const normalized = normalizeText(category);
-    
+
     // Verificar si es immobiler directamente
     if (normalized === 'immobilier') return { isImmobilier: true, level: 'operations' };
-    
+
     // Verificar operaciones de immobiler
     const immobilierOperations = ['vente', 'location', 'location_vacances', 'cherche_location', 'cherche_achat'];
     if (immobilierOperations.includes(normalized)) {
       return { isImmobilier: true, level: 'property', operation: normalized };
     }
-    
+
     return { isImmobilier: false };
   };
 
   // Función para buscar categoría
   const findCategory = (category) => {
     if (!category) return null;
-    
+
     const normalizedCategory = normalizeText(category);
-    
+
     // 1. Verificar si es un caso especial de immobiler
     const immobilierCheck = isImmobilierCase(normalizedCategory);
     if (immobilierCheck.isImmobilier) {
@@ -264,7 +282,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
         };
       }
     }
-    
+
     // 2. Buscar en categorías normales (para otras categorías)
     if (categoryDatabase[normalizedCategory]) {
       return {
@@ -272,7 +290,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
         isImmobilier: false
       };
     }
-    
+
     // 3. Buscar por variaciones
     for (const [key, data] of Object.entries(categoryDatabase)) {
       if (normalizeText(key) === normalizedCategory) {
@@ -281,11 +299,11 @@ const DynamicCategorySlider = ({ categoryName }) => {
           isImmobilier: false
         };
       }
-      
-      const hasExactVariation = data.variations.some(variation => 
+
+      const hasExactVariation = data.variations.some(variation =>
         normalizeText(variation) === normalizedCategory
       );
-      
+
       if (hasExactVariation) {
         return {
           component: data.component,
@@ -293,7 +311,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
         };
       }
     }
-    
+
     return null;
   };
 
@@ -315,17 +333,27 @@ const DynamicCategorySlider = ({ categoryName }) => {
   }
 
   // Determinar el título según el tipo de categoría
+  // Determinar el título según el tipo de categoría
+  
+
   const getTitle = () => {
     if (categoryInfo.isImmobilier) {
       if (categoryInfo.level === 'operations') {
         return 'Type de transaction immobilière';
       } else if (categoryInfo.level === 'property') {
-        const operationName = categoryInfo.operation 
+        const operationName = categoryInfo.operation
           ? immobilierDatabase[categoryInfo.operation]?.displayName || categoryInfo.operation
           : 'Immobilier';
         return `Type de bien pour ${operationName}`;
       }
     }
+
+    // Caso especial para stores/boutiques
+    const normalizedCategory = normalizeText(categoryName);
+    if (normalizedCategory === 'stores' || normalizedCategory === 'boutiques') {
+      return 'Boutiques par catégorie';
+    }
+
     return `Subcategorías de ${categoryName}`;
   };
 
@@ -334,9 +362,15 @@ const DynamicCategorySlider = ({ categoryName }) => {
     if (categoryInfo.isImmobilier) {
       return categoryInfo.level === 'operations' ? '🏠' : '🏘️';
     }
+
+    // Caso especial para stores/boutiques
+    const normalizedCategory = normalizeText(categoryName);
+    if (normalizedCategory === 'stores' || normalizedCategory === 'boutiques') {
+      return '🏪';
+    }
+
     return 'fas fa-layer-group';
   };
-
   return (
     <div className="dynamic-slider-container">
       <div className="slider-info mb-3">
@@ -351,7 +385,7 @@ const DynamicCategorySlider = ({ categoryName }) => {
           {getTitle()}
         </h5>
       </div>
-      
+
       {/* Renderizar el componente adecuado */}
       {categoryInfo.isImmobilier ? (
         <categoryInfo.component />

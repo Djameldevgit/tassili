@@ -14,26 +14,23 @@ import notify from './notifyReducer'
 import message from './messageReducer'
 import online from './onlineReducer'
 import call from './callReducer'
- 
- 
-import languageReducer from './languageReducer';
-import homeUsers from './userReducer';
- 
+import languageReducer from './languageReducer'
+import homeUsers from './userReducer'
 import userBlockReducer from './userBlcokReducer'
 import usersActionReducer from './usersActionReducer'
-import blog  from './blogReducer'
+import blog from './blogReducer'
 import ProvaReducer from './provaReducer'
 import reportReducer from './reportReducer'
 import publiBlogReducer from './publiBlogReducer'
- 
-import form  from './formReducer';
+import form from './formReducer'
 import { roleReducer } from './roleReducer'
-import settings  from './settingsReducer'
-import privacy from './privacyReducer';
+import settings from './settingsReducer'
+import privacy from './privacyReducer'
+import storeReducer from './storeReducer'
+
+// Solo importar el reducer que usas
  
- 
- 
- 
+
 export default combineReducers({
     auth,
     alert,
@@ -49,9 +46,18 @@ export default combineReducers({
     notify,
     message,
     online,
-    call , languageReducer,
-   roleReducer,homeUsers, userBlockReducer,
-   usersActionReducer  ,ProvaReducer,
-   reportReducer ,publiBlogReducer ,blog,form  ,settings,privacy
-
-}) 
+    call,
+    languageReducer,
+    roleReducer,
+    homeUsers,
+    userBlockReducer,
+    usersActionReducer,
+    ProvaReducer,
+    reportReducer,
+    publiBlogReducer,
+    blog,
+    form,
+    settings,
+    privacy,
+storeReducer
+})

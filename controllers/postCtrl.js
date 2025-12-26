@@ -147,7 +147,7 @@ getPosts: async (req, res) => {
     }
 },
 
-// 📌 OBTENER POSTS POR CATEGORÍA (nuevo)
+ 
 getPostsByCategory: async (req, res) => {
     try {
         const { category } = req.params;
@@ -182,26 +182,127 @@ getPostsByCategory: async (req, res) => {
         return res.status(500).json({msg: err.message});
     }
 },
+ 
+
+
+
 
 // 📌 OBTENER TODAS LAS CATEGORÍAS (nuevo)
 // backend/controllers/postCtrl.js - NUEVO CONTROLADOR
 getAllCategoriesPaginated: async (req, res) => {
+    console.log('🔍 === getAllCategoriesPaginated START ===');
+    
     try {
-        const { page = 1, limit = 2 } = req.query; // 2 categorías por página
+        const { page = 1, limit = 2 } = req.query;
         const skip = (page - 1) * limit;
         
-        // Obtener todas las categorías con conteo
-        const allCategories = await Posts.aggregate([
+        console.log('📊 Parámetros recibidos:', { page, limit, skip });
+        
+        // ========== VALIDAR MODELOS ==========
+        console.log('🔍 Verificando modelos...');
+        
+        // Verificar que Posts exista
+        if (!Posts) {
+            console.error('❌ CRITICAL: Posts model is undefined');
+            console.error('   Verifica la importación: const Posts = require("../models/postModel")');
+            return res.status(500).json({
+                success: false,
+                msg: 'Erreur de configuration - Modèle Posts non trouvé',
+                errorCode: 'POSTS_MODEL_UNDEFINED'
+            });
+        }
+        
+        // Verificar que Store exista (si lo usas)
+        let Store;
+        try {
+            Store = require('../models/storeModel');
+            console.log('✅ Store model loaded successfully');
+        } catch (storeError) {
+            console.warn('⚠️ Store model not available:', storeError.message);
+            Store = null;
+        }
+        
+        // ========== OBTENER CATEGORÍAS DE POSTS ==========
+        console.log('🔍 Obteniendo categorías de posts...');
+        const postCategories = await Posts.aggregate([
             { $match: { isActive: true } },
             { $group: { 
                 _id: "$categorie", 
-                count: { $sum: 1 }
+                count: { $sum: 1 },
+                type: { $first: "post" }
             }},
             { $sort: { count: -1 } }
         ]);
         
-        // Agregar emojis
+        console.log(`✅ Post categories found: ${postCategories.length}`);
+        
+        // ========== OBTENER CATEGORÍAS DE STORES ==========
+        let storeCategories = [];
+        let storeCount = 0;
+        
+        if (Store) {
+            try {
+                console.log('🔍 Obteniendo categorías de stores...');
+                storeCategories = await Store.aggregate([
+                    { $match: { isActive: true } },
+                    { $group: { 
+                        _id: "$category", 
+                        count: { $sum: 1 },
+                        type: { $first: "store" }
+                    }},
+                    { $sort: { count: -1 } }
+                ]);
+                
+                storeCount = await Store.countDocuments({ isActive: true });
+                console.log(`✅ Store categories found: ${storeCategories.length}`);
+                console.log(`✅ Total stores: ${storeCount}`);
+            } catch (storeAggError) {
+                console.warn('⚠️ Error al obtener stores:', storeAggError.message);
+            }
+        }
+        
+        // ========== COMBINAR CATEGORÍAS ==========
+        console.log('🔍 Combinando categorías...');
+        
+        const allCategories = [];
+        
+        // Agregar categoría "stores" solo si hay tiendas
+        if (storeCount > 0) {
+            allCategories.push({
+                _id: 'stores',
+                name: 'stores',
+                displayName: 'Boutiques',
+                count: storeCount,
+                type: 'store_category',
+                emoji: '🏪'
+            });
+        }
+        
+        // Agregar categorías de posts
+        postCategories.forEach(cat => {
+            allCategories.push({
+                ...cat,
+                name: cat._id,
+                type: 'post'
+            });
+        });
+        
+        // Agregar categorías de stores (para filtrado interno)
+        if (storeCategories.length > 0) {
+            storeCategories.forEach(cat => {
+                allCategories.push({
+                    ...cat,
+                    name: cat._id,
+                    type: 'store_subcategory'
+                });
+            });
+        }
+        
+        console.log(`✅ Total categories combined: ${allCategories.length}`);
+        
+        // ========== AGREGAR EMOJIS ==========
         const categoryEmojis = {
+            'stores': '🏪',
             'vehicules': '🚗',
             'immobilier': '🏠',
             'informatique': '💻',
@@ -221,14 +322,27 @@ getAllCategoriesPaginated: async (req, res) => {
         };
         
         const categoriesWithEmojis = allCategories.map(cat => ({
-            name: cat._id,
-            count: cat.count,
-            emoji: categoryEmojis[cat._id] || '📦'
+            id: cat._id,
+            name: cat.name,
+            displayName: cat.displayName || cat.name,
+            count: cat.count || 0,
+            emoji: categoryEmojis[cat._id] || (cat.type === 'store_category' ? '🏪' : '📦'),
+            type: cat.type || 'post'
         }));
         
-        // Paginación
+        // ========== PAGINACIÓN ==========
         const totalCategories = categoriesWithEmojis.length;
         const paginatedCategories = categoriesWithEmojis.slice(skip, skip + parseInt(limit));
+        
+        console.log('📊 Resultado paginación:', {
+            total: totalCategories,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            returned: paginatedCategories.length,
+            hasMore: skip + paginatedCategories.length < totalCategories
+        });
+        
+        console.log('✅ === getAllCategoriesPaginated SUCCESS ===');
         
         res.json({
             success: true,
@@ -240,12 +354,28 @@ getAllCategoriesPaginated: async (req, res) => {
         });
 
     } catch (err) {
-        console.error('❌ Error en getAllCategoriesPaginated:', err);
-        return res.status(500).json({msg: err.message});
+        console.error('❌ === getAllCategoriesPaginated ERROR ===');
+        console.error('❌ Error message:', err.message);
+        console.error('❌ Error stack:', err.stack);
+        
+        // Información adicional para debug
+        console.error('❌ Additional info:');
+        console.error('   - Posts model:', Posts ? 'Defined' : 'Undefined');
+        console.error('   - Error type:', err.name);
+        
+        // Respuesta de error más informativa
+        return res.status(500).json({
+            success: false,
+            msg: 'Erreur interne du serveur lors du chargement des catégories',
+            error: process.env.NODE_ENV === 'development' ? {
+                message: err.message,
+                stack: err.stack,
+                name: err.name
+            } : undefined,
+            timestamp: new Date().toISOString()
+        });
     }
 },
- 
- 
  getPostsBySubcategory :async (req, res) => {
     try {
         const { category, subcategory } = req.params;

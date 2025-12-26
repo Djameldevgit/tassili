@@ -7,7 +7,9 @@ import Avatar from '../Avatar';
 import Card from 'react-bootstrap/Card';
 import {
 
-
+ 
+  FaPlusCircle,
+  FaStore ,
   FaTools,
   FaShieldAlt,
   FaUsers,
@@ -442,6 +444,7 @@ const Navbar2 = () => {
                   />
                 </Link>
 
+
                 {unreadNotifications > 0 && (
                   <Badge
                     pill
@@ -568,9 +571,53 @@ const Navbar2 = () => {
                       <>
                         <NavDropdown.Divider />
                         <div className="admin-panel-header">
-                          <FaShieldAlt className="me-2" size={16} />
-                          {t('adminPanel')}
-                        </div>
+  <FaShieldAlt className="me-2" size={16} />
+  {t('adminPanel')}
+</div>
+
+{/* Sección de Tiendas */}
+<div className="stores-section mb-3">
+  <div className="d-flex align-items-center mb-2">
+    <FaStore className="me-2 text-warning" size={14} />
+    <span className="text-muted small fw-bold">MES BOUTIQUES</span>
+  </div>
+  
+  {/* Crear nueva tienda */}
+  <MenuItem 
+    icon={FaPlusCircle} 
+    iconColor="#28a745"
+    iconSize={16}
+    to="/create-store"
+    className="mb-2 create-store-item"
+  >
+    <div className="d-flex align-items-center justify-content-between">
+      <span>Créer une boutique</span>
+      <Badge pill bg="success" className="ms-2">
+        <FaPlus size={10} />
+      </Badge>
+    </div>
+  </MenuItem>
+  
+  {/* Ver todas las tiendas */}
+  <MenuItem 
+    icon={FaStore} 
+    iconColor="#007bff"
+    iconSize={16}
+    to="/my-stores"
+    className="mb-2"
+  >
+    <div className="d-flex align-items-center justify-content-between">
+      <span>Mes boutiques</span>
+    
+    </div>
+  </MenuItem>
+  
+  {/* Dashboard de tiendas (si hay tiendas) */}
+  
+</div>
+
+
+
 
                         <MenuItem icon={FaTools} iconColor="#6c757d" to="/users/roles">
                           {t('roles')}

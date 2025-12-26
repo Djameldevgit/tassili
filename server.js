@@ -72,6 +72,8 @@ app.use('/api', require('./routes/reportRouter'));
 app.use('/api/blog/comments', require('./routes/blogCommentRoutes'));
 app.use('/api/forms', require('./routes/formRouter'));
 app.use('/api', require('./routes/privacysettingsRouter'));
+//app.use("/api", require("./routes/storeRouter"));
+app.use('/api', require('./routes/storeRouter'))
 app.use("/api", require("./routes/settingsRouter"));
 
 // --- Auto desbloqueo cada 5 min ---

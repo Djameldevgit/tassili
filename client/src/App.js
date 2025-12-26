@@ -43,6 +43,12 @@ import SubcategoryPage from './pages/categorySubCategory/SubcategoryPage';
 import PropertyPage from './pages/categorySubCategory/PropertyPage';
 import ImmobilerOperationPage from './pages/categorySubCategory/ImmobilerOperationPage';
  
+import CreateStorePage from './pages/store/createStorePage';
+import StoreConfirmation from './pages/store/storeConfirmation';
+import StoreDashboard from './pages/store/storeDashborad';
+import StorePage from './pages/store/StorePage';
+import PublicStoresPage from './pages/categorySubCategory/publicStorePage';
+ 
 function App() {
   const { auth, status, modal, languageReducer } = useSelector(state => state)
   const dispatch = useDispatch()
@@ -143,95 +149,92 @@ getSimilarPosts()
   // ✅ RENDER PRINCIPAL CON REACT ROUTER v5
   return (
     <Router>
-      <Alert />
-      <input type="checkbox" id="theme" />
-      <div className={`App ${(status || modal) && 'mode'}`}>
+    <Alert />
+    <input type="checkbox" id="theme" />
+    <div className={`App ${(status || modal) && 'mode'}`}>
+      <div className="main">
+        <Navbar2 />
+        {auth.token && <SocketClient />}
+        
+        <Switch>
+          {/* Rutas públicas */}
+          <Route exact path="/" component={Home} />
+          <Route exact path="/register" component={Register} />
+          <Route exact path="/login" component={Login} />
+          <Route exact path="/bloginfo" component={Bloginfo} />
+          <Route exact path="/infoaplicacionn" component={Appinfo2} />
+          <Route exact path="/infoaplicacionn3" component={Appinfo3} />
+          <Route exact path="/creer-annonce" component={CreateAnnoncePage} />
+          <Route exact path="/editer-annonce/:id" component={CreateAnnoncePage} />
+          <Route exact path="/post/:id" component={PostId} />
+          <Route exact path="/message" component={Message} />
+          <Route exact path="/bloqueos404" component={Bloqueos404} />
+          <Route exact path="/video/:obraId" component={Video} />
+          <Route exact path="/Map" component={Map} />
+          <Route exact path="/forgot_password" component={ForgotPassword} />
+          <Route exact path="/user/reset/:token" component={ResetPassword} />
+        
 
-        <div className="main">
-          <Navbar2 />
 
-          {auth.token && <SocketClient />}
+          <Route path="/stores" component={PublicStoresPage } />
+<Route path="/stores/category/:category" component={PublicStoresPage } />
+ 
+          <Route path="/create-store" component={CreateStorePage} />
+          <Route path="/store-confirmation" component={StoreConfirmation} />
+          <Route path="/store/:id/dashboard" component={StoreDashboard} />
+       <Route path="/store/:id" component={StorePage} />
 
-          <Switch>
-            {/* Rutas públicas */}
-            <Route exact path="/" component={Home} />
-            <Route exact path="/register" component={Register} />
-            <Route exact path="/login" component={Login} />
-            <Route exact path="/bloginfo" component={Bloginfo} />
-            <Route exact path="/infoaplicacionn" component={Appinfo2} />
-            <Route exact path="/infoaplicacionn3" component={Appinfo3} />
-            <Route exact path="/creer-annonce" component={CreateAnnoncePage} />
-            <Route exact path="/editer-annonce/:id" component={CreateAnnoncePage} />
-            <Route exact path="/post/:id" component={PostId} />
-            <Route exact path="/message" component={Message} />
-            <Route exact path="/bloqueos404" component={Bloqueos404} />
-            <Route exact path="/video/:obraId" component={Video} />
-            <Route exact path="/Map" component={Map} />
-            <Route exact path="/forgot_password" component={ForgotPassword} />
-            <Route exact path="/user/reset/:token" component={ResetPassword} />
-            <Route
-              exact
-              path="/user/activate/:activation_token"
-              component={auth.token ? ActivatePage : Login}
-            />
-   {/* Immobiler con estructura especial */}
-   <Route exact path="/immobilier" component={CategoryPage} />
-  <Route exact path="/immobilier/:operationId" component={ImmobilerOperationPage} />
-  <Route exact path="/category/immobilier/:operationId/:propertyId" component={SubcategoryPage} />
+         
+         
+          <Route
+            exact
+            path="/user/activate/:activation_token"
+            component={auth.token ? ActivatePage : Login}
+          />
   
-  {/* Otras categorías normales */}
-  <Route exact path="/category/:categoryName" component={CategoryPage} />
-  <Route exact path="/category/:categoryName/:subcategoryId" component={SubcategoryPage} />
+          {/* ===================================== */}
+          {/* RUTAS PARA CATEGORÍAS Y SUBCATEGORÍAS */}
+          {/* ===================================== */}
+          
+          {/* 1. IMMOBILIER - Estructura especial sin prefijo /category/ */}
+          <Route exact path="/immobilier" component={CategoryPage} />
+          <Route exact path="/immobilier/:operationId" component={ImmobilerOperationPage} />
+          <Route exact path="/immobilier/:operationId/:propertyId" component={SubcategoryPage} />
+          
+          {/* 2. OTRAS CATEGORÍAS - Con prefijo /category/ */}
+          <Route exact path="/category/:categoryName" component={CategoryPage} />
+          <Route exact path="/category/:categoryName/:subcategoryId" component={SubcategoryPage} />
+          
+          {/* 3. RUTAS SIN PREFIJO (para compatibilidad con enlaces antiguos) */}
+          {/* IMPORTANTE: Estas rutas deben ir DESPUÉS de las específicas */}
+          <Route exact path="/:categoryName" component={CategoryPage} />
+          <Route exact path="/:categoryName/:subcategoryId" component={SubcategoryPage} />
   
-  {/* Redirecciones */}
-  <Route exact path="/:categoryName" 
-    render={(props) => {
-      // No redirigir immobiler
-      if (props.match.params.categoryName === 'immobilier') {
-        return null; // Ya está manejado arriba
-      }
-      return <Redirect to={`/category/${props.match.params.categoryName}`} />;
-    }} 
-  />
-  
-  <Route exact path="/:categoryName/:subcategoryId" 
-    render={(props) => {
-      // No redirigir rutas de immobiler
-      if (props.match.params.categoryName === 'immobilier') {
-        return <Redirect to={`/category/immobilier/${props.match.params.subcategoryId}`} />;
-      }
-      return <Redirect to={`/category/${props.match.params.categoryName}/${props.match.params.subcategoryId}`} />;
-    }} 
-  />
-  
-            <PrivateRouter exact path="/profile" component={PageRender} />
-            <PrivateRouter exact path="/mes-annonces" component={PageRender} />
-            <PrivateRouter exact path="/creer-annonce" component={PageRender} />
-            <PrivateRouter exact path="/mes-commandes" component={PageRender} />
-            <PrivateRouter exact path="/tickets-livraison" component={PageRender} />
-            <PrivateRouter exact path="/demandes-devis" component={PageRender} />
-            <PrivateRouter exact path="/achat-store" component={PageRender} />
-            <PrivateRouter exact path="/achat-publicite" component={PageRender} />
-            <PrivateRouter exact path="/transactions" component={PageRender} />
-
-
-
-            
-
-            {/* Rutas privadas específicas */}
-            <PrivateRouter exact path="/users/dashboardpage" component={PageRender} />
-            <PrivateRouter exact path="/users/roles" component={PageRender} />
-            <PrivateRouter exact path="/users/contactt" component={PageRender} />
-            <PrivateRouter exact path="/users/bloqueados" component={PageRender} />
-
-            {/* Rutas privadas genéricas */}
-            <PrivateRouter exact path="/:page/:id/:tab" component={PageRender} />
-            <PrivateRouter exact path="/:page/:id" component={PageRender} />
-            <PrivateRouter exact path="/:page" component={PageRender} />
-          </Switch>
-        </div>
+          {/* ===================================== */}
+          {/* RUTAS PRIVADAS */}
+          {/* ===================================== */}
+          <PrivateRouter exact path="/profile" component={PageRender} />
+          <PrivateRouter exact path="/mes-annonces" component={PageRender} />
+          <PrivateRouter exact path="/creer-annonce" component={PageRender} />
+          <PrivateRouter exact path="/mes-commandes" component={PageRender} />
+          <PrivateRouter exact path="/tickets-livraison" component={PageRender} />
+          <PrivateRouter exact path="/demandes-devis" component={PageRender} />
+          <PrivateRouter exact path="/achat-store" component={PageRender} />
+          <PrivateRouter exact path="/achat-publicite" component={PageRender} />
+          <PrivateRouter exact path="/transactions" component={PageRender} />
+          <PrivateRouter exact path="/users/dashboardpage" component={PageRender} />
+          <PrivateRouter exact path="/users/roles" component={PageRender} />
+          <PrivateRouter exact path="/users/contactt" component={PageRender} />
+          <PrivateRouter exact path="/users/bloqueados" component={PageRender} />
+          
+          {/* Rutas privadas genéricas */}
+          <PrivateRouter exact path="/:page/:id/:tab" component={PageRender} />
+          <PrivateRouter exact path="/:page/:id" component={PageRender} />
+          <PrivateRouter exact path="/:page" component={PageRender} />
+        </Switch>
       </div>
-    </Router>
+    </div>
+  </Router>
   );
 }
 

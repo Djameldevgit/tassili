@@ -380,7 +380,7 @@ const Drawer = ({
       <div style={{ margin: '20px 0 8px 16px', fontSize: '0.9rem', fontWeight: '600', color: '#555' }}>
         Liens utiles
       </div>
-      
+    
       {usefulLinks.map((link, index) => (
         <LinkItem 
           key={index}
@@ -547,7 +547,7 @@ const Drawer = ({
               EN
             </button>
           </div>
-          
+         
           {/* Botón de cerrar */}
           <button
             onClick={onHide}
