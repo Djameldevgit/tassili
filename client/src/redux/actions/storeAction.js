@@ -56,7 +56,7 @@ export const createStore = ({ storeData, auth }) => async (dispatch) => {
     // Redirigir después de éxito
     if (res.data.store?._id) {
       setTimeout(() => {
-        window.location.href = `/store/${res.data.store._id}/dashboard`
+        window.location.href = `/store-dashboard` // y que el componente maneje la lógica
       }, 1500)
     }
 
@@ -386,4 +386,87 @@ export const resetStoreCreate = () => (dispatch) => {
     type: STORE_TYPES.CREATE_STORE,
     payload: null
   })
+}
+
+// storeActions.js - AGREGAR ESTAS ACCIONES
+
+// ==================== OBTENER MI TIENDA ====================
+export const getMyStore = () => async (dispatch, getState) => {
+  try {
+    const { auth } = getState()
+    
+    if (!auth.token) {
+      throw new Error('No autenticado')
+    }
+    
+    dispatch({ type: STORE_TYPES.LOADING_STORE, payload: true })
+    
+    const res = await getDataAPI('stores/my-store', auth.token)
+    
+    dispatch({
+      type: STORE_TYPES.GET_MY_STORE,
+      payload: res.data.store
+    })
+    
+    dispatch({ type: STORE_TYPES.LOADING_STORE, payload: false })
+    
+    return res.data
+    
+  } catch (err) {
+    console.error('❌ Error en getMyStore action:', err)
+    
+    dispatch({ 
+      type: GLOBALTYPES.ALERT, 
+      payload: { 
+        error: err.response?.data?.msg || 'Error al obtener tu tienda'
+      }
+    })
+    
+    dispatch({ type: STORE_TYPES.LOADING_STORE, payload: false })
+    
+    throw err
+  }
+}
+
+// ==================== TOGGLE ACTIVAR/DESACTIVAR ====================
+export const toggleStoreActive = (storeId) => async (dispatch, getState) => {
+  try {
+    const { auth } = getState()
+    
+    if (!auth.token) {
+      throw new Error('No autenticado')
+    }
+    
+    dispatch({ type: GLOBALTYPES.ALERT, payload: { loading: true } })
+    
+    const res = await patchDataAPI(`stores/toggle-active/${storeId}`, {}, auth.token)
+    
+    dispatch({
+      type: STORE_TYPES.TOGGLE_ACTIVE,
+      payload: res.data.store
+    })
+    
+    dispatch({ 
+      type: GLOBALTYPES.ALERT, 
+      payload: { 
+        success: res.data.msg || 'Visibilidad actualizada',
+        loading: false
+      }
+    })
+    
+    return res.data
+    
+  } catch (err) {
+    console.error('❌ Error en toggleStoreActive:', err)
+    
+    dispatch({ 
+      type: GLOBALTYPES.ALERT, 
+      payload: { 
+        error: err.response?.data?.msg || 'Error al cambiar visibilidad',
+        loading: false
+      }
+    })
+    
+    throw err
+  }
 }

@@ -176,13 +176,19 @@ getSimilarPosts()
         
 
 
-          <Route path="/stores" component={PublicStoresPage } />
-<Route path="/stores/category/:category" component={PublicStoresPage } />
  
-          <Route path="/create-store" component={CreateStorePage} />
-          <Route path="/store-confirmation" component={StoreConfirmation} />
-          <Route path="/store/:id/dashboard" component={StoreDashboard} />
-       <Route path="/store/:id" component={StorePage} />
+          <Route exact path="/my-stores" component={StoreDashboard} />
+<Route exact path="/dashboard" component={StoreDashboard} />
+<Route exact path="/store-dashboard" component={StoreDashboard} />
+ <Route exact  path="/storedashboard:id" component={StoreDashboard} />
+
+          <Route exact  path="/stores" component={PublicStoresPage } />
+<Route  exact path="/stores/category/:category" component={PublicStoresPage } />
+ 
+          <Route exact  path="/create-store" component={CreateStorePage} />
+          <Route exact  path="/store-confirmation" component={StoreConfirmation} />
+         
+       <Route  exact path="/store/:id" component={StorePage} />
 
          
          

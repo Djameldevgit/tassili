@@ -126,30 +126,29 @@ const VehiculesFields = ({
     'marque': (
       <MarqueField
         key="marque"
-        selectedCategory="automobiles" // Categoría fija
-        selectedSubCategory={subCategory} // ✅ ¡IMPORTANTE! Pasamos la subcategoría
+        mainCategory={mainCategory}      // ← ¡IMPORTANTE! Pasar 'vehicules'
+        subCategory={subCategory}        // ← ¡IMPORTANTE! Pasar 'automobiles'
+        fieldName="marque"
         postData={postData}
         handleChangeInput={handleChangeInput}
         isRTL={isRTL}
         t={t}
-        name="marque" // Nombre único en la base de datos
-        label="brand"
       />
     ),
+    
     'modele': (
       <ModeleField
-      key="modele"
-      mainCategory={mainCategory}      // ← 'vehicules'
-      subCategory={subCategory}        // ← 'automobiles'
-      postData={postData}
-      handleChangeInput={handleChangeInput}
-      fieldName="modele"
-      brandField="marque"              // ← también 'marque' aquí
-      isRTL={isRTL}
-      t={t}
-    />
+        key="modele"
+        mainCategory={mainCategory}      // ← ¡IMPORTANTE!
+        subCategory={subCategory}        // ← ¡IMPORTANTE!
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        fieldName="modele"
+        brandField="marque"
+        isRTL={isRTL}
+        t={t}
+      />
     ),
-    
   
     'annee': (
       <Form.Group key="annee">

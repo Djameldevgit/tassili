@@ -3,7 +3,12 @@ const storeCtrl = require('../controllers/storeCtrl')
 const auth = require('../middleware/auth')
 
 // ==================== RUTAS PÚBLICAS ====================
+router.get('/my-store', auth, storeCtrl.getMyStore) // Obtener mi tienda
+router.get('/my-store/stats', auth, storeCtrl.getMyStoreStats) // Estadísticas
+router.put('/toggle-active/:id', auth, storeCtrl.toggleStoreActive) // Activar/desactivar
 
+// 🏪 RUTA PARA COMPONENTE StoresCategoryPage (corregir)
+router.get('/category/stores/:category?', storeCtrl.getStoresByStoreCategory)
 // 📋 Obtener todas las stores públicas (para marketplace)
 router.get('/public/all', storeCtrl.getPublicStores)
 // En storeRoutes.js

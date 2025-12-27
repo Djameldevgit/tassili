@@ -1,123 +1,213 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { getPost } from '../redux/actions/postAction';
+import { getSimilarPosts, clearSimilarPosts } from '../redux/actions/postAction';
 import LoadIcon from '../images/loading.gif';
 import PostCard from '../components/PostCard';
-import SimilarPosts from '../components/SimilarPosts';
+import { getDataAPI } from '../utils/fetchData';
 
 const PostId = () => {
-    const { id } = useParams();
-    const [normalizedPost, setNormalizedPost] = useState(null);
-    
-    // Obtener estado desde Redux
-    const { 
-        post: reduxPost, 
-        postLoading, 
-        postError 
-    } = useSelector(state => state.post || {});
-    
-    const dispatch = useDispatch();
+  const { id } = useParams();
+  const dispatch = useDispatch();
+  
+  // 🔴 REF para controlar si ya se buscaron similares
+  const hasFetchedSimilarRef = useRef(false);
+  const hasFetchedPostRef = useRef(false);
 
-    // Obtener post
-    useEffect(() => {
-        if (id) {
-            console.log('🔄 Fetching post:', id);
-            dispatch(getPost(id));
+  // ✅ CORRECCIÓN: Acceder a los reducers específicos
+  const { 
+    homePosts = {},      // Esto es el postReducer
+    detailPost = null    // Esto es detailPostReducer
+  } = useSelector(state => state);
+
+  // Extraer los valores correctamente
+  const postsArray = homePosts.posts || [];
+  const similarPosts = homePosts.similarPosts || [];
+  const similarLoading = homePosts.similarLoading || false;
+  const detailPostData = detailPost;
+
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    console.log('🔍 useEffect ejecutándose', {
+      id,
+      hasFetchedPost: hasFetchedPostRef.current,
+      hasFetchedSimilar: hasFetchedSimilarRef.current
+    });
+
+    const fetchPost = async () => {
+      // 🔴 PREVENIR EJECUCIONES MÚLTIPLES
+      if (hasFetchedPostRef.current) {
+        console.log('⏸️ Ya se buscó el post, saltando...');
+        return;
+      }
+
+      let current = null;
+
+      // 1. Buscar en detailPost
+      if (detailPostData && detailPostData._id === id) {
+        current = detailPostData;
+        console.log('✅ Post encontrado en detailPost:', current._id);
+      }
+      // 2. Buscar en posts del postReducer
+      else if (postsArray.length > 0) {
+        current = postsArray.find(p => p._id === id);
+        if (current) {
+          console.log('✅ Post encontrado en homePosts.posts:', current._id);
         }
-    }, [id, dispatch]);
+      }
 
-    // Normalizar post cuando llegue
-    useEffect(() => {
-        if (reduxPost) {
-            console.log('📦 Post from Redux:', {
-                id: reduxPost._id,
-                categorie: reduxPost.categorie,
-                subCategory: reduxPost.subCategory
-            });
-            
-            const normalized = {
-                ...reduxPost,
-                category: reduxPost.categorie || reduxPost.category,
-                subCategory: reduxPost.subCategory || '',
-                likes: reduxPost.likes || [],
-                images: reduxPost.images || [],
-                mixto: reduxPost.mixto || {},
-                user: reduxPost.user || { name: 'Usuario', avatar: '' }
-            };
-            
-            setNormalizedPost(normalized);
+      // 3. Si no está, obtener de API
+      if (!current) {
+        try {
+          console.log('📥 Post no en redux, obteniendo de API...');
+          const res = await getDataAPI(`post/${id}`);
+          
+          current = res.data.post || res.data;
+          
+          console.log('📦 Post desde API:', current._id);
+          
+          // Despachar para guardar en detailPost
+          dispatch({ 
+            type: 'GET_POST',
+            payload: current 
+          });
+        } catch (err) {
+          console.error('❌ Error al cargar post:', err);
+          setLoading(false);
+          return;
         }
-    }, [reduxPost]);
+      }
 
-    // Loading
-    if (postLoading) {
-        return (
-            <div className="container mx-auto px-4 py-8">
-                <div className="text-center">
-                    <img src={LoadIcon} alt="loading" className="d-block mx-auto my-4" />
-                    <p className="text-gray-500">Cargando publicación...</p>
-                </div>
-            </div>
-        );
+      if (current) {
+        setPost(current);
+        hasFetchedPostRef.current = true;
+        console.log('🎯 Post establecido:', current._id);
+
+        // 🔴 BUSCAR SIMILARES SOLO UNA VEZ
+        if (current.categorie && current.subCategory && !hasFetchedSimilarRef.current) {
+          console.log('🔍 Buscando posts similares (PRIMERA VEZ)...');
+          hasFetchedSimilarRef.current = true;
+          dispatch(getSimilarPosts(id));
+        } else if (!current.categorie || !current.subCategory) {
+          console.warn('⚠️ Post sin categoría completa');
+          dispatch(clearSimilarPosts());
+        }
+      }
+
+      setLoading(false);
+    };
+
+    fetchPost();
+
+    // Cleanup cuando el componente se desmonta
+    return () => {
+      console.log('🧹 Cleanup PostId');
+      hasFetchedPostRef.current = false;
+      hasFetchedSimilarRef.current = false;
+      dispatch(clearSimilarPosts());
+    };
+  }, [id, dispatch]); // 🔴 REMOVER detailPostData y postsArray de dependencias
+
+  // 🔴 AGREGAR useEffect SEPARADO para cambios en detailPost
+  useEffect(() => {
+    // Si detailPost cambia y coincide con el ID actual, actualizar el post
+    if (detailPostData && detailPostData._id === id && !hasFetchedPostRef.current) {
+      console.log('🔄 detailPost actualizado, sincronizando...');
+      setPost(detailPostData);
+      hasFetchedPostRef.current = true;
     }
+  }, [detailPostData, id]);
 
-    // Error
-    if (postError) {
-        return (
-            <div className="container mx-auto px-4 py-8 text-center">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md mx-auto">
-                    <h2 className="text-2xl font-bold text-red-700 mb-2">Error</h2>
-                    <p className="text-red-600 mb-4">{postError}</p>
-                    <button 
-                        onClick={() => dispatch(getPost(id))}
-                        className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-                    >
-                        Reintentar
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // No encontrado
-    if (!normalizedPost || !normalizedPost._id) {
-        return (
-            <div className="container mx-auto px-4 py-8 text-center">
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8 max-w-md mx-auto">
-                    <h2 className="text-2xl font-bold text-yellow-700 mb-2">Publicación no encontrada</h2>
-                    <button 
-                        onClick={() => window.history.back()}
-                        className="px-6 py-2 bg-yellow-600 text-white rounded-lg hover:bg-yellow-700"
-                    >
-                        Volver atrás
-                    </button>
-                </div>
-            </div>
-        );
-    }
-
-    // ✅ Mostrar post
+  // Render loading
+  if (loading) {
     return (
-        <div className="container mx-auto px-4 py-8">
-            {/* Post principal */}
-            <PostCard key={normalizedPost._id} post={normalizedPost} />
-            
-            {/* Posts similares */}
-            {normalizedPost.category && normalizedPost.subCategory && (
-                <div className="mt-12">
-                    <h2 className="text-2xl font-bold mb-6">
-                        Anuncios similares en {normalizedPost.category}
-                    </h2>
-                    <SimilarPosts 
-                        category={normalizedPost.category}
-                        subCategory={normalizedPost.subCategory}
-                        currentPostId={normalizedPost._id}
-                    />
-                </div>
-            )}
-        </div>
+      <div className="text-center my-5">
+        <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+        <p>Cargando...</p>
+      </div>
     );
+  }
+
+  // Render si no hay post
+  if (!post) {
+    return (
+      <div className="text-center my-5">
+        <h4>Post no encontrado</h4>
+        <p>El post que buscas no existe o ha sido eliminado.</p>
+      </div>
+    );
+  }
+
+  console.log('📊 Datos para render:', {
+    postId: post._id,
+    similarPostsCount: similarPosts.length,
+    similarLoading,
+    hasFetchedSimilar: hasFetchedSimilarRef.current
+  });
+
+  return (
+    <div className="container py-4">
+      {/* DEBUG INFO (temporal) */}
+      <div style={{ 
+        background: '#f8f9fa', 
+        padding: '10px', 
+        borderRadius: '5px', 
+        marginBottom: '20px',
+        fontSize: '12px'
+      }}>
+        <strong>DEBUG:</strong> Post: {post._id} | Similares: {similarPosts.length} | Loading: {similarLoading ? 'Sí' : 'No'}
+      </div>
+
+      {/* Post principal */}
+      <div className="mb-5">
+        <PostCard post={post} />
+      </div>
+
+      {/* Posts similares */}
+      {post.categorie && post.subCategory && (
+        <div className="similar-section mt-5">
+          <div className="d-flex align-items-center justify-content-between mb-4">
+            <h3 className="mb-0">Posts similares</h3>
+            {similarPosts.length > 0 && (
+              <span className="badge bg-primary">
+                {similarPosts.length} encontrados
+              </span>
+            )}
+          </div>
+
+          {similarLoading && (
+            <div className="text-center my-4">
+              <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+              <p>Buscando posts similares...</p>
+            </div>
+          )}
+
+          {!similarLoading && similarPosts.length === 0 && (
+            <div className="alert alert-info">
+              <p className="mb-0">No se encontraron posts similares</p>
+            </div>
+          )}
+
+          {!similarLoading && similarPosts.length > 0 && (
+            <div className="row">
+              {similarPosts.map(item => {
+                // Evitar mostrar el mismo post
+                if (item._id === post._id) return null;
+                
+                return (
+                  <div key={item._id} className="col-md-6 col-lg-4 mb-4">
+                    <PostCard post={item} />
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
 };
 
 export default PostId;

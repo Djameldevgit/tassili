@@ -140,6 +140,21 @@ const CategoryAccordion = ({ postData, handleChangeInput }) => {
     
     // Teléfonos
     telephones: [
+      {
+        id: 'smartphones',
+        name: t('telephones.categories.smartphones'),
+        icon: <img src='/category/00.png' width={32} height={32} style={{objectFit: 'contain'}} />,
+        color: 'primary',
+        
+      },
+      {
+        id: 'smartphones',
+        name: t('telephones.categories.smartphones'),
+        icon: <img src="/categroy/01.png" width={32} height={32} style={{objectFit: 'contain'}} />,
+        color: 'primary',
+        
+      },
+
       { id: 'smartphones', name: t('telephones.categories.smartphones'), icon: <span style={{ fontSize: '24px', color: '#007bff' }}>📱</span>, color: 'primary', emoji: '📱' },
       { id: 'telephones_cellulaires', name: t('telephones.categories.telephones_cellulaires'), icon: <span style={{ fontSize: '24px', color: '#6c757d' }}>📞</span>, color: 'secondary', emoji: '📞' },
       { id: 'tablettes', name: t('telephones.categories.tablettes'), icon: <span style={{ fontSize: '24px', color: '#28a745' }}>📟</span>, color: 'success', emoji: '📟' },

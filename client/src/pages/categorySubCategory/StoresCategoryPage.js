@@ -28,22 +28,22 @@ const StoresCategoryPage = () => {
         try {
             // Usar el endpoint específico para stores
             const url = categoryName && categoryName !== 'stores' 
-                ? `/api/stores/category/stores/${categoryName}?page=${page}&limit=12`
-                : `/api/stores/category/stores?page=${page}&limit=12`;
-            
-            console.log('🔄 Fetching stores from:', url);
-            
-            const response = await fetch(url);
-            const data = await response.json();
-            
-            if (data.success) {
-                setStores(data.posts || data.stores || []);
-                setTotal(data.total || 0);
-                setPages(data.pages || 1);
-                console.log(`✅ Found ${data.total} stores`);
-            } else {
-                setError(data.msg || 'Error al cargar las boutiques');
-            }
+            ? `/api/stores/public/category/${categoryName}?page=${page}&limit=12`
+            : `/api/stores/public/all?page=${page}&limit=12`;
+          
+          console.log('🔄 Fetching stores from:', url);
+          
+          const response = await fetch(url);
+          const data = await response.json();
+          
+          if (data.success) {
+            setStores(data.stores || []);
+            setTotal(data.total || 0);
+            setPages(data.pages || 1);
+            console.log(`✅ Found ${data.total} stores`);
+          } else {
+            setError(data.msg || 'Error al cargar las boutiques');
+          }
         } catch (err) {
             setError('Error de conexión al servidor');
             console.error('❌ Error fetching stores:', err);

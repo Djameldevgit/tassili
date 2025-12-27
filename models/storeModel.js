@@ -47,11 +47,12 @@ const storeSchema = new mongoose.Schema({
   },
 
   // 💼 Nivel de plan
-  plan: {
-    type: String,
-    enum: ['Free', 'Pro', 'Premium'],
-    default: 'Free'
-  },
+// En storeModel.js - actualiza el campo originalPlan
+originalPlan: {
+  type: String,
+  default: null
+  // SIN enum - permite cualquier string
+},
   planFeatures: {
     maxProducts: { type: Number, default: 10 },
     canPromote: { type: Boolean, default: false },
@@ -92,12 +93,17 @@ const storeSchema = new mongoose.Schema({
     type: Number, // en MB
     default: 100
   },
-  originalPlan: { // plan original seleccionado
+  originalPlan: {
     type: String,
-    enum: ['Free', 'Pro', 'Premium', null],
+    enum: [
+      'Free', 'Pro', 'Premium', 
+      'Store Gold 3000', 'Store Gold 1500', 'Store Gold 500',
+      'Store Silver 750', 'Store Silver 500', 'Store Silver 250',
+      'Store Bronze 300', 'Store Bronze 150', 'Store Bronze 50','Store Basic 100',
+      null
+    ],
     default: null
   },
-
   // 📅 Fechas
   createdAt: {
     type: Date,
@@ -133,7 +139,7 @@ const storePlans = {
     credits: 500
   }
 }
-
+ 
 // Middleware para setear features del plan
 storeSchema.pre('save', function(next) {
   if (this.isModified('plan') || !this.planFeatures.maxProducts) {
@@ -154,5 +160,7 @@ storeSchema.pre('save', function(next) {
   }
   next()
 })
-
+console.log('🔍 DEBUG STORE MODEL - originalPlan enum:')
+console.log('Enum values:', storeSchema.path('originalPlan').enumValues)
+console.log('Schema:', storeSchema.path('originalPlan'))
 module.exports = mongoose.model('store', storeSchema)

@@ -202,7 +202,24 @@ const storeReducer = (state = initialState, action) => {
         updateLoading: false,
         updateError: null
       }
-
+      case STORE_TYPES.GET_MY_STORE:
+        return {
+          ...state,
+          myStore: action.payload,
+          error: null,
+          loading: false
+        }
+      
+      case STORE_TYPES.TOGGLE_ACTIVE:
+        return {
+          ...state,
+          myStore: action.payload,
+          stores: state.stores.map(store => 
+            store._id === action.payload._id ? action.payload : store
+          ),
+          error: null,
+          success: true
+        }
     default:
       return state
   }

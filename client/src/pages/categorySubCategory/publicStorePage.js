@@ -30,9 +30,9 @@ const PublicStoresPage = () => {
         setLoading(true);
         try {
             let url = `/api/stores/public/all?page=${page}&limit=12&sort=${sortBy}`;
-            
+    
             if (category && category !== 'all') {
-                url = `/api/stores/public/category/${category}?page=${page}&limit=12&sort=${sortBy}`;
+              url = `/api/stores/public/category/${category}?page=${page}&limit=12&sort=${sortBy}`;
             }
             
             if (searchTerm) url += `&q=${encodeURIComponent(searchTerm)}`;
@@ -43,19 +43,19 @@ const PublicStoresPage = () => {
             const data = await response.json();
             
             if (data.success) {
-                setStores(data.stores || []);
-                setTotal(data.total || 0);
-                setPages(data.pages || 1);
+              setStores(data.stores || []);
+              setTotal(data.total || 0);
+              setPages(data.pages || 1);
             } else {
-                setError(data.msg || 'Error al cargar las boutiques');
+              setError(data.msg || 'Error al cargar las boutiques');
             }
-        } catch (err) {
+          } catch (err) {
             setError('Error de conexión');
             console.error('Error fetching stores:', err);
-        } finally {
+          } finally {
             setLoading(false);
-        }
-    };
+          }
+        };
     
     const handleSearch = (e) => {
         e.preventDefault();

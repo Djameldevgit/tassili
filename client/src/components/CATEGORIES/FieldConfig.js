@@ -177,7 +177,7 @@ export const FIELD_CONFIG = {
       'typeFroid', 'etat', 'dimensions', 'garantie'
     ],
     'machines_laver': [
-      'typeMachine', 'marque', 'modele', 'capacite', 'classeEnergetique',
+        'marque', 'modele', 'capacite', 'classeEnergetique',
       'vitesseEssorage', 'etat', 'programmes', 'garantie'
     ],
     'lave_vaisselles': [
@@ -289,7 +289,7 @@ export const FIELD_CONFIG = {
     ]
   },
 
-  // ============ VETEMENTS ============
+  // ============ VETEMENTS ============ 
   'vetements': {
     'vetements_homme': [
       'typeVetement', 'marque', 'modele', 'taille', 'couleur', 'matiere',

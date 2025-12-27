@@ -1,164 +1,125 @@
-// 📁 MarqueField.js - VERSIÓN SIMPLIFICADA Y FUNCIONAL
-import React, { useState, useEffect } from 'react';
-import { Form } from 'react-bootstrap';
+// 📁 client/src/components/CATEGORIES/camposComun/MarqueField.js
+import React, { useState, useEffect, useMemo } from 'react';
+import { Form, Alert, Badge, Spinner, InputGroup, Button } from 'react-bootstrap';
+import { Search, Filter, Plus } from 'react-bootstrap-icons';
+
+// ✅ CORRECTO: ../../../data/brandsData
+import { getBrandsByCategory, searchBrands } from '../../../data/brandsData';
 
 const MarqueField = ({ 
-  mainCategory,         // ← NUEVO: categoría principal (ej: 'telephones')
-  subCategory,         // ← NUEVO: subcategoría (ej: 'smartphones')
+  mainCategory,
+  subCategory,
   fieldName = 'marque',
   postData, 
   handleChangeInput,
   isRTL,
-  t
+  t,
+  showAdvanced = true
 }) => {
   const [filteredBrands, setFilteredBrands] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [showAllBrands, setShowAllBrands] = useState(false);
 
-  console.log('🔍 MarqueField recibió:', {
-    mainCategory,
-    subCategory,
-    fieldName,
-    'postData[marque]': postData?.marque
+  // DEBUG: Verificar que las funciones se importan
+  console.log('🔧 MarqueField - Funciones importadas:', {
+    getBrandsByCategory: typeof getBrandsByCategory,
+    searchBrands: typeof searchBrands
   });
- 
-  // 🔥 BASE DE DATOS SIMPLIFICADA
-  const BRANDS_DATABASE = {
-    'telephones': {
-      'smartphones': [
-        'Apple iPhone', 'Samsung Galaxy', 'Xiaomi', 'Huawei', 'Oppo', 
-        'Realme', 'OnePlus', 'Vivo', 'Google Pixel', 'Nokia', 'Sony'
-      ],
-      'tablettes': [
-        'Apple iPad', 'Samsung Galaxy Tab', 'Huawei MatePad', 'Lenovo Tab',
-        'Amazon Fire', 'Xiaomi Pad'
-      ],
-      'smartwatchs': [
-        'Apple Watch', 'Samsung Galaxy Watch', 'Xiaomi', 'Huawei', 'Fitbit',
-        'Garmin', 'Amazfit'
-      ]
-    },
-    'vehicules': {
-      'automobiles': [
-        'Toyota', 'Renault', 'Peugeot', 'Mercedes', 'BMW', 'Audi', 'Volkswagen'
-      ],
-      'motos': [
-        'Honda', 'Yamaha', 'Suzuki', 'Kawasaki', 'Ducati'
-      ]
-    },
-    'electromenager': {
-      'televiseurs': [
-        'Samsung', 'LG', 'Sony', 'Panasonic', 'TCL'
-      ],
-      'refrigerateurs': [
-        'LG', 'Samsung', 'Whirlpool', 'Bosch', 'Brandt'
-      ]
-    }
-    // Agrega más categorías según necesites
-  };
 
-  // 🔄 Cargar marcas cuando cambia la categoría
-  useEffect(() => {
-    if (!mainCategory) {
-      console.log('⚠️ MarqueField: No hay mainCategory');
-      setFilteredBrands([]);
-      return;
-    }
-
-    console.log(`🔍 MarqueField buscando: ${mainCategory}.${subCategory}`);
-
-    // Buscar marcas en la base de datos
-    const categoryBrands = BRANDS_DATABASE[mainCategory];
-    
-    if (!categoryBrands) {
-      console.log(`❌ Categoría '${mainCategory}' no encontrada en BRANDS_DATABASE`);
-      setFilteredBrands([]);
-      return;
-    }
-
-    // Si hay subcategoría específica
-    if (subCategory && categoryBrands[subCategory]) {
-      console.log(`✅ Encontradas marcas para ${mainCategory}.${subCategory}`);
-      setFilteredBrands(categoryBrands[subCategory]);
-    } 
-    // Si no, usar categoría general
-    else if (categoryBrands.default) {
-      console.log(`ℹ️ Usando marcas 'default' para ${mainCategory}`);
-      setFilteredBrands(categoryBrands.default);
-    } 
-    // Si no hay nada
-    else {
-      console.log(`⚠️ No hay marcas para ${mainCategory}`);
-      setFilteredBrands([]);
-    }
+  // 🔄 Memoizar datos
+  const categoryBrands = useMemo(() => {
+    console.log('🔄 Calculando marcas para:', { mainCategory, subCategory });
+    return getBrandsByCategory(mainCategory, subCategory);
   }, [mainCategory, subCategory]);
 
+  // 🔄 Efecto principal
+  useEffect(() => {
+    console.log('🎯 MarqueField useEffect ejecutándose');
+    
+    if (!mainCategory) {
+      console.warn('⚠️ No hay mainCategory');
+      setFilteredBrands([]);
+      return;
+    }
+
+    setIsLoading(true);
+    
+    const timer = setTimeout(() => {
+      try {
+        let brands = [];
+
+        if (searchQuery.trim()) {
+          console.log('🔍 Buscando marcas con query:', searchQuery);
+          brands = searchBrands(searchQuery, mainCategory);
+        } else {
+          console.log('📋 Usando marcas de categoría:', categoryBrands.length);
+          brands = categoryBrands;
+        }
+
+        // Limitar si no muestra todo
+        if (!showAllBrands && brands.length > 15) {
+          brands = brands.slice(0, 15);
+        }
+
+        console.log('✅ Marcas filtradas:', brands.length);
+        setFilteredBrands(brands);
+      } catch (error) {
+        console.error('❌ Error en MarqueField:', error);
+        setFilteredBrands([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [mainCategory, subCategory, searchQuery, categoryBrands, showAllBrands]);
+
+  // Si no hay categoría
+  if (!mainCategory) {
+    return (
+      <Alert variant="info" className="my-3">
+        <strong>ℹ️ Sélectionnez une catégorie d'abord</strong>
+      </Alert>
+    );
+  }
+
   return (
-    <Form.Group className="mb-3">
-      <Form.Label>
-        🏷️ {t?.('brand', 'Marque')} 
-        {mainCategory && (
-          <small className="text-muted ms-2">
-            ({filteredBrands.length} options)
-          </small>
-        )}
-      </Form.Label>
-      
-      {filteredBrands.length > 0 ? (
-        <>
-          <Form.Select
-            name={fieldName}
-            value={postData[fieldName] || ''}
-            onChange={handleChangeInput}
-            required
-            dir={isRTL ? 'rtl' : 'ltr'}
-          >
-            <option value="">{t?.('select_brand', 'Sélectionnez une marque')}</option>
-            
-            {filteredBrands.map((brand) => (
-              <option key={brand} value={brand}>
-                {brand}
-              </option>
-            ))}
-            
-            <option value="autre">{t?.('other_brand', 'Autre')}</option>
-          </Form.Select>
-          
-          <Form.Text className="text-muted">
-            <small>
-              Catégorie: {mainCategory} {subCategory && `→ ${subCategory}`}
-            </small>
-          </Form.Text>
-        </>
-      ) : (
-        <>
-          <Form.Control
-            type="text"
-            name={fieldName}
-            value={postData[fieldName] || ''}
-            onChange={handleChangeInput}
-            placeholder={t?.('enter_brand', 'Entrez la marque')}
-            required
-            dir={isRTL ? 'rtl' : 'ltr'}
-          />
-          <Form.Text className="text-muted">
-            <small>
-              Saisissez manuellement la marque
-            </small>
-          </Form.Text>
-        </>
-      )}
-      
-      {/* Campo para "otra" marca */}
-      {postData[fieldName] === 'autre' && (
-        <Form.Control
-          type="text"
-          name={`${fieldName}_custom`}
-          value={postData[`${fieldName}_custom`] || ''}
-          onChange={handleChangeInput}
-          placeholder={t?.('specify_brand', 'Précisez la marque')}
-          className="mt-2"
-          dir={isRTL ? 'rtl' : 'ltr'}
-        />
-      )}
+    <Form.Group className="mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-3">
+        <Form.Label className="fw-bold mb-0">
+          🏷️ {t?.('brand', 'Marque')}
+        </Form.Label>
+        <div className="d-flex gap-2">
+          <Badge bg="info">{mainCategory}</Badge>
+          {subCategory && <Badge bg="secondary">{subCategory}</Badge>}
+        </div>
+      </div>
+
+      {/* Select principal */}
+      <Form.Select
+        name={fieldName}
+        value={postData[fieldName] || ''}
+        onChange={handleChangeInput}
+        required
+        dir={isRTL ? 'rtl' : 'ltr'}
+      >
+        <option value="">Sélectionnez une marque</option>
+        
+        {filteredBrands.map((brand) => (
+          <option key={brand} value={brand}>{brand}</option>
+        ))}
+        
+        <option value="autre">Autre marque...</option>
+      </Form.Select>
+
+      {/* Información */}
+      <div className="mt-2">
+        <small className="text-muted">
+          <i className="fas fa-tags me-1"></i>
+          {filteredBrands.length} marques disponibles
+        </small>
+      </div>
     </Form.Group>
   );
 };

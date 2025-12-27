@@ -1,116 +1,130 @@
-import React, { useEffect, useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { Row, Col, Card, Spinner } from 'react-bootstrap';
+// components/UserPosts/UserPosts.js
+import React, { useState, useEffect } from 'react';
+import PostThumb from './PostThumb';
+import LoadIcon from '../images/loading.gif';
+import LoadMoreBtn from './LoadMoreBtn';
+import { getDataAPI } from '../utils/fetchData';
+import { useSelector } from 'react-redux';
+ 
 
-const UserPosts = ({ userId, excludePostId, limit = 4 }) => {
-    const dispatch = useDispatch();
-    const { posts: allPosts } = useSelector(state => state.homePosts || {});
-    const [userPosts, setUserPosts] = useState([]);
-    const [loading, setLoading] = useState(true);
+const UserPosts = ({ 
+    userId, 
     
+    limit = 6, 
+    showTitle = true,
+    excludePostId = null // Para excluir el post actual en detail
+}) => {
+    
+    const { auth } = useSelector(state => state)
+    const [posts, setPosts] = useState([]);
+    const [result, setResult] = useState(0);
+    const [page, setPage] = useState(1);
+    const [loading, setLoading] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
+
+    // Cargar posts iniciales
     useEffect(() => {
-        if (!userId) return;
+        const fetchUserPosts = async () => {
+            setLoading(true);
+            try {
+                const res = await getDataAPI(
+                    `user_posts/${userId}?limit=${limit}&page=1`,
+                    auth.token
+                );
+                
+                // Filtrar el post actual si se proporciona excludePostId
+                let filteredPosts = res.data.posts || [];
+                if (excludePostId) {
+                    filteredPosts = filteredPosts.filter(post => post._id !== excludePostId);
+                }
+                
+                setPosts(filteredPosts);
+                setResult(res.data.result || 0);
+                setPage(2); // Siguiente página
+                setHasMore(res.data.hasMore || false);
+            } catch (err) {
+                console.error('Error cargando posts del usuario:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (userId && auth.token) {
+            fetchUserPosts();
+        }
+    }, [userId, auth.token, limit, excludePostId]);
+
+    // Cargar más posts
+    const handleLoadMore = async () => {
+        if (!hasMore || loading) return;
         
         setLoading(true);
-        
-        // Filtramos posts del mismo usuario, excluyendo el post actual
-        const filtered = allPosts
-            ?.filter(post => 
-                post.user?._id === userId && 
-                post._id !== excludePostId
-            )
-            .slice(0, limit) || [];
-        
-        setUserPosts(filtered);
-        setLoading(false);
-        
-        console.log('📊 UserPosts - Anuncios del usuario:', {
-            userId,
-            excludePostId,
-            totalPosts: allPosts?.length,
-            found: filtered.length
-        });
-        
-    }, [allPosts, userId, excludePostId, limit]);
-    
-    // Si no hay posts, no mostrar el componente
-    if (userPosts.length === 0) {
-        return null;
-    }
-    
-    return (
-        <div className="user-posts-section">
-            <h5 className="mb-3">
-                <i className="fas fa-store me-2 text-primary"></i>
-                Más del vendedor
-            </h5>
+        try {
+            const res = await getDataAPI(
+                `user_posts/${userId}?limit=${limit}&page=${page}`,
+                auth.token
+            );
             
-            {loading ? (
-                <div className="text-center py-3">
-                    <Spinner animation="border" size="sm" />
-                    <p className="mt-2 text-muted small">Cargando...</p>
+            // Filtrar el post actual si se proporciona excludePostId
+            let newPosts = res.data.posts || [];
+            if (excludePostId) {
+                newPosts = newPosts.filter(post => post._id !== excludePostId);
+            }
+            
+            setPosts(prev => [...prev, ...newPosts]);
+            setResult(res.data.result || 0);
+            setPage(prev => prev + 1);
+            setHasMore(res.data.hasMore || false);
+        } catch (err) {
+            console.error('Error cargando más posts:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!userId) {
+        return <div className="user-posts-empty">Usuario no especificado</div>;
+    }
+
+    return (
+        <div className="user-posts-container">
+            {showTitle && posts.length > 0 && (
+                <div className="user-posts-header">
+                    <h4 className="user-posts-title">
+                        <span className="material-icons">grid_view</span>
+                        Más publicaciones de este vendedor
+                    </h4>
+                    <span className="user-posts-count">{result} publicaciones</span>
+                </div>
+            )}
+
+            {loading && page === 1 ? (
+                <div className="user-posts-loading">
+                    <img src={LoadIcon} alt="loading" className="d-block mx-auto" />
+                    <p>Cargando publicaciones...</p>
+                </div>
+            ) : posts.length === 0 ? (
+                <div className="user-posts-empty">
+                    <span className="material-icons">inventory_2</span>
+                    <p>No hay más publicaciones de este usuario</p>
                 </div>
             ) : (
-                <Row className="g-2">
-                    {userPosts.map(post => (
-                        <Col key={post._id} xs={12}>
-                            <Link 
-                                to={`/post/${post._id}`}
-                                className="text-decoration-none text-dark"
-                            >
-                                <Card className="border-hover">
-                                    <div className="d-flex">
-                                        {/* Imagen pequeña */}
-                                        <div 
-                                            className="flex-shrink-0"
-                                            style={{
-                                                width: '80px',
-                                                height: '80px',
-                                                backgroundImage: `url(${post.images?.[0]?.url || '/default-post.jpg'})`,
-                                                backgroundSize: 'cover',
-                                                backgroundPosition: 'center'
-                                            }}
-                                        />
-                                        
-                                        {/* Información */}
-                                        <Card.Body className="p-2">
-                                            <h6 className="card-title mb-1" style={{
-                                                fontSize: '0.9rem',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
-                                                whiteSpace: 'nowrap'
-                                            }}>
-                                                {post.titre || 'Sin título'}
-                                            </h6>
-                                            
-                                            <div className="d-flex justify-content-between align-items-center">
-                                                <span className="text-primary fw-bold small">
-                                                    {post.price ? `${post.price.toLocaleString()} €` : 'Consultar'}
-                                                </span>
-                                                <small className="text-muted">
-                                                    {post.categorie}
-                                                </small>
-                                            </div>
-                                        </Card.Body>
-                                    </div>
-                                </Card>
-                            </Link>
-                        </Col>
-                    ))}
-                </Row>
-            )}
-            
-            {/* Ver todos los anuncios del usuario */}
-            {userPosts.length > 0 && (
-                <div className="text-center mt-3">
-                    <Link 
-                        to={`/profile/${userId}`}
-                        className="btn btn-outline-primary btn-sm"
-                    >
-                        Ver todos los anuncios del vendedor
-                    </Link>
-                </div>
+                <>
+                    <div className="user-posts-grid">
+                        <PostThumb posts={posts} result={result} />
+                    </div>
+
+                    {hasMore && (
+                        <div className="user-posts-load-more">
+                            <LoadMoreBtn 
+                                result={result} 
+                                page={page}
+                                load={loading} 
+                                handleLoadMore={handleLoadMore} 
+                            />
+                        </div>
+                    )}
+                </>
             )}
         </div>
     );

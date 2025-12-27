@@ -213,15 +213,15 @@ const FieldRenderer = ({
   try {
     return (
       <CategoryComponent
-        fieldName={fieldName}
-        mainCategory={mainCategory}      // ← IMPORTANTE: pasar mainCategory
-        subCategory={subCategory}
-        articleType={articleType}
-        postData={postData}
-        handleChangeInput={handleChangeInput}
-        isRTL={isRTL}
-        t={t}
-      />
+      fieldName={fieldName}
+      mainCategory={mainCategory}      // ← Debe pasar 'vehicules'
+      subCategory={subCategory}        // ← Debe pasar 'automobiles'
+      articleType={articleType}
+      postData={postData}
+      handleChangeInput={handleChangeInput}
+      isRTL={isRTL}
+      t={t}
+    />
     );
   } catch (error) {
     console.error(`❌ Error en FieldRenderer para ${fieldName}:`, error);

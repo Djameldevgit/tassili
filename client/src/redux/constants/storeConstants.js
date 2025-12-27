@@ -10,6 +10,11 @@ export const STORE_TYPES = {
   CHANGE_PLAN: 'CHANGE_PLAN',
   LOADING_STORE: 'LOADING_STORE',
   ERROR_STORE: 'ERROR_STORE',
+  GET_MY_STORE: 'GET_MY_STORE',
+  TOGGLE_ACTIVE: 'TOGGLE_ACTIVE',
+  GET_MY_STATS: 'GET_MY_STATS'
+
+
 }
 
 // Constantes individuales (para compatibilidad)

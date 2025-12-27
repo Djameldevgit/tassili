@@ -3,7 +3,6 @@ import { Form, Row, Col } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import MarqueField from '../camposComun/MarqueField';
 import ModeleField from '../camposComun/ModeleField';
- 
 const ElectromenagerFields = ({ fieldName, postData, handleChangeInput, subCategory, mainCategory, isRTL }) => {
   const { t } = useTranslation();
   
@@ -239,37 +238,33 @@ const ElectromenagerFields = ({ fieldName, postData, handleChangeInput, subCateg
   const fields = {
 
  
-      'marque': (
-        <MarqueField
-          key={`marque_${subCategory}`}
-          selectedCategory={mainCategory}        // ✅ Usar la categoría que viene del padre
-          selectedSubCategory={subCategory}      // ✅ La subcategoría actual
-          postData={postData}
-          handleChangeInput={handleChangeInput}
-          isRTL={isRTL}
-          t={t}
-          name="marque"
-          label="Marque"
-        />
-      ),
-      
-     
-      // En tu objeto fields, modifica el campo 'modele':
- 
-  'modele': (
-    <ModeleField
-      key="modele"
-      mainCategory={mainCategory}      // ← 'electromenager'
-      subCategory={subCategory}        // ← 'televiseurs'
-      postData={postData}
-      handleChangeInput={handleChangeInput}
-      fieldName="modele"
-      brandField="marque"              // ← también 'marque' aquí
-      isRTL={isRTL}
-      t={t}
-    />
-  
-),
+    'marque': (
+      <MarqueField
+        key="marque"
+        mainCategory={mainCategory}      // ← Pasar la categoría dinámica
+        subCategory={subCategory}        // ← Pasar la subcategoría dinámica
+        fieldName="marque"
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        isRTL={isRTL}
+        t={t}
+      />
+    ),
+    
+    // ✅ MODELO - SIEMPRE IGUAL  
+    'modele': (
+      <ModeleField
+        key="modele"
+        mainCategory={mainCategory}      // ← MISMA categoría
+        subCategory={subCategory}        // ← MISMA subcategoría
+        postData={postData}
+        handleChangeInput={handleChangeInput}
+        fieldName="modele"
+        brandField="marque"              // ← Campo donde está la marca
+        isRTL={isRTL}
+        t={t}
+      />
+    ),
     
     'tailleEcran': (
       <Form.Group>

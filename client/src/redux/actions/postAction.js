@@ -29,104 +29,142 @@ export const POST_TYPES = {
 // En tu action getSimilarPosts
 export const getSimilarPosts = (postId, options = {}) => async (dispatch, getState) => {
     try {
-      dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: true });
-      
-      console.log('🔍 ======= INICIO BÚSQUEDA SIMILARES =======');
-      console.log('📌 Post ID objetivo:', postId);
-      
-      // Obtener el post...
-      const { detailPost } = getState();
-      let currentPost = detailPost.find(post => post._id === postId);
-      
-      // DEPURACIÓN: Ver qué hay en detailPost
-      console.log('📊 Estado detailPost:', {
-        tieneData: !!detailPost,
-        esArray: Array.isArray(detailPost),
-        length: detailPost?.length,
-        postsIds: detailPost?.map(p => p._id)
-      });
-      
-      // Si no encontramos en detailPost, buscar en otros reducers
-      if (!currentPost) {
-        const { post } = getState(); // <-- También revisar el postReducer
-        if (post && post._id === postId) {
-          currentPost = post;
-          console.log('✅ Post encontrado en postReducer');
-        } else {
-          console.log('📥 Post no encontrado en reducers, obteniendo de API...');
-          const postRes = await getDataAPI(`post/${postId}`);
-          currentPost = postRes.data;
+        console.log('🚀 ======= INICIO BÚSQUEDA SIMILARES =======');
+        console.log('📌 Post ID objetivo:', postId);
+        
+        dispatch({ 
+            type: POST_TYPES.LOADING_SIMILAR_POSTS, 
+            payload: true 
+        });
+        
+        // ✅ Obtener el estado completo
+        const state = getState();
+        console.log('📊 Estado root keys:', Object.keys(state));
+        
+        // ✅ Acceder a los reducers correctos
+        const homePostsState = state.homePosts || {};
+        const detailPostState = state.detailPost;
+        
+        console.log('📊 homePosts estado:', Object.keys(homePostsState));
+        console.log('📊 detailPost estado:', detailPostState);
+        
+        // Buscar el post en diferentes lugares
+        let currentPost = null;
+        
+        // 1. En detailPost reducer
+        if (detailPostState && detailPostState._id === postId) {
+            currentPost = detailPostState;
+            console.log('✅ Post encontrado en detailPost reducer');
         }
-      }
-      
-      // VERIFICAR DATOS DEL POST
-      console.log('📋 Datos completos del post:', currentPost);
-      console.log('🔍 Campos clave:', {
-        tieneCategorie: !!currentPost?.categorie,
-        categorie: currentPost?.categorie,
-        tieneSubCategory: !!currentPost?.subCategory,
-        subCategory: currentPost?.subCategory,
-        id: currentPost?._id
-      });
-      
-      // Validación crítica
-      if (!currentPost?.categorie || !currentPost?.subCategory) {
-        console.error('❌ FALTAN DATOS PARA BÚSQUEDA:', {
-          categorie: currentPost?.categorie,
-          subCategory: currentPost?.subCategory,
-          postCompleto: currentPost
+        
+        // 2. En posts array de homePosts
+        if (!currentPost && homePostsState.posts) {
+            currentPost = homePostsState.posts.find(p => p._id === postId);
+            if (currentPost) {
+                console.log('✅ Post encontrado en homePosts.posts');
+            }
+        }
+        
+        // 3. Si no está, obtener de API
+        if (!currentPost) {
+            console.log('📥 Post no encontrado en redux, obteniendo de API...');
+            try {
+                const res = await getDataAPI(`post/${postId}`);
+                currentPost = res.data?.post || res.data;
+                
+                // Guardar en detailPost
+                dispatch({
+                    type: 'GET_POST',
+                    payload: currentPost
+                });
+                
+                console.log('📦 Post guardado en detailPost');
+            } catch (err) {
+                console.error('❌ Error obteniendo post:', err);
+                dispatch({ 
+                    type: POST_TYPES.LOADING_SIMILAR_POSTS, 
+                    payload: false 
+                });
+                return;
+            }
+        }
+        
+        // Validar que tengamos el post
+        if (!currentPost) {
+            console.error('❌ NO SE PUDO OBTENER EL POST');
+            dispatch({ 
+                type: POST_TYPES.LOADING_SIMILAR_POSTS, 
+                payload: false 
+            });
+            return;
+        }
+        
+        console.log('✅ Post encontrado para similares:', {
+            id: currentPost._id,
+            categorie: currentPost.categorie,
+            subCategory: currentPost.subCategory,
+            title: currentPost.title
+        });
+        
+        // Validar categoría y subcategoría
+        if (!currentPost.categorie || !currentPost.subCategory) {
+            console.error('❌ Post sin categoría completa');
+            dispatch({ 
+                type: POST_TYPES.LOADING_SIMILAR_POSTS, 
+                payload: false 
+            });
+            return;
+        }
+        
+        // Construir parámetros
+        const params = new URLSearchParams({
+            categorie: currentPost.categorie,
+            subCategory: currentPost.subCategory,
+            excludeId: postId,
+            limit: options.limit || 6,
+            page: options.page || 1
+        });
+        
+        console.log('🌐 Llamando API:', `/posts/similar?${params}`);
+        
+        // Llamada a API
+        const res = await getDataAPI(`posts/similar?${params}`);
+        
+        console.log('📦 Respuesta API:', {
+            success: res.data.success,
+            postsCount: res.data.posts?.length,
+            data: res.data
+        });
+        
+        if (res.data.success) {
+            // ✅ Dispatch al reducer correcto: homePosts
+            dispatch({
+                type: POST_TYPES.GET_SIMILAR_POSTS,
+                payload: {
+                    posts: res.data.posts || [],
+                    page: options.page || 1,
+                    total: res.data.total || 0,
+                    currentPostId: postId
+                }
+            });
+        } else {
+            throw new Error(res.data.message || 'Error en el servidor');
+        }
+        
+    } catch (err) {
+        console.error('❌ ERROR en getSimilarPosts:', err.message);
+        
+        dispatch({ 
+            type: POST_TYPES.ERROR_POST, 
+            payload: err.message 
         });
         
         dispatch({ 
-          type: POST_TYPES.ERROR_POST, 
-          payload: {
-            message: 'El post no tiene categoría o subcategoría definida',
-            action: 'getSimilarPosts'
-          }
+            type: POST_TYPES.LOADING_SIMILAR_POSTS, 
+            payload: false 
         });
-        dispatch({ type: POST_TYPES.LOADING_SIMILAR_POSTS, payload: false });
-        return;
-      }
-      
-      // Construir params
-      const params = new URLSearchParams({
-        categorie: currentPost.categorie,
-        subCategory: currentPost.subCategory,
-        excludeId: postId,
-        limit: options.limit || 6,
-        page: options.page || 1
-      }).toString();
-      
-      console.log('🌐 Llamando endpoint con params:', `/posts/similar?${params}`);
-      
-      // Llamada a API
-      const res = await getDataAPI(`posts/similar?${params}`);
-      
-      console.log('📦 Respuesta completa de API:', res);
-      console.log('📊 Datos recibidos:', {
-        success: res.data.success,
-        postsCount: res.data.posts?.length,
-        total: res.data.total,
-        message: res.data.message
-      });
-      
-      if (!res.data.success) {
-        throw new Error(res.data.message || 'Error en la respuesta del servidor');
-      }
-      
-      // Continuar con el dispatch...
-      
-    } catch (err) {
-      console.error('❌ ERROR COMPLETO en getSimilarPosts:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        config: err.response?.config
-      });
-      // Manejo de error...
     }
-  };
-  
+};
   export const clearSimilarPosts = () => (dispatch) => {
     dispatch({ type: POST_TYPES.CLEAR_SIMILAR_POSTS });
   };

@@ -11,21 +11,20 @@ const initialState = {
     total: 0,
     totalPages: 1,
     categories: [],
-    
+
     // ✅ NUEVOS ESTADOS PARA POSTS SIMILARES
-    similarPosts: [],           // Array de posts similares
-    similarPostsTotal: 0,       // Total de posts similares encontrados
-    similarPostsPage: 1,        // Página actual de posts similares
-    similarPostsTotalPages: 1,  // Total de páginas
-    similarPostsHasMore: false, // Si hay más páginas
-    similarLoading: false,      // Loading state para posts similares
-    currentSimilarPostId: null, // ID del post actual para el cual buscamos similares
-    
+    similarPosts: [],
+    similarPostsTotal: 0,
+    similarPostsPage: 1,
+    similarPostsTotalPages: 1,
+    similarPostsHasMore: false,
+    similarLoading: false,
+    currentSimilarPostId: null,
     // Estados para categorías paginadas
     categoriesPage: 1,
     categoriesTotal: 0,
     categoriesHasMore: false,
-    
+
     currentCategory: 'all',
     error: null,
     category: null,
@@ -44,9 +43,9 @@ const postReducer = (state = initialState, action) => {
                 postsCount: action.payload.posts?.length,
                 page: action.payload.page
             });
-            
+
             const { category, posts, page, result, total, totalPages } = action.payload;
-            
+
             if (category === 'all') {
                 return {
                     ...state,
@@ -59,23 +58,23 @@ const postReducer = (state = initialState, action) => {
                     loading: false
                 };
             }
-            
+
             const existingCategoryPosts = state.categoryPosts[category] || [];
-            
+
             let updatedCategorySpecificPosts = [];
             if (page === 1) {
                 updatedCategorySpecificPosts = posts;
             } else {
                 updatedCategorySpecificPosts = [...state.categorySpecificPosts, ...posts];
             }
-            
+
             let updatedCategoryPosts;
             if (page === 1) {
                 updatedCategoryPosts = posts;
             } else {
                 updatedCategoryPosts = [...existingCategoryPosts, ...posts];
             }
-            
+
             return {
                 ...state,
                 categoryPosts: {
@@ -90,7 +89,7 @@ const postReducer = (state = initialState, action) => {
                 currentCategory: category,
                 loading: false
             };
-            
+
         // ==================== POSTS GENERALES (HOME) ====================
         case POST_TYPES.GET_POSTS:
             console.log('🏠 Reducer - GET_POSTS (para Home)');
@@ -103,7 +102,7 @@ const postReducer = (state = initialState, action) => {
                 currentCategory: 'all',
                 loading: false
             };
-            
+
         // ==================== CATEGORÍAS ====================
         case POST_TYPES.GET_CATEGORIES:
             console.log('📂 Reducer - GET_CATEGORIES:', {
@@ -111,18 +110,18 @@ const postReducer = (state = initialState, action) => {
                 isArray: Array.isArray(action.payload),
                 length: action.payload?.length
             });
-            
+
             // Asegurar que siempre sea un array
-            const categoriesArray = Array.isArray(action.payload) 
-                ? action.payload 
+            const categoriesArray = Array.isArray(action.payload)
+                ? action.payload
                 : (action.payload.categories || []);
-            
+
             return {
                 ...state,
                 categories: categoriesArray,
                 loading: false
             };
-            
+
         case POST_TYPES.GET_CATEGORIES_PAGINATED:
             console.log('🔄 Reducer - GET_CATEGORIES_PAGINATED - Payload:', {
                 payload: action.payload,
@@ -132,11 +131,11 @@ const postReducer = (state = initialState, action) => {
                 categoriesType: typeof action.payload?.categories,
                 categoriesIsArray: Array.isArray(action.payload?.categories)
             });
-            
+
             // Asegurar que categories sea un array
             const categoriesData = action.payload?.categories;
             let safeCategories = [];
-            
+
             if (Array.isArray(categoriesData)) {
                 safeCategories = categoriesData;
             } else if (categoriesData && typeof categoriesData === 'object') {
@@ -146,12 +145,12 @@ const postReducer = (state = initialState, action) => {
                 // Si el payload completo es el array
                 safeCategories = action.payload;
             }
-            
+
             console.log('📊 Categories seguro:', {
                 safeCategoriesLength: safeCategories.length,
                 firstItem: safeCategories[0]
             });
-            
+
             if (action.payload?.page === 1) {
                 return {
                     ...state,
@@ -171,52 +170,68 @@ const postReducer = (state = initialState, action) => {
                     loading: false
                 };
             }
-            
+
         // ==================== POSTS SIMILARES ====================
         case POST_TYPES.GET_SIMILAR_POSTS:
-            console.log('🔄 Reducer - GET_SIMILAR_POSTS:', {
-                postsCount: action.payload.posts?.length,
+            console.log('🔄 Reducer - GET_SIMILAR_POSTS - Payload recibido:', {
+                postsLength: action.payload.posts?.length,
                 page: action.payload.page,
-                hasMore: action.payload.hasMore,
-                total: action.payload.total,
-                currentPostId: action.payload.currentPostId
+                currentPostId: action.payload.currentPostId,
+                payloadCompleto: action.payload
             });
             
-            // Extraer datos del payload con valores por defecto
-            const similarPosts = action.payload.posts || [];
-            const similarPage = action.payload.page || 1;
-            const similarTotal = action.payload.total || 0;
-            const similarTotalPages = action.payload.totalPages || 1;
-            const similarHasMore = action.payload.hasMore || false;
-            const currentPostId = action.payload.currentPostId || null;
+            const { 
+                posts: newSimilarPosts = [],
+                page: newPage = 1,
+                total: newTotal = 0,
+                totalPages: newTotalPages = 1,
+                hasMore: newHasMore = false,
+                currentPostId: newCurrentPostId 
+            } = action.payload;
             
-            // Si es página 1 o post diferente, reemplazar
-            // Si es misma página del mismo post, agregar
-            let updatedSimilarPosts;
-            if (similarPage === 1 || currentPostId !== state.currentSimilarPostId) {
-                updatedSimilarPosts = similarPosts;
-            } else {
-                updatedSimilarPosts = [...state.similarPosts, ...similarPosts];
+            // Validar que newSimilarPosts sea un array
+            const safeSimilarPosts = Array.isArray(newSimilarPosts) 
+                ? newSimilarPosts 
+                : [];
+            
+            console.log('📊 Similar posts procesados:', {
+                safeLength: safeSimilarPosts.length,
+                firstPost: safeSimilarPosts[0]
+            });
+            
+            // Si es página 1 o es un post diferente, reemplazar completamente
+            if (newPage === 1 || newCurrentPostId !== state.currentSimilarPostId) {
+                return {
+                    ...state,
+                    similarPosts: safeSimilarPosts,
+                    similarPostsTotal: newTotal,
+                    similarPostsPage: newPage,
+                    similarPostsTotalPages: newTotalPages,
+                    similarPostsHasMore: newHasMore,
+                    similarLoading: false,
+                    currentSimilarPostId: newCurrentPostId,
+                    error: null  // Limpiar errores previos
+                };
             }
             
+            // Si es la misma página del mismo post, agregar (paginación)
             return {
                 ...state,
-                similarPosts: updatedSimilarPosts,
-                similarPostsTotal: similarTotal,
-                similarPostsPage: similarPage,
-                similarPostsTotalPages: similarTotalPages,
-                similarPostsHasMore: similarHasMore,
+                similarPosts: [...state.similarPosts, ...safeSimilarPosts],
+                similarPostsTotal: newTotal,
+                similarPostsPage: newPage,
+                similarPostsTotalPages: newTotalPages,
+                similarPostsHasMore: newHasMore,
                 similarLoading: false,
-                currentSimilarPostId: currentPostId
+                error: null
             };
-            
         case POST_TYPES.LOADING_SIMILAR_POSTS:
             console.log('⏳ Reducer - LOADING_SIMILAR_POSTS:', action.payload);
             return {
                 ...state,
                 similarLoading: action.payload
             };
-            
+
         case POST_TYPES.CLEAR_SIMILAR_POSTS:
             console.log('🧹 Reducer - CLEAR_SIMILAR_POSTS');
             return {
@@ -229,16 +244,16 @@ const postReducer = (state = initialState, action) => {
                 similarLoading: false,
                 currentSimilarPostId: null
             };
-            case POST_TYPES.UPDATE_POST:
-                return {
-                    ...state,
-                    posts: EditData(state.posts, action.payload._id, action.payload)
-                };
-            case POST_TYPES.DELETE_POST:
-                return {
-                    ...state,
-                    posts: DeleteData(state.posts, action.payload._id)
-                };
+        case POST_TYPES.UPDATE_POST:
+            return {
+                ...state,
+                posts: EditData(state.posts, action.payload._id, action.payload)
+            };
+        case POST_TYPES.DELETE_POST:
+            return {
+                ...state,
+                posts: DeleteData(state.posts, action.payload._id)
+            };
         // ==================== LOADING Y ERROR ====================
         case POST_TYPES.LOADING_POST:
             console.log('⏳ Reducer - LOADING_POST:', action.payload);
@@ -246,7 +261,7 @@ const postReducer = (state = initialState, action) => {
                 ...state,
                 loading: action.payload
             };
-            
+
         case POST_TYPES.ERROR_POST:
             console.log('❌ Reducer - ERROR_POST:', action.payload);
             return {
@@ -255,42 +270,42 @@ const postReducer = (state = initialState, action) => {
                 loading: false,
                 similarLoading: false
             };
-            // En redux/reducers/postReducer.js
-case POST_TYPES.GET_SUBCATEGORY_POSTS:
-    return {
-        ...state,
-        posts: action.payload.page === 1 
-            ? action.payload.posts 
-            : [...state.posts, ...action.payload.posts],
-        category: action.payload.category,
-        subcategory: action.payload.subcategory,
-        page: action.payload.page,
-        total: action.payload.total
-    };
+        // En redux/reducers/postReducer.js
+        case POST_TYPES.GET_SUBCATEGORY_POSTS:
+            return {
+                ...state,
+                posts: action.payload.page === 1
+                    ? action.payload.posts
+                    : [...state.posts, ...action.payload.posts],
+                category: action.payload.category,
+                subcategory: action.payload.subcategory,
+                page: action.payload.page,
+                total: action.payload.total
+            };
 
 
 
- 
-    case POST_TYPES.GET_CATEGORIES_PAGINATED:
-        const existingCategories = state.categories || [];
-        const newCategories = action.payload.categories || [];
-        
-        // Evitar duplicados
-        const uniqueCategories = [...existingCategories];
-        newCategories.forEach(newCat => {
-            if (!uniqueCategories.find(cat => cat.name === newCat.name)) {
-                uniqueCategories.push(newCat);
-            }
-        });
-        
-        return {
-            ...state,
-            categories: uniqueCategories,
-            categoriesPage: action.payload.page,
-            categoriesTotal: action.payload.total,
-            categoriesHasMore: action.payload.hasMore
-        };
-        
+
+        case POST_TYPES.GET_CATEGORIES_PAGINATED:
+            const existingCategories = state.categories || [];
+            const newCategories = action.payload.categories || [];
+
+            // Evitar duplicados
+            const uniqueCategories = [...existingCategories];
+            newCategories.forEach(newCat => {
+                if (!uniqueCategories.find(cat => cat.name === newCat.name)) {
+                    uniqueCategories.push(newCat);
+                }
+            });
+
+            return {
+                ...state,
+                categories: uniqueCategories,
+                categoriesPage: action.payload.page,
+                categoriesTotal: action.payload.total,
+                categoriesHasMore: action.payload.hasMore
+            };
+
         case POST_TYPES.GET_IMMOBILIER_POSTS:
             console.log('🏠 Reducer - GET_IMMOBILIER_POSTS:', {
                 operation: action.payload.operation,
@@ -299,19 +314,19 @@ case POST_TYPES.GET_SUBCATEGORY_POSTS:
                 total: action.payload.total,
                 propertyType: action.payload.propertyType
             });
-            
-            const { 
-                operation, 
-                posts: immoPosts, 
-                page: immoPage, 
+
+            const {
+                operation,
+                posts: immoPosts,
+                page: immoPage,
                 total: immoTotal,
-                propertyType 
+                propertyType
             } = action.payload;
-            
+
             // Determinar si hay más páginas
-            const immoHasMore = immoPosts?.length > 0 && 
+            const immoHasMore = immoPosts?.length > 0 &&
                 (state.immobilierPage * 12) < immoTotal;
-            
+
             // Si es página 1 o operación diferente, reemplazar
             if (immoPage === 1 || operation !== state.immobilierOperation) {
                 return {
@@ -326,7 +341,7 @@ case POST_TYPES.GET_SUBCATEGORY_POSTS:
                     loading: false
                 };
             }
-            
+
             // Si es la misma operación y página > 1, agregar posts
             return {
                 ...state,
