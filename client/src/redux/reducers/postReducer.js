@@ -11,7 +11,7 @@ const initialState = {
     total: 0,
     totalPages: 1,
     categories: [],
-
+ 
     // ✅ NUEVOS ESTADOS PARA POSTS SIMILARES
     similarPosts: [],
     similarPostsTotal: 0,
@@ -226,14 +226,14 @@ const postReducer = (state = initialState, action) => {
                 error: null
             };
         case POST_TYPES.LOADING_SIMILAR_POSTS:
-            console.log('⏳ Reducer - LOADING_SIMILAR_POSTS:', action.payload);
+          
             return {
                 ...state,
                 similarLoading: action.payload
             };
 
         case POST_TYPES.CLEAR_SIMILAR_POSTS:
-            console.log('🧹 Reducer - CLEAR_SIMILAR_POSTS');
+          
             return {
                 ...state,
                 similarPosts: [],
@@ -244,6 +244,11 @@ const postReducer = (state = initialState, action) => {
                 similarLoading: false,
                 currentSimilarPostId: null
             };
+            case POST_TYPES.CREATE_POST:
+                return {
+                    ...state,
+                    posts: [action.payload, ...state.posts]
+                };
         case POST_TYPES.UPDATE_POST:
             return {
                 ...state,
@@ -352,9 +357,7 @@ const postReducer = (state = initialState, action) => {
                 loading: false
             };
 
-
-
-
+           
 
         default:
             return state;

@@ -24,7 +24,17 @@ const PostCard = ({ post }) => {
       
       {/* CARRUSEL DE IMÁGENES */}
       <CardBodyCarousel post={post} />
-     
+      
+      {/* ✅ SOLO EN PÁGINA DE DETALLE */}
+      {isDetailPage && (
+        <>
+          <DescriptionPost post={post} />
+          <DescriptionUser post={post} />
+        </>
+      )}
+      
+      {/* FOOTER (siempre visible) */}
+      <CardFooter post={post} />
     </div>
   );
 };

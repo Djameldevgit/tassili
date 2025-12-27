@@ -7,8 +7,7 @@ const storeCtrl = {
   // storeActions.js - Actualizado para Error 500
  
   createStore: async (req, res) => {
-    console.log('=== 🚀 DEBUG INICIALIZADO - createStore ===')
-    
+   
     try {
       // 1. Verificar autenticación
       if (!req.user || !req.user._id) {
@@ -77,20 +76,7 @@ const storeCtrl = {
         }
       }
 
-      // 🔍 DEBUG: Validar campos ANTES de crear el documento
-      console.log('🔍 VALIDANDO MANUALMENTE CAMPOS DEL MODELO:')
-      console.log('1. owner:', typeof storeData.owner, '-', storeData.owner)
-      console.log('2. name:', typeof storeData.name, '- Longitud:', storeData.name.length)
-      console.log('3. category:', typeof storeData.category, '-', storeData.category)
-      console.log('4. plan:', storeData.plan, '- ¿Está en enum?', ['Free', 'Pro', 'Premium'].includes(storeData.plan))
-      console.log('5. duration:', storeData.duration, '- ¿Es número?', typeof storeData.duration === 'number')
-      console.log('6. price:', storeData.price, '- ¿Es número?', typeof storeData.price === 'number')
-      console.log('7. credits:', storeData.credits, '- ¿Es número?', typeof storeData.credits === 'number')
-      console.log('8. storage:', storeData.storage, '- ¿Es número?', typeof storeData.storage === 'number')
-      console.log('9. originalPlan:', storeData.originalPlan)
-      console.log('10. isActive:', storeData.isActive)
-      console.log('11. verified:', storeData.verified)
-
+   
       // Validación de longitud máxima
       if (storeData.name.length > 100) {
         console.error('⚠️ ADVERTENCIA: name excede 100 caracteres')

@@ -30,7 +30,7 @@ const postSchema = new mongoose.Schema({
   store: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'store',
-    required: true
+    required: false
   },
   
   categorySpecificData: {

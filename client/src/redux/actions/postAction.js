@@ -8,8 +8,11 @@ import { POST_TYPES_APROVE } from './postAproveAction';
 export const POST_TYPES = {
     // ... tus constantes existentes (NO LAS CAMBIES)
     LOADING_POST: 'LOADING_POST',
+    CREATE_POST: 'CREATE_POST',
     GET_POST: 'GET_POST',
     GET_POSTS: 'GET_POSTS',
+ 
+ 
     GET_POST: 'GET_POST',
     DELETE_POST: 'DELETE_POST',
     GET_POSTS_BY_CATEGORY: 'GET_POSTS_BY_CATEGORY',
@@ -24,8 +27,87 @@ export const POST_TYPES = {
     LOADING_SIMILAR_POSTS: 'LOADING_SIMILAR_POSTS',
     CLEAR_SIMILAR_POSTS: 'CLEAR_SIMILAR_POSTS'
 }
+export const createPost = ({ 
+    postData, 
+    images, 
+    auth, 
+    socket 
+}) => async (dispatch) => {
+    let media = []
+    try {
+        dispatch({ 
+            type: GLOBALTYPES.ALERT, 
+            payload: { 
+                loading: true,
+                text: 'Creating post...' // Mensaje de carga
+            } 
+        })
+        
+        if(images.length > 0) media = await imageUpload(images)
+
+        // 📌 ENVIAR DATOS ORGANIZADOS
+        const res = await postDataAPI('posts', { 
+            ...postData,
+            images: media 
+        }, auth.token)
+
+        // ✅ 1. DISPATCH PARA AGREGAR POST AL ESTADO
+        dispatch({ 
+            type: POST_TYPES.CREATE_POST, 
+            payload: {
+                ...res.data.newPost, 
+                user: auth.user,
+                categorySpecificData: postData.categorySpecificData || {}
+            } 
+        })
+
+        // ✅ 2. ALERT DE ÉXITO (diferentes opciones)
+        dispatch({ 
+            type: GLOBALTYPES.ALERT, 
+            payload: {
+                success: '✅ Post created successfully!'
+               
+            } 
+        })
+
+        // ✅ 3. OPCIONAL: Alert que se auto-elimina después de 3 segundos
+        setTimeout(() => {
+            dispatch({ 
+                type: GLOBALTYPES.ALERT, 
+                payload: {} // Limpiar alert
+            })
+        }, 3000)
+
+        // Notify (opcional)
+        const msg = {
+            id: res.data.newPost._id,
+            text: 'added a new post.',
+            recipients: res.data.newPost.user.followers,
+            url: `/post/${res.data.newPost._id}`,
+            content: postData.description, 
+            image: media[0]?.url
+        }
+
+        dispatch(createNotify({msg, auth, socket}))
+
+    } catch (err) {
+        dispatch({
+            type: GLOBALTYPES.ALERT,
+            payload: {
+                error: err.response?.data?.msg || err.message || 'Error creating post'
+            }
+        })
+    }
+}
  
+
  
+export const clearUserPosts = (userId) => (dispatch) => {
+    dispatch({
+        type: POST_TYPES.CLEAR_USER_POSTS,
+        payload: { userId }
+    });
+};
 // En tu action getSimilarPosts
 export const getSimilarPosts = (postId, options = {}) => async (dispatch, getState) => {
     try {
@@ -343,55 +425,7 @@ export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, opt
 };
 // Acción para crear post (ya la tienes, pero asegurar que guarda categoría)
 // actions/postAction.js - createPost actualizada
-export const createPost = ({ 
-    postData, 
-    images, 
-    auth, 
-    socket 
-}) => async (dispatch) => {
-    let media = []
-    try {
-        dispatch({ type: GLOBALTYPES.ALERT, payload: {loading: true} })
-        
-        if(images.length > 0) media = await imageUpload(images)
-
-        // 📌 ENVIAR DATOS ORGANIZADOS
-        const res = await postDataAPI('posts', { 
-            ...postData,
-            images: media 
-        }, auth.token)
-
-        dispatch({ 
-            type: POST_TYPES.CREATE_POST, 
-            payload: {
-                ...res.data.newPost, 
-                user: auth.user,
-                // 📌 Asegurar que los campos específicos estén disponibles
-                categorySpecificData: postData.categorySpecificData || {}
-            } 
-        })
-
-        dispatch({ type: GLOBALTYPES.ALERT, payload: {loading: false} })
-
-        // Notify (opcional)
-        const msg = {
-            id: res.data.newPost._id,
-            text: 'added a new post.',
-            recipients: res.data.newPost.user.followers,
-            url: `/post/${res.data.newPost._id}`,
-            content: postData.description, 
-            image: media[0]?.url
-        }
-
-        dispatch(createNotify({msg, auth, socket}))
-
-    } catch (err) {
-        dispatch({
-            type: GLOBALTYPES.ALERT,
-            payload: {error: err.response?.data?.msg || err.message}
-        })
-    }
-}
+ 
 /*export const getPostsBySubcategory = (categoryName, subcategoryId, page = 1, options = {}) => 
     async (dispatch, getState) => {
     try {
@@ -541,7 +575,7 @@ export const updatePost = ({
         });
     }
 }
-
+ 
 export const getPosts = () => async (dispatch) => {
     try {
         dispatch({ type: POST_TYPES.LOADING_POST, payload: true })

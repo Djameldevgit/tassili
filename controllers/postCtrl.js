@@ -759,7 +759,6 @@ getSimilarPosts: async (req, res) => {
         return res.status(500).json({msg: err.message});
     }
 },
-
 getUserPosts: async (req, res) => {
     try {
         const features = new APIfeatures(Posts.find({user: req.params.id}), req.query)
